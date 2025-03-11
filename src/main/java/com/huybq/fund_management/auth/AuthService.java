@@ -1,16 +1,16 @@
 package com.huybq.fund_management.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huybq.fund_management.token.JwtService;
-import com.huybq.fund_management.token.Token;
-import com.huybq.fund_management.token.TokenRepository;
-import com.huybq.fund_management.token.TokenType;
-import com.huybq.fund_management.user.dto.UserDto;
-import com.huybq.fund_management.user.entity.Roles;
-import com.huybq.fund_management.user.entity.Status;
-import com.huybq.fund_management.user.entity.User;
-import com.huybq.fund_management.user.repository.UserRepository;
-import com.huybq.fund_management.user.response.AuthenticationResponse;
+import com.huybq.fund_management.domain.token.JwtService;
+import com.huybq.fund_management.domain.token.Token;
+import com.huybq.fund_management.domain.token.TokenRepository;
+import com.huybq.fund_management.domain.token.TokenType;
+import com.huybq.fund_management.domain.user.dto.UserDto;
+import com.huybq.fund_management.domain.user.entity.Roles;
+import com.huybq.fund_management.domain.user.entity.Status;
+import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.response.AuthenticationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

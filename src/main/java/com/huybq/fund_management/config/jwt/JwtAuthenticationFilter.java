@@ -1,6 +1,6 @@
 package com.huybq.fund_management.config.jwt;
 
-import com.huybq.fund_management.token.JwtService;
+import com.huybq.fund_management.domain.token.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

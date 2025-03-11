@@ -1,8 +1,7 @@
 package com.huybq.fund_management.auth;
 
-import com.huybq.fund_management.token.JwtService;
-import com.huybq.fund_management.user.dto.UserDto;
-import com.huybq.fund_management.user.response.AuthenticationResponse;
+import com.huybq.fund_management.domain.user.dto.UserDto;
+import com.huybq.fund_management.domain.user.response.AuthenticationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
