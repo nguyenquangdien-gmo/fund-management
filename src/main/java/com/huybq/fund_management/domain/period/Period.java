@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.period;
 
+import com.huybq.fund_management.domain.fund.Fund;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Data
@@ -22,27 +27,31 @@ public class Period {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private Integer month;
 
-    @Column(nullable = false)
     private Integer year;
 
-    @Column(nullable = false)
     private LocalDate deadline;
+    private String description;
 
-    @Column(name = "standard_amount", nullable = false, precision = 10, scale = 2)
-    private BigDecimal standardAmount;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal totalAmount;
 
-    @Column(name = "common_fund", nullable = false, precision = 10, scale = 2)
-    private BigDecimal commonFund;
-
-    @Column(name = "snack_fund", nullable = false, precision = 10, scale = 2)
-    private BigDecimal snackFund;
+    @OneToMany(mappedBy = "period", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Fund> funds = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    @PreUpdate
+    private void calculateTotalAmount() {
+        this.totalAmount = funds.stream()
+                .map(Fund::getAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }
