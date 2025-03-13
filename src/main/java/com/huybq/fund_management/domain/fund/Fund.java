@@ -5,6 +5,7 @@ import com.huybq.fund_management.domain.contributions.Contribution;
 import com.huybq.fund_management.domain.period.Period;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Fund {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,14 +37,6 @@ public class Fund {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "period_id")
-    @JsonIgnore
-    private Period period;
 
-    @ManyToOne
-    @JoinColumn(name = "contribution_id")
-    @JsonIgnore
-    private Contribution contribution;
 
 }
