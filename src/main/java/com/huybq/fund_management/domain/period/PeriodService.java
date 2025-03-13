@@ -67,7 +67,7 @@ public class PeriodService {
         periodRepository.deleteById(id);
     }
 
-    private BigDecimal calculateTotalAmount() {
+    public BigDecimal calculateTotalAmount() {
         return fundRepository.findAll().stream()
                 .map(Fund::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

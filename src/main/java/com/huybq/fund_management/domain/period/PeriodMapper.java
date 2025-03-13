@@ -10,6 +10,7 @@ public class PeriodMapper {
             return null;
         }
         return new PeriodDTO(
+                period.getId(),
                 period.getMonth(),
                 period.getYear(),
                 period.getDeadline(),

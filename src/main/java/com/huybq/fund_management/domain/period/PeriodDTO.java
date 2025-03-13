@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 @Builder
 public record PeriodDTO(
+        Long id,
         Integer month,
         Integer year,
         LocalDate deadline,
