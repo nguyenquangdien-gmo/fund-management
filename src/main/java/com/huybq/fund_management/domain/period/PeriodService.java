@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -16,44 +15,47 @@ import java.util.List;
 public class PeriodService {
     private final PeriodRepository periodRepository;
     private final FundRepository fundRepository;
+    private final PeriodMapper periodMapper;
 
-    public List<Period> getAllPeriods() {
-        return periodRepository.findAll();
+    public List<PeriodDTO> getAllPeriods() {
+        return periodRepository.findAll().stream()
+                .map(periodMapper::toDTO)
+                .toList();
     }
 
-    public Period getPeriodById(Long id) {
-        return periodRepository.findById(id)
+    public PeriodDTO getPeriodById(Long id) {
+        Period period = periodRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Period not found with ID: " + id));
+        return periodMapper.toDTO(period);
     }
 
-    public Period createPeriod(Period period) {
-        // Lấy toàn bộ funds từ database
-        List<Fund> allFunds = fundRepository.findAll();
-        period.setFunds(allFunds);
-        period.setMonth(LocalDate.now().getMonthValue());
-        period.setYear(LocalDate.now().getYear());
-        period.setDeadline(LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 10));
+    public PeriodDTO createPeriod(PeriodDTO periodDTO) {
+        LocalDate now = LocalDate.now();
 
-        // Tính tổng số tiền từ các funds
-//        BigDecimal totalAmount = allFunds.stream()
-//                .map(Fund::getAmount)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Period period = Period.builder()
+                .month(periodDTO.month() != null ? periodDTO.month() : now.getMonthValue())
+                .year(periodDTO.year() != null ? periodDTO.year() : now.getYear())
+                .deadline(periodDTO.deadline() != null ? periodDTO.deadline() : LocalDate.of(now.getYear(), now.getMonthValue(), 10))
+                .description(periodDTO.description() != null ? periodDTO.description() : "Default Description")
+                .totalAmount(calculateTotalAmount())
+                .build();
 
-        // Gán tổng số tiền vào period
-//        period.setTotalAmount(totalAmount);
-
-        // Lưu period vào database
-        return periodRepository.save(period);
+        period = periodRepository.save(period);
+        return periodMapper.toDTO(period);
     }
 
-    public Period updatePeriod(Long id, Period updatedPeriod) {
+    public PeriodDTO updatePeriod(Long id, PeriodDTO updatedPeriodDTO) {
         return periodRepository.findById(id)
                 .map(existingPeriod -> {
-                    existingPeriod.setMonth(updatedPeriod.getMonth());
-                    existingPeriod.setYear(updatedPeriod.getYear());
-                    existingPeriod.setDeadline(updatedPeriod.getDeadline());
-                    existingPeriod.setTotalAmount(updatedPeriod.getTotalAmount());
-                    return periodRepository.save(existingPeriod);
+                    LocalDate now = LocalDate.now();
+
+                    existingPeriod.setMonth(updatedPeriodDTO.month() != null ? updatedPeriodDTO.month() : now.getMonthValue());
+                    existingPeriod.setYear(updatedPeriodDTO.year() != null ? updatedPeriodDTO.year() : now.getYear());
+                    existingPeriod.setDeadline(updatedPeriodDTO.deadline() != null ? updatedPeriodDTO.deadline() : LocalDate.of(now.getYear(), now.getMonthValue(), 10));
+                    existingPeriod.setDescription(updatedPeriodDTO.description() != null ? updatedPeriodDTO.description() : existingPeriod.getDescription());
+                    existingPeriod.setTotalAmount(calculateTotalAmount());
+
+                    return periodMapper.toDTO(periodRepository.save(existingPeriod));
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Period not found with ID: " + id));
     }
@@ -63,5 +65,11 @@ public class PeriodService {
             throw new EntityNotFoundException("Period not found with ID: " + id);
         }
         periodRepository.deleteById(id);
+    }
+
+    private BigDecimal calculateTotalAmount() {
+        return fundRepository.findAll().stream()
+                .map(Fund::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

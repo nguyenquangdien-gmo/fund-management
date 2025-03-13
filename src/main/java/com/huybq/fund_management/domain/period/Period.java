@@ -37,21 +37,10 @@ public class Period {
     @Column(precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
-    @OneToMany(mappedBy = "period", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Fund> funds = new ArrayList<>();
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    @PreUpdate
-    private void calculateTotalAmount() {
-        this.totalAmount = funds.stream()
-                .map(Fund::getAmount)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 }
