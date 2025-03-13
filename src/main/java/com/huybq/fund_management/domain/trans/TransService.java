@@ -1,7 +1,6 @@
 package com.huybq.fund_management.domain.trans;
 
 import com.huybq.fund_management.domain.period.PeriodRepository;
-import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ public class TransService {
     private final UserRepository userRepository;
     private final PeriodRepository periodRepository;
 
-    public TransDTO createTransaction(TransDTO transDTO) {
+    public void createTransaction(TransDTO transDTO) {
         var user = userRepository.findById(transDTO.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         var period = periodRepository.findById(transDTO.getPeriodId())
@@ -25,14 +24,14 @@ public class TransService {
 
         Trans transaction = Trans.builder()
                 .amount(transDTO.getAmount())
-                .transactionType(Trans.TransactionType.valueOf(transDTO.getTransactionType()))
                 .description(transDTO.getDescription())
+                .transactionType(transDTO.getTransactionType())
                 .createdBy(user)
                 .period(period)
                 .build();
 
         transRepository.save(transaction);
-        return mapToResponseDTO(transaction);
+        mapToResponseDTO(transaction);
     }
 
     public List<TransDTO> getAllTransactions() {
@@ -45,7 +44,7 @@ public class TransService {
     private TransDTO mapToResponseDTO(Trans transaction) {
         return TransDTO.builder()
                 .amount(transaction.getAmount())
-                .transactionType(transaction.getTransactionType().name())
+                .transactionType(transaction.getTransactionType())
                 .description(transaction.getDescription())
                 .userId(transaction.getCreatedBy().getId())
                 .createdAt(transaction.getCreatedAt())

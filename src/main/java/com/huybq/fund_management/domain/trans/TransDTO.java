@@ -11,7 +11,7 @@ public class TransDTO {
     private Long userId;
     private Long periodId;
     private BigDecimal amount;
-    private String transactionType;
+    private Trans.TransactionType transactionType;
     private String description;
     private LocalDateTime createdAt;
 

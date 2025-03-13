@@ -24,7 +24,6 @@ public class Trans {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private TransactionType transactionType;
 
     @Column(length = 255)
