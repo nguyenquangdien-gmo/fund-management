@@ -1,5 +1,7 @@
 package com.huybq.fund_management.domain.contributions;
 
+import com.huybq.fund_management.domain.user.dto.UserDto;
+import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,11 +16,26 @@ public class ContributionController {
 
     private final ContributionService contributionService;
 
+
+    @GetMapping
+    public ResponseEntity<List<ContributionResponseDTO>> getAllContributions() {
+        return ResponseEntity.ok(contributionService.getAllContributions());
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<ContributionResponseDTO>> getContributionById(@RequestParam int month, @RequestParam int year) {
+        return ResponseEntity.ok(contributionService.getAllContributionsByMonthAndYear(month,year));
+    }
     // Lấy tất cả contributions của một kỳ (period)
     @GetMapping("/period/{periodId}")
     public ResponseEntity<List<ContributionResponseDTO>> getAllContributionsByPeriod(@PathVariable Long periodId) {
         List<ContributionResponseDTO> contributions = contributionService.findAllContributions(periodId);
         return ResponseEntity.ok(contributions);
+    }
+
+    @GetMapping("/periods/{periodId}/users")
+    public ResponseEntity<List<UserDto>> getUsersByPeriod(@PathVariable Long periodId) {
+        return ResponseEntity.ok(contributionService.getUsersContributedInPeriod(periodId));
     }
 
     // Lấy tất cả contributions của một user

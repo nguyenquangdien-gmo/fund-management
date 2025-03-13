@@ -16,6 +16,8 @@ public class ContributionMapper {
         dto.setNote(contribution.getNote());
         dto.setDeadline(contribution.getPeriod().getDeadline());
         dto.setCreatedAt(contribution.getCreatedAt());
+        dto.setOwedAmount(contribution.getOwedAmount());
+        dto.setOverpaidAmount(contribution.getOverpaidAmount());
         dto.setIsLate(contribution.getCreatedAt() != null &&
                 contribution.getCreatedAt().isAfter(contribution.getPeriod().getDeadline().atStartOfDay()));
 

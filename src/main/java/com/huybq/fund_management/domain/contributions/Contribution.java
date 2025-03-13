@@ -1,6 +1,5 @@
 package com.huybq.fund_management.domain.contributions;
 
-import com.huybq.fund_management.domain.fund.Fund;
 import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -9,10 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -41,11 +37,12 @@ public class Contribution {
     @Column(nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
-    @OneToMany(mappedBy = "contribution", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Fund> funds = new ArrayList<>();
-
     @Column(length = 255)
     private String note;
+
+    private BigDecimal owedAmount= BigDecimal.valueOf(0);
+    private BigDecimal overpaidAmount= BigDecimal.valueOf(0);
+    private Boolean isLate;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

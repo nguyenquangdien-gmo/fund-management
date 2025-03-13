@@ -23,5 +23,7 @@ public class ContributionResponseDTO {
     private String note;
     private LocalDate deadline;
     private Boolean isLate;
+    private BigDecimal owedAmount;
+    private BigDecimal overpaidAmount;
     private LocalDateTime createdAt;
 }
