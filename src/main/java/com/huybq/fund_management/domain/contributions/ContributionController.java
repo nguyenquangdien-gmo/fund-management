@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/contributions")
 @RequiredArgsConstructor
@@ -65,6 +67,16 @@ public class ContributionController {
             @PathVariable Long id, @Valid @RequestBody ContributionDTO contributionDTO) {
         ContributionResponseDTO updatedContribution = contributionService.updateContribution(id, contributionDTO);
         return ResponseEntity.ok(updatedContribution);
+    }
+
+    @GetMapping("/monthly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyContributionStats(@RequestParam int year) {
+        return ResponseEntity.ok(contributionService.getMonthlyContributionStats(year));
+    }
+
+    @GetMapping("/yearly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getYearlyContributionStats() {
+        return ResponseEntity.ok(contributionService.getYearlyContributionStats());
     }
 }
 

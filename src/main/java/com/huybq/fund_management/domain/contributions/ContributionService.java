@@ -24,7 +24,10 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,6 +86,47 @@ public class ContributionService {
                 .map(mapper::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
+    public List<Map<String, Object>> getMonthlyContributionStats(int year) {
+        List<Object[]> results = contributionRepository.getMonthlyContributionStatistics(year);
+        List<Map<String, Object>> stats = new ArrayList<>();
+
+        for (Object[] row : results) {
+            Map<String, Object> stat = new HashMap<>();
+            stat.put("month", row[0]);
+            stat.put("year", row[1]);
+            stat.put("totalAmount", row[2]);
+            stats.add(stat);
+        }
+        return stats;
+    }
+
+    public List<Map<String, Object>> getYearlyContributionStats() {
+        List<Object[]> results = contributionRepository.getYearlyContributionStatistics();
+        List<Map<String, Object>> stats = new ArrayList<>();
+
+        for (Object[] row : results) {
+            Map<String, Object> stat = new HashMap<>();
+            stat.put("year", row[0]);
+            stat.put("totalAmount", row[1]);
+            stats.add(stat);
+        }
+        return stats;
+    }
+
+    public List<Map<String, Object>> getLateContributors() {
+        List<Object[]> results = contributionRepository.getLateContributors();
+        List<Map<String, Object>> lateContributors = new ArrayList<>();
+
+        for (Object[] row : results) {
+            Map<String, Object> lateUser = new HashMap<>();
+            lateUser.put("user", row[0]);
+            lateUser.put("paidAt", row[1]);
+            lateUser.put("amount", row[2]);
+            lateContributors.add(lateUser);
+        }
+        return lateContributors;
+    }
+
 
     @Transactional
     public ContributionResponseDTO createContribution(ContributionDTO contributionDTO) {

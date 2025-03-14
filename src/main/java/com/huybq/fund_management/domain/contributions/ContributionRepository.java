@@ -30,5 +30,23 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
     // kiểm tra xem user đã đóng tiền trong tháng này chưa
     boolean existsByUserIdAndPeriod_MonthAndPeriod_Year(Long userId, int month, int year);
 
+    @Query("SELECT c.period.month, COALESCE(SUM(c.totalAmount), 0) " +
+            "FROM Contribution c " +
+            "WHERE c.period.year = :year " +
+            "GROUP BY c.period.month " +
+            "ORDER BY c.period.month ASC")
+    List<Object[]> getMonthlyContributionStatistics(@Param("year") int year);
+
+
+    //tổng tiền đã đóng mỗi năm
+    @Query("SELECT c.period.year, COALESCE(SUM(c.totalAmount), 0) " +
+            "FROM Contribution c GROUP BY c.period.year " +
+            "ORDER BY c.period.year DESC")
+    List<Object[]> getYearlyContributionStatistics();
+
+    @Query("SELECT c.user, c.totalAmount,c.createdAt " +
+            "FROM Contribution c WHERE c.isLate = true")
+    List<Object[]> getLateContributors();
+
     Optional<Contribution> findByUserIdAndPeriodId(@NotNull(message = "userId is required") Long userId, @NotNull(message = "periodId is required") Long periodId);
 }
