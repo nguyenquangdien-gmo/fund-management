@@ -45,9 +45,9 @@ public class PenBillService {
         return mapper.toDTO(penBill);
     }
 
-    public boolean existsByUserIdAndPenaltyId(Long userId, Long penaltyId) {
-        return penBillRepository.existsByUserIdAndPenaltyId(userId, penaltyId);
-    }
+//    public boolean existsByUserIdAndPenaltyId(Long userId, Long penaltyId) {
+//        return penBillRepository.existsByUserIdAndPenaltyId(userId, penaltyId);
+//    }
 
     public void createPenBill(@Valid PenBillDTO penBillDTO) {
         User user = userRepository.findById(penBillDTO.getUserId())

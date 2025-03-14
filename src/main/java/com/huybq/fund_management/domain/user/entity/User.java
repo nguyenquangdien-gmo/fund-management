@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +26,7 @@ public class User implements UserDetails {
     @Column(nullable = false,unique = true)
     private String email;
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
     @Column(nullable = false)
     private String fullName;
