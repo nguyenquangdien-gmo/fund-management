@@ -41,4 +41,15 @@ public class PeriodController {
         periodService.deletePeriod(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/unpaid/{userId}")
+    public ResponseEntity<List<PeriodDTO>> getUnpaidContributions(@PathVariable Long userId) {
+        List<PeriodDTO> unpaidPeriods = periodService.getUnpaidPeriodsByUser(userId);
+        return ResponseEntity.ok(unpaidPeriods);
+    }
+    @GetMapping("/owed/{userId}")
+    public ResponseEntity<List<PeriodDTO>> getOwedContributions(@PathVariable Long userId) {
+        List<PeriodDTO> unpaidPeriods = periodService.getOwedPeriodsByUser(userId);
+        return ResponseEntity.ok(unpaidPeriods);
+    }
 }

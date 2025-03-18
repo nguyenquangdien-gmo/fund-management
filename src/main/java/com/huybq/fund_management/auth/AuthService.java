@@ -75,6 +75,7 @@ public class AuthService {
         saveUserToken(user, jwtToken);
 
         var userDto = UserDto.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(String.valueOf(user.getRole()))

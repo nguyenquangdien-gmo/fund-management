@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
@@ -40,6 +41,7 @@ public class User implements UserDetails {
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+    private BigDecimal totalOverpaidAmount = BigDecimal.valueOf(0);
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

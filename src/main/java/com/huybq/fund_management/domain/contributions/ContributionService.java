@@ -86,19 +86,23 @@ public class ContributionService {
                 .map(mapper::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
+
     public List<Map<String, Object>> getMonthlyContributionStats(int year) {
         List<Object[]> results = contributionRepository.getMonthlyContributionStatistics(year);
-        List<Map<String, Object>> stats = new ArrayList<>();
+        List<Map<String, Object>> response = new ArrayList<>();
 
         for (Object[] row : results) {
-            Map<String, Object> stat = new HashMap<>();
-            stat.put("month", row[0]);
-            stat.put("year", row[1]);
-            stat.put("totalAmount", row[2]);
-            stats.add(stat);
+            if (row.length >= 2) {  // Kiểm tra độ dài tránh lỗi Index Out of Bounds
+                Map<String, Object> data = new HashMap<>();
+                data.put("month", row[0]);  // Tháng
+                data.put("totalAmount", row[1]);  // Tổng tiền đã đóng
+
+                response.add(data);
+            }
         }
-        return stats;
+        return response;
     }
+
 
     public List<Map<String, Object>> getYearlyContributionStats() {
         List<Object[]> results = contributionRepository.getYearlyContributionStatistics();
@@ -111,6 +115,16 @@ public class ContributionService {
             stats.add(stat);
         }
         return stats;
+    }
+
+    public List<UserDto> getUsersNotContributedOrOwed(int month, int year) {
+        return userRepository.findUsersNotFullyContributed(month, year).stream()
+                .map(user -> UserDto.builder()
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
+                        .role(user.getRole().name())
+                        .build()
+                ).toList();
     }
 
     public List<Map<String, Object>> getLateContributors() {
@@ -146,8 +160,8 @@ public class ContributionService {
         }
 
         BigDecimal contributedAmount = contributionDTO.getTotalAmount();
-        BigDecimal contributedCommonFund = contributedAmount.min(commonFundAmount); // Đóng trước vào quỹ chung
-        BigDecimal contributedSnackFund = contributedAmount.subtract(contributedCommonFund); // Số dư đóng vào quỹ snack
+        BigDecimal contributedCommonFund = contributedAmount.min(commonFundAmount);
+        BigDecimal contributedSnackFund = contributedAmount.subtract(contributedCommonFund);
 
         return createNewContribution(user, period, contributionDTO, totalPeriodAmount, contributedCommonFund, contributedSnackFund);
     }
@@ -156,20 +170,27 @@ public class ContributionService {
         BigDecimal contributedAmount = contributionDTO.getTotalAmount();
         BigDecimal contributedCommonFund = contributedAmount.min(commonFundAmount);
         BigDecimal contributedSnackFund = contributedAmount.subtract(contributedCommonFund);
+
         BigDecimal overpaidAmount = BigDecimal.ZERO;
+        BigDecimal owedAmount = totalPeriodAmount.subtract(contributedAmount);
+
+        if (owedAmount.compareTo(BigDecimal.ZERO) < 0) {
+            overpaidAmount = owedAmount.abs();
+            owedAmount = BigDecimal.ZERO;
+        }
+
         boolean isLate = LocalDateTime.now().isAfter(period.getDeadline().atStartOfDay());
 
         Contribution newContribution = Contribution.builder()
                 .user(user)
                 .period(period)
                 .totalAmount(contributedAmount)
-                .owedAmount(totalPeriodAmount.subtract(contributedAmount))
+                .owedAmount(owedAmount)
                 .overpaidAmount(overpaidAmount)
                 .note(contributionDTO.getNote())
                 .isLate(isLate)
                 .build();
 
-        // Chỉ ghi transaction nếu chưa đóng tiền common
         if (contributedCommonFund.compareTo(BigDecimal.ZERO) > 0) {
             transService.createTransaction(TransDTO.builder()
                     .userId(user.getId())
@@ -192,6 +213,16 @@ public class ContributionService {
             balanceService.depositBalance("snack_fund", contributedSnackFund);
         }
 
+        if (overpaidAmount.compareTo(BigDecimal.ZERO) > 0) {
+            transService.createTransaction(TransDTO.builder()
+                    .userId(user.getId())
+                    .periodId(period.getId())
+                    .amount(overpaidAmount)
+                    .transactionType(Trans.TransactionType.INCOME_FUND)
+                    .description("Overpaid contribution amount")
+                    .build());
+        }
+
         if (contributedAmount.compareTo(totalPeriodAmount) >= 0) {
             newContribution.setPaymentStatus(Contribution.PaymentStatus.PAID);
         } else {
@@ -199,9 +230,11 @@ public class ContributionService {
         }
 
         contributionRepository.save(newContribution);
+
         if (isLate) {
             createLatePenalty(user);
         }
+
         return mapper.mapToResponseDTO(newContribution);
     }
 
@@ -213,25 +246,26 @@ public class ContributionService {
         BigDecimal totalPeriodAmount = BigDecimal.valueOf(150000);
         BigDecimal commonFundAmount = BigDecimal.valueOf(30000);
         BigDecimal contributedAmount = contributionDTO.getTotalAmount();
-        BigDecimal alreadyPaid = contribution.getTotalAmount(); // Số tiền đã đóng trước đó
+        BigDecimal alreadyPaid = contribution.getTotalAmount();
         BigDecimal remainingAmount = totalPeriodAmount.subtract(alreadyPaid);
 
         if (remainingAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("You have already fully contributed for this period");
         }
 
+        BigDecimal overpaidAmount = BigDecimal.ZERO;
+
         if (contributedAmount.compareTo(remainingAmount) > 0) {
-            contributedAmount = remainingAmount; // Giới hạn đóng góp không vượt quá số còn thiếu
+            overpaidAmount = contributedAmount.subtract(remainingAmount);
+            contributedAmount = remainingAmount;
         }
 
-        // Xác định số tiền đã đóng vào quỹ chung trước đó
         BigDecimal alreadyPaidToCommonFund = alreadyPaid.min(commonFundAmount);
         boolean isCommonFundFullyPaid = alreadyPaidToCommonFund.compareTo(commonFundAmount) >= 0;
 
         BigDecimal contributedCommonFund = BigDecimal.ZERO;
         BigDecimal contributedSnackFund = contributedAmount;
 
-        // Nếu quỹ common chưa đủ, tiếp tục đóng vào đó trước
         if (!isCommonFundFullyPaid) {
             BigDecimal remainingCommonFund = commonFundAmount.subtract(alreadyPaidToCommonFund);
             contributedCommonFund = contributedAmount.min(remainingCommonFund);
@@ -240,8 +274,10 @@ public class ContributionService {
 
         contribution.setTotalAmount(alreadyPaid.add(contributedAmount));
         contribution.setOwedAmount(totalPeriodAmount.subtract(contribution.getTotalAmount()));
+        contribution.setOverpaidAmount(overpaidAmount);
+        contribution.getUser().setTotalOverpaidAmount(overpaidAmount);
 
-        // Ghi transaction **chỉ khi có đóng góp vào quỹ đó**
+
         if (contributedCommonFund.compareTo(BigDecimal.ZERO) > 0) {
             transService.createTransaction(TransDTO.builder()
                     .userId(contribution.getUser().getId())
@@ -264,13 +300,26 @@ public class ContributionService {
             balanceService.depositBalance("snack_fund", contributedSnackFund);
         }
 
+        if (overpaidAmount.compareTo(BigDecimal.ZERO) > 0) {
+            contribution.setOverpaidAmount(contribution.getOverpaidAmount().add(overpaidAmount));
+            transService.createTransaction(TransDTO.builder()
+                    .userId(contribution.getUser().getId())
+                    .periodId(contribution.getPeriod().getId())
+                    .amount(overpaidAmount)
+                    .transactionType(Trans.TransactionType.INCOME_FUND)
+                    .description("Overpaid Contribution")
+                    .build());
+        }
+
         if (contribution.getTotalAmount().compareTo(totalPeriodAmount) >= 0) {
             contribution.setPaymentStatus(Contribution.PaymentStatus.PAID);
         } else {
             contribution.setPaymentStatus(Contribution.PaymentStatus.PARTIAL);
         }
+
         boolean isLate = LocalDateTime.now().isAfter(contribution.getPeriod().getDeadline().atStartOfDay());
         contribution.setIsLate(isLate);
+
         contributionRepository.save(contribution);
         return mapper.mapToResponseDTO(contribution);
     }

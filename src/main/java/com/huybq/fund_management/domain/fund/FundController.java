@@ -10,6 +10,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/funds")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class FundController {
     private final FundService fundService;
 

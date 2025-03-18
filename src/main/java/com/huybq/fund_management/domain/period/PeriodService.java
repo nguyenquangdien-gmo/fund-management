@@ -2,6 +2,8 @@ package com.huybq.fund_management.domain.period;
 
 import com.huybq.fund_management.domain.fund.Fund;
 import com.huybq.fund_management.domain.fund.FundRepository;
+import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +19,7 @@ public class PeriodService {
     private final PeriodRepository periodRepository;
     private final FundRepository fundRepository;
     private final PeriodMapper periodMapper;
+    private final UserRepository userRepository;
 
     public List<PeriodDTO> getAllPeriods() {
         return periodRepository.findAll().stream()
@@ -60,6 +64,38 @@ public class PeriodService {
                 .orElseThrow(() -> new EntityNotFoundException("Period not found with ID: " + id));
     }
 
+    public List<PeriodDTO> getUnpaidPeriodsByUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        List<Period> unpaidPeriods = periodRepository.findUnpaidPeriodsByUser(userId);
+
+        return unpaidPeriods.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<PeriodDTO> getOwedPeriodsByUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        List<Period> unpaidPeriods = periodRepository.findOwedPeriodsByUser(userId);
+
+        return unpaidPeriods.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private PeriodDTO mapToDTO(Period period) {
+        return PeriodDTO.builder()
+                .id(period.getId())
+                .month(period.getMonth())
+                .year(period.getYear())
+                .deadline(period.getDeadline())
+                .description(period.getDescription())
+                .build();
+    }
+
     public void deletePeriod(Long id) {
         if (!periodRepository.existsById(id)) {
             throw new EntityNotFoundException("Period not found with ID: " + id);
@@ -72,4 +108,6 @@ public class PeriodService {
                 .map(Fund::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+
 }

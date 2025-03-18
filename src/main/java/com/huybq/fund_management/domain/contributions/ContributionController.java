@@ -14,6 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/contributions")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ContributionController {
 
     private final ContributionService contributionService;
@@ -24,10 +25,16 @@ public class ContributionController {
         return ResponseEntity.ok(contributionService.getAllContributions());
     }
 
+    @GetMapping("/users-not-contributed")
+    public ResponseEntity<List<UserDto>> getUsersNotContributed(@RequestParam int month, @RequestParam int year) {
+        return ResponseEntity.ok(contributionService.getUsersNotContributedOrOwed(month, year));
+    }
+
     @GetMapping("/")
     public ResponseEntity<List<ContributionResponseDTO>> getContributionById(@RequestParam int month, @RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getAllContributionsByMonthAndYear(month,year));
+        return ResponseEntity.ok(contributionService.getAllContributionsByMonthAndYear(month, year));
     }
+
     // Lấy tất cả contributions của một kỳ (period)
     @GetMapping("/period/{periodId}")
     public ResponseEntity<List<ContributionResponseDTO>> getAllContributionsByPeriod(@PathVariable Long periodId) {

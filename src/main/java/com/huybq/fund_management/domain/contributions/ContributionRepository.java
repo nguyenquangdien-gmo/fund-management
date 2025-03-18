@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.contributions;
 
+import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +16,6 @@ import java.util.Optional;
 public interface ContributionRepository extends JpaRepository<Contribution, Long> {
     List<Contribution> findAllByPeriodId(Long periodId);
 
-    //lấy ra tiền nợ của user trong 1 tháng
     @Query("SELECT c.owedAmount FROM Contribution c WHERE c.user.id = :userId AND c.period.month = :month AND c.period.year = :year")
     Optional<BigDecimal> findOwedAmountByUserAndPeriod(@Param("userId") Long userId, @Param("month") int month, @Param("year") int year);
 
@@ -27,7 +27,7 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
     List<Contribution> findByUserId(Long userId);
 
     List<Contribution> findByUserIdAndPaymentStatus(Long userId, Contribution.PaymentStatus paymentStatus);
-    // kiểm tra xem user đã đóng tiền trong tháng này chưa
+
     boolean existsByUserIdAndPeriod_MonthAndPeriod_Year(Long userId, int month, int year);
 
     @Query("SELECT c.period.month, COALESCE(SUM(c.totalAmount), 0) " +
@@ -37,8 +37,6 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
             "ORDER BY c.period.month ASC")
     List<Object[]> getMonthlyContributionStatistics(@Param("year") int year);
 
-
-    //tổng tiền đã đóng mỗi năm
     @Query("SELECT c.period.year, COALESCE(SUM(c.totalAmount), 0) " +
             "FROM Contribution c GROUP BY c.period.year " +
             "ORDER BY c.period.year DESC")
@@ -49,4 +47,5 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
     List<Object[]> getLateContributors();
 
     Optional<Contribution> findByUserIdAndPeriodId(@NotNull(message = "userId is required") Long userId, @NotNull(message = "periodId is required") Long periodId);
+
 }

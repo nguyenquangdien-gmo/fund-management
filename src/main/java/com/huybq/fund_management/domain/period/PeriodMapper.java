@@ -14,7 +14,8 @@ public class PeriodMapper {
                 period.getMonth(),
                 period.getYear(),
                 period.getDeadline(),
-                period.getDescription()
+                period.getDescription(),
+                period.getTotalAmount()
         );
     }
     public  Period toEntity(PeriodDTO periodDTO) {

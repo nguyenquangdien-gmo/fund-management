@@ -11,6 +11,7 @@ public record PeriodDTO(
         Integer month,
         Integer year,
         LocalDate deadline,
-        String description
+        String description,
+        BigDecimal totalAmount
 ) {
 }
