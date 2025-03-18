@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContributionDTO {
+
     @NotNull(message = "userId is required")
     private Long userId;
 

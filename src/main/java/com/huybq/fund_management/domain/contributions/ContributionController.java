@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/contributions")
+    @RequestMapping("/api/v1/contributions")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ContributionController {
@@ -66,6 +66,11 @@ public class ContributionController {
     public ResponseEntity<ContributionResponseDTO> createContribution(@Valid @RequestBody ContributionDTO contributionDTO) {
         ContributionResponseDTO newContribution = contributionService.createContribution(contributionDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(newContribution);
+    }
+
+    @GetMapping("/owed/{userId}")
+    public ResponseEntity<List<ContributionResponseDTO>> getOwedContributions(@PathVariable Long userId) {
+        return ResponseEntity.ok(contributionService.getOwedContributionsByUser(userId));
     }
 
     // Cập nhật contribution

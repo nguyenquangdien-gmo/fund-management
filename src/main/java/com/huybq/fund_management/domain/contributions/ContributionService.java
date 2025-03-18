@@ -341,5 +341,8 @@ public class ContributionService {
 
     }
 
+    public List<ContributionResponseDTO> getOwedContributionsByUser(Long userId) {
+        return contributionRepository.findOwedContributionsByUserId(userId).stream().map(mapper::mapToResponseDTO).collect(Collectors.toList());
+    }
 
 }
