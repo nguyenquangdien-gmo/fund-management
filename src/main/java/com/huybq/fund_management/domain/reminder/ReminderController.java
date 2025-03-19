@@ -18,6 +18,11 @@ public class ReminderController {
         return ResponseEntity.ok(reminderService.getAllReminders());
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ReminderDTO>> getRemindersByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(reminderService.getRemindersByUser(userId));
+    }
+
     @PostMapping("/create/monthly")
     public ResponseEntity<?> createMonthlyReminders(@RequestParam int month, @RequestParam int year) {
         if (month < 1 || month > 12) {
@@ -45,9 +50,16 @@ public class ReminderController {
     }
 
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateReminder(@PathVariable Long id) {
-        reminderService.markAsRead(id);
+    @PutMapping("/mark-read/{reminderId}")
+    public ResponseEntity<?> updateReminder(@PathVariable Long reminderId) {
+        reminderService.markAsRead(reminderId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/mark-reads")
+    public ResponseEntity<String> markAsReadMulti(@RequestBody List<Long> reminderIds) {
+        reminderService.markAsReadMulti(reminderIds);
+        return ResponseEntity.ok("Reminders marked as read successfully.");
+    }
+
 }

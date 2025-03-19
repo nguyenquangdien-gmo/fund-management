@@ -35,6 +35,16 @@ public class ReminderService {
                 .status(reminder.getStatus().name())
                 .build()).toList();
     }
+
+    public List<ReminderDTO> getRemindersByUser(Long userId) {
+        return reminderRepository.findByUserIdAndStatus(userId, Reminder.Status.SENT).stream().map(reminder -> ReminderDTO.builder()
+                .id(reminder.getId())
+                .title(reminder.getTitle())
+                .description(reminder.getDescription())
+                .type(reminder.getReminderType().name())
+                .status(reminder.getStatus().name())
+                .build()).toList();
+    }
     @Transactional
     public void createMonthlyReminders(int month, int year) {
 
@@ -100,6 +110,22 @@ public class ReminderService {
             reminder.setStatus(Reminder.Status.READ);
             reminderRepository.save(reminder);
         }
+    }
+    @Transactional
+    public void markAsReadMulti(List<Long> reminderIds) {
+        List<Reminder> reminders = reminderRepository.findAllById(reminderIds);
+
+        if (reminders.isEmpty()) {
+            throw new ResourceNotFoundException("No reminders found with the given IDs.");
+        }
+
+        for (Reminder reminder : reminders) {
+            if (reminder.getStatus() != Reminder.Status.READ) {
+                reminder.setStatus(Reminder.Status.READ);
+            }
+        }
+
+        reminderRepository.saveAll(reminders);
     }
 
     @Transactional
