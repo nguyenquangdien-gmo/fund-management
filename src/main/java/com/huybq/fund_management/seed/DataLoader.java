@@ -2,6 +2,7 @@ package com.huybq.fund_management.seed;
 
 import com.huybq.fund_management.domain.balance.Balance;
 import com.huybq.fund_management.domain.balance.BalanceRepository;
+import com.huybq.fund_management.domain.contributions.ContributionRepository;
 import com.huybq.fund_management.domain.fund.Fund;
 import com.huybq.fund_management.domain.fund.FundRepository;
 import com.huybq.fund_management.domain.fund.FundType;
@@ -19,6 +20,15 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 public class DataLoader {
+    @Bean
+    public CommandLineRunner init(ContributionRepository repository) {
+        return args -> {
+            // Tạo dữ liệu cho Balance
+            Balance common = new Balance();
+            common.setTitle("common_fund");
+            common.setTotalAmount(new BigDecimal(0));
+        };
+    }
 
 //    @Bean
 //    public CommandLineRunner initData(BalanceRepository balanceRepository, FundRepository fundRepository) {

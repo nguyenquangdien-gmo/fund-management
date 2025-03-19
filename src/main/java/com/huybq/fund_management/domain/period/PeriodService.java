@@ -93,6 +93,7 @@ public class PeriodService {
                 .year(period.getYear())
                 .deadline(period.getDeadline())
                 .description(period.getDescription())
+                .totalAmount(period.getTotalAmount())
                 .build();
     }
 
