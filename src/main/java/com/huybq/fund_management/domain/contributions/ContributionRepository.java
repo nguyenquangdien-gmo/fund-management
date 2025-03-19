@@ -51,4 +51,9 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
     @Query("SELECT c FROM Contribution c WHERE c.user.id = :userId AND c.owedAmount > 0")
     List<Contribution> findOwedContributionsByUserId(@Param("userId") Long userId);
 
+    @Query("SELECT COALESCE(SUM(c.totalAmount), 0) " +
+            "FROM Contribution c " +
+            "WHERE c.paymentStatus = 'PAID' AND c.period.year = :year")
+    BigDecimal getTotalPaidContributionsByYear(@Param("year") int year);
+
 }

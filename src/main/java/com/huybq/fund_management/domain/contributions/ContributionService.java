@@ -345,4 +345,8 @@ public class ContributionService {
         return contributionRepository.findOwedContributionsByUserId(userId).stream().map(mapper::mapToResponseDTO).collect(Collectors.toList());
     }
 
+    public BigDecimal getTotalContributionAmountByPeriod(int year ) {
+        return contributionRepository.getTotalPaidContributionsByYear(year);
+    }
+
 }

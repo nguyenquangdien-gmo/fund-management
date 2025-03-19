@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +72,11 @@ public class ContributionController {
     @GetMapping("/owed/{userId}")
     public ResponseEntity<List<ContributionResponseDTO>> getOwedContributions(@PathVariable Long userId) {
         return ResponseEntity.ok(contributionService.getOwedContributionsByUser(userId));
+    }
+
+    @GetMapping("/total")
+    public ResponseEntity<BigDecimal> getPaidAmountContributed(@RequestParam int year) {
+        return ResponseEntity.ok(contributionService.getTotalContributionAmountByPeriod(year));
     }
 
     // Cập nhật contribution
