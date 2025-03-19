@@ -71,9 +71,7 @@ public class PenBillService {
         balanceService.depositBalance("common_fund", penBillDTO.getAmount());
         return penBillRepository.findById(id)
                 .map(existingPenBill -> {
-                    existingPenBill.setDueDate(penBillDTO.getDueDate());
                     existingPenBill.setPaymentStatus(PenBill.Status.PAID);
-                    existingPenBill.setDescription(penBillDTO.getDescription());
                     return mapper.toDTO(penBillRepository.save(existingPenBill));
                 })
                 .orElseThrow(() -> new EntityNotFoundException("PenBill not found with ID: " + id));

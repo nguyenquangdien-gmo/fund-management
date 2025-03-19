@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 public class PenBillMapper {
     public PenBillDTO toDTO(PenBill penBill) {
         return PenBillDTO.builder()
+                .id(penBill.getId())
                 .userId(penBill.getUser().getId())
                 .penaltyId(penBill.getPenalty().getId())
                 .dueDate(penBill.getDueDate())
