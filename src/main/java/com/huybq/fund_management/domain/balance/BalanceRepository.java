@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface BalanceRepository extends JpaRepository<Balance, Integer> {
     Optional<Balance> findBalanceByTitle(String title);
+
 }
