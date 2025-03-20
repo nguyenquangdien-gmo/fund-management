@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.trans;
 
+import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.period.PeriodRepository;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
@@ -19,8 +20,11 @@ public class TransService {
     public void createTransaction(TransDTO transDTO) {
         var user = userRepository.findById(transDTO.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        var period = periodRepository.findById(transDTO.getPeriodId())
-                .orElseThrow(() -> new ResourceNotFoundException("Period not found"));
+        Period period = null;
+        if (transDTO.getPeriodId() != null) {
+            period = periodRepository.findById(transDTO.getPeriodId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Period not found"));
+        }
 
         Trans transaction = Trans.builder()
                 .amount(transDTO.getAmount())

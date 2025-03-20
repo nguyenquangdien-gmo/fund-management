@@ -1,16 +1,11 @@
 package com.huybq.fund_management.domain.reminder;
 
-import com.huybq.fund_management.domain.contributions.Contribution;
-import com.huybq.fund_management.domain.penalty.Penalty;
-import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity

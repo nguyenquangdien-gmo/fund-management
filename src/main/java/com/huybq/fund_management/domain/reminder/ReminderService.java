@@ -8,6 +8,7 @@ import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -44,6 +45,14 @@ public class ReminderService {
                 .type(reminder.getReminderType().name())
                 .status(reminder.getStatus().name())
                 .build()).toList();
+    }
+
+    @Scheduled(cron = "0 0 0 7 * ?")
+    public void scheduleMonthlyReminderCreation() {
+        LocalDate now = LocalDate.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+        createMonthlyReminders(month, year);
     }
     @Transactional
     public void createMonthlyReminders(int month, int year) {

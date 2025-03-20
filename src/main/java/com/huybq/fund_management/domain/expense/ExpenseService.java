@@ -1,6 +1,10 @@
 package com.huybq.fund_management.domain.expense;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
+import com.huybq.fund_management.domain.period.Period;
+import com.huybq.fund_management.domain.trans.Trans;
+import com.huybq.fund_management.domain.trans.TransDTO;
+import com.huybq.fund_management.domain.trans.TransService;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +20,7 @@ public class ExpenseService {
     private final ExpenseMapper mapper;
     private final UserRepository userRepository;
     private final BalanceService balanceService;
+    private final TransService transService;
 
     public List<ExpenseDTO> getExpenses() {
         return repository.findAll().stream()
@@ -53,10 +58,16 @@ public class ExpenseService {
 
         balanceService.withdrawBalance("common_fund", dto.amount());
 
-        // Tạo và lưu khoản chi tiêu
         var expense = mapper.toEntity(dto);
         expense.setUser(user);
         expense = repository.save(expense);
+
+        transService.createTransaction(TransDTO.builder()
+                .userId(expense.getUser().getId())
+                .amount(expense.getAmount())
+                .transactionType(Trans.TransactionType.EXPENSE)
+                .description("Expense recorded: " + dto.name())
+                .build());
 
         return mapper.toDTO(expense);
     }
@@ -69,9 +80,17 @@ public class ExpenseService {
                     expense.setName(dto.name());
                     expense.setAmount(dto.amount());
                     expense.setDescription(dto.description());
+                    TransDTO transDTO = TransDTO.builder()
+                            .amount(dto.amount())
+                            .description("Expense recorded: " + dto.name())
+                            .transactionType(Trans.TransactionType.EXPENSE)
+                            .userId(user.getId())
+                            .build();
+                    transService.createTransaction(transDTO);
                     return mapper.toDTO(repository.save(expense));
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Expense not found with ID: " + idExpense));
+
     }
 
     public void delete(Long idExpense) {
