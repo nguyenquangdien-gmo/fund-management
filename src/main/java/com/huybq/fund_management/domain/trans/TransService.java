@@ -2,6 +2,7 @@ package com.huybq.fund_management.domain.trans;
 
 import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.period.PeriodRepository;
+import com.huybq.fund_management.domain.user.dto.UserDto;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -38,19 +39,27 @@ public class TransService {
         mapToResponseDTO(transaction);
     }
 
-    public List<TransDTO> getAllTransactions() {
+    public List<TransReponseDTO> getAllTransactions() {
         List<Trans> transactions = transRepository.findAll();
         return transactions.stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    private TransDTO mapToResponseDTO(Trans transaction) {
-        return TransDTO.builder()
+    private TransReponseDTO mapToResponseDTO(Trans transaction) {
+
+        var user = transaction.getCreatedBy();
+        var userDto = UserDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(user.getRole().name())
+                .build();
+        return TransReponseDTO.builder()
                 .amount(transaction.getAmount())
                 .transactionType(transaction.getTransactionType())
                 .description(transaction.getDescription())
-                .userId(transaction.getCreatedBy().getId())
+                .userDto(userDto)
                 .createdAt(transaction.getCreatedAt())
                 .build();
     }

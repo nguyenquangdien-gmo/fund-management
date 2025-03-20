@@ -17,4 +17,9 @@ public class TokenController {
     public ResponseEntity<Boolean>isAdmin(@RequestParam String token) {
         return ResponseEntity.ok(service.isAdmin(token));
     }
+    @GetMapping("/expired")
+    public ResponseEntity<Boolean>isExpired(@RequestParam String token) {
+        return ResponseEntity.ok(service.isTokenExpired(token));
+    }
+
 }
