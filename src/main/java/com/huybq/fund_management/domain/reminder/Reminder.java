@@ -39,11 +39,11 @@ public class Reminder {
     private LocalDateTime createdAt;
 
     public enum ReminderType {
-        CONTRIBUTION, PENALTY
+        CONTRIBUTION, PENALTY, OTHER
     }
 
     public enum Status {
-        SENT, READ, IGNORED
+        SENT, READ
     }
 }
 

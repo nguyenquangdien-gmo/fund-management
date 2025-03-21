@@ -15,12 +15,17 @@ public class ReminderController {
 
     @GetMapping()
     public ResponseEntity<List<ReminderDTO>> getAllReminders() {
-        return ResponseEntity.ok(reminderService.getAllReminders());
+        return ResponseEntity.ok(reminderService.getAllUniqueReminders());
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ReminderDTO>> getRemindersByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(reminderService.getRemindersByUser(userId));
+    }
+    @PostMapping("create/other")
+    public ResponseEntity<?> createOtherReminder(@RequestBody ReminderDTO reminderDTO) {
+        reminderService.createOtherReminder(reminderDTO);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/create/monthly")
