@@ -59,34 +59,17 @@ public class ReminderService {
 
         List<User> allUsers = userRepository.findAll();
 
-        for (User user : allUsers) {
-            Long userId = user.getId();
-            BigDecimal owedAmount;
-
-            if (contributionRepository.existsByUserIdAndPeriod_MonthAndPeriod_Year(userId, month, year)) {
-                owedAmount = contributionRepository.findOwedAmountByUserAndPeriod(userId, month, year)
-                        .orElse(BigDecimal.ZERO);
-            } else {
-                owedAmount = periodRepository.getTotalPeriodAmountByMonthAndYear(month, year);
-            }
-
-            if (owedAmount.compareTo(BigDecimal.ZERO) > 0) {
-                Reminder reminder = new Reminder();
-                reminder.setUser(user);
-                reminder.setTitle("Reminder for Contribution");
-                reminder.setDescription("You have an outstanding balance of " + owedAmount + " to contribute in " + month + "/" + year);;
-                reminder.setOwedAmount(owedAmount);
-                reminder.setReminderType(Reminder.ReminderType.CONTRIBUTION);
-                reminder.setStatus(Reminder.Status.SENT);
-                reminderRepository.save(reminder);
-            }
-        }
+        createReminder(month, year, allUsers);
     }
     @Transactional
     public void createRemindersForUserNotContributionOrOwed(int month, int year) {
 
         List<User> users = userRepository.findUsersNotFullyContributed(month, year);
 
+        createReminder(month, year, users);
+    }
+
+    private void createReminder(int month, int year, List<User> users) {
         for (User user : users) {
             Long userId = user.getId();
             BigDecimal owedAmount;

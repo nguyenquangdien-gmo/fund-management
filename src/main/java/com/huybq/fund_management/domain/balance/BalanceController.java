@@ -3,6 +3,7 @@ package com.huybq.fund_management.domain.balance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/balances")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class BalanceController {
     private final BalanceService balanceService;

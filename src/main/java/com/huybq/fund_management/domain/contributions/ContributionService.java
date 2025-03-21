@@ -174,9 +174,16 @@ public class ContributionService {
         BigDecimal overpaidAmount = BigDecimal.ZERO;
         BigDecimal owedAmount = totalPeriodAmount.subtract(contributedAmount);
 
+        if (user.getTotalOverpaidAmount().compareTo(BigDecimal.ZERO) > 0 && owedAmount.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal usedOverpaidAmount = user.getTotalOverpaidAmount().min(owedAmount);
+            owedAmount = owedAmount.subtract(usedOverpaidAmount);
+            user.setTotalOverpaidAmount(user.getTotalOverpaidAmount().subtract(usedOverpaidAmount));
+        }
+
         if (owedAmount.compareTo(BigDecimal.ZERO) < 0) {
             overpaidAmount = owedAmount.abs();
             owedAmount = BigDecimal.ZERO;
+            user.setTotalOverpaidAmount(user.getTotalOverpaidAmount().add(overpaidAmount));
         }
 
         boolean isLate = LocalDateTime.now().isAfter(period.getDeadline().atStartOfDay());
@@ -230,6 +237,7 @@ public class ContributionService {
         }
 
         contributionRepository.save(newContribution);
+        userRepository.save(user);
 
         if (isLate) {
             createLatePenalty(user);
@@ -328,7 +336,6 @@ public class ContributionService {
     private void createLatePenalty(User user) {
         PenaltyDTO penalty = penaltyService.getPenaltyByName("contribute_late");
 
-        // Tạo PenBill thông qua service
         PenBillDTO penBillDTO = PenBillDTO.builder()
                 .userId(user.getId())
                 .penaltyId(penalty.getId())

@@ -55,14 +55,12 @@ public class ContributionController {
         return ResponseEntity.ok(contributions);
     }
 
-    // Lấy contributions chưa thanh toán của một user
     @GetMapping("/user/{userId}/pending")
     public ResponseEntity<List<ContributionResponseDTO>> getPendingContributionsByUser(@PathVariable Long userId) {
         List<ContributionResponseDTO> contributions = contributionService.getPendingContributionsByMember(userId);
         return ResponseEntity.ok(contributions);
     }
 
-    // Tạo contribution mới
     @PostMapping
     public ResponseEntity<ContributionResponseDTO> createContribution(@Valid @RequestBody ContributionDTO contributionDTO) {
         ContributionResponseDTO newContribution = contributionService.createContribution(contributionDTO);
