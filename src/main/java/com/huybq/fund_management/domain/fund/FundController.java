@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @RestController
-@RequestMapping("/api/funds")
+@RequestMapping("/api/${server.version}/funds")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class FundController {

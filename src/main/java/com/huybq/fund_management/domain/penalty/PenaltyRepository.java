@@ -7,7 +7,7 @@ import java.util.Optional;
 
 @Service
 public interface PenaltyRepository extends JpaRepository<Penalty, Long> {
-    Optional<Penalty> findByName(String name);
+    Optional<Penalty> findBySlug(String slug);
 
 
 }

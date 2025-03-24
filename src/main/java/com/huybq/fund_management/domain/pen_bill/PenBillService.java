@@ -3,7 +3,9 @@ package com.huybq.fund_management.domain.pen_bill;
 import com.huybq.fund_management.domain.balance.BalanceService;
 import com.huybq.fund_management.domain.contributions.Contribution;
 import com.huybq.fund_management.domain.penalty.Penalty;
+import com.huybq.fund_management.domain.penalty.PenaltyDTO;
 import com.huybq.fund_management.domain.penalty.PenaltyRepository;
+import com.huybq.fund_management.domain.penalty.PenaltyService;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,7 @@ public class PenBillService {
     private final UserRepository userRepository;
     private final PenaltyRepository penaltyRepository;
     private final BalanceService balanceService;
+    private final PenaltyService penaltyService;
     private final PenBillMapper mapper;
 
     public List<PenBillDTO> getAllBillsByUserId(Long userId) {
@@ -85,4 +89,16 @@ public class PenBillService {
         penBillRepository.deleteById(id);
     }
 
+    public void createLatePenalty(User user) {
+        PenaltyDTO penalty = penaltyService.getPenaltyBySlug("late-contribution");
+
+        PenBillDTO penBillDTO = PenBillDTO.builder()
+                .userId(user.getId())
+                .penaltyId(penalty.getId())
+                .amount(penalty.getAmount())
+                .dueDate(LocalDate.now())
+                .description(penalty.getDescription())
+                .build();
+        createPenBill(penBillDTO);
+    }
 }

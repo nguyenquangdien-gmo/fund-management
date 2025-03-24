@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/expenses")
+@RequestMapping("/api/${server.version}/expenses")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class ExpenseController {

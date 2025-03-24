@@ -10,6 +10,7 @@ public class PenaltyMapper {
                 .name(penalty.getName())
                 .amount(penalty.getAmount())
                 .description(penalty.getDescription())
+                .slug(penalty.getSlug())
                 .createdAt(penalty.getCreatedAt())
                 .build();
     }

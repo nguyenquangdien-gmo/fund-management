@@ -1,20 +1,29 @@
 package com.huybq.fund_management.domain.user.service;
 
+import com.huybq.fund_management.domain.pen_bill.PenBillDTO;
+import com.huybq.fund_management.domain.pen_bill.PenBillService;
+import com.huybq.fund_management.domain.penalty.PenaltyDTO;
+import com.huybq.fund_management.domain.penalty.PenaltyService;
 import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
 import com.huybq.fund_management.domain.token.TokenRepository;
 import com.huybq.fund_management.domain.token.TokenType;
+import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
 import com.huybq.fund_management.domain.user.dto.UserDto;
+import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
 import com.huybq.fund_management.domain.user.entity.Roles;
 import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.mapper.UserMapper;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.domain.user.response.AuthenticationResponse;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -25,9 +34,16 @@ public class UserService {
     private final UserRepository repository;
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
+    private final UserMapper mapper;
+    private final PenBillService penBillService;
+    private final PenaltyService penaltyService;
 
     public List<User> getUsers() {
         return repository.findAll();
+    }
+
+    public List<UserDebtDTO> getUsersWithDebtOrNoContribution(int month, int year) {
+        return repository.findUsersWithDebtOrNoContribution(month, year);
     }
     public User getUserByEmail(String email) {
         Optional<User> user = repository.findByEmail(email);
@@ -56,13 +72,13 @@ public class UserService {
         return null;
     }
     public AuthenticationResponse updateUserById(Long id, UserDto u) {
-        User user = repository.findById(id).orElse(null);
+        User user = repository.findById(id)
+    .orElseThrow(() -> new EntityNotFoundException("User not found with id " + id));
         if (user != null) {
             user.setId(id);
             user.setFullName(u.fullName());
             user.setEmail(u.email());
             user.setRole(Roles.valueOf(u.role()));
-            user.setUpdatedAt(LocalDateTime.now());
             var jwtToken = jwtService.generateToken(user);
             var refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);
@@ -71,6 +87,7 @@ public class UserService {
             return AuthenticationResponse.builder()
                     .accessToken(jwtToken)
                     .refreshToken(refreshToken)
+                    .user(mapper.toDto(user))
                     .build();
         }
         return null;
@@ -95,13 +112,9 @@ public class UserService {
         });
         tokenRepository.saveAll(validUserTokens);
     }
-    @Transactional
-    public void deleteMultiple(List<Long> ids) {
-        for (Long id : ids) {
-            tokenRepository.deleteTokenByUser_Id(id);
-            repository.deleteById(id);
-            repository.findById(id).ifPresent(product -> repository.deleteById(id));
-        }
+
+    public List<UserLatePaymentDTO> getLatePayments(int month, int year) {
+        return repository.findUsersWithLatePayment(month, year);
     }
 
 }

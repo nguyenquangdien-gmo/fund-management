@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.huybq.fund_management.domain.team.Team;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,47 +23,65 @@ import java.util.Collection;
 @Builder
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
+
     @Column(nullable = false,unique = true)
     private String email;
+
     @Column(nullable = false)
     @JsonIgnore
     private String password;
+
     @Column(nullable = false)
     private String fullName;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Roles role;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE;
+
+    private String phone;
+
+    private String position;
+
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team;
+
+    private String userCode;
+
+
     @CreationTimestamp
     private LocalDateTime createdAt;
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+
     private BigDecimal totalOverpaidAmount = BigDecimal.valueOf(0);
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return email;
     }
-
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
-
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
-
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return true;

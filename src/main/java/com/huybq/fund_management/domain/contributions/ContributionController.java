@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-    @RequestMapping("/api/v1/contributions")
+    @RequestMapping("/api/${server.version}/contributions")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ContributionController {
@@ -26,9 +26,9 @@ public class ContributionController {
         return ResponseEntity.ok(contributionService.getAllContributions());
     }
 
-    @GetMapping("/users-not-contributed")
+    @GetMapping("/owed/users")
     public ResponseEntity<List<UserDto>> getUsersNotContributed(@RequestParam int month, @RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getUsersNotContributedOrOwed(month, year));
+        return ResponseEntity.ok(contributionService.getUsersOwedContributed(month, year));
     }
 
     @GetMapping("/")

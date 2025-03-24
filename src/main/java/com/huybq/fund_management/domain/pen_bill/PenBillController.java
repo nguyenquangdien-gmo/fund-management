@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pen-bills")
+@RequestMapping("/api/${server.version}/pen-bills")
 @RequiredArgsConstructor
 public class PenBillController {
     private final PenBillService penBillService;

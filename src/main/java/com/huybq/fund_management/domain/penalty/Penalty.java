@@ -27,6 +27,7 @@ public class Penalty {
     private String description;
 
     private BigDecimal amount;
+    private String slug;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

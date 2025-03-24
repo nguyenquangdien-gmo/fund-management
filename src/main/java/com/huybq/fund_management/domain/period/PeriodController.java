@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/periods")
+@RequestMapping("/api/${server.version}/periods")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class PeriodController {

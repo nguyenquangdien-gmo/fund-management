@@ -31,7 +31,7 @@ public class ReminderService {
     private final UserRepository userRepository;
 
     public List<ReminderDTO> getAllUniqueReminders() {
-        Set<String> uniqueDescriptions = new HashSet<>(); // Dùng để lưu description duy nhất
+        Set<String> uniqueDescriptions = new HashSet<>();
 
         return reminderRepository.findAll().stream()
                 .filter(reminder -> uniqueDescriptions.add(reminder.getDescription())) // Chỉ thêm nếu chưa tồn tại
@@ -77,7 +77,7 @@ public class ReminderService {
     @Transactional
     public void createRemindersForUserNotContributionOrOwed(int month, int year) {
 
-        List<User> users = userRepository.findUsersNotFullyContributed(month, year);
+        List<User> users = userRepository.findUsersOwedContributed(month, year);
 
         createReminder(month, year, users);
     }

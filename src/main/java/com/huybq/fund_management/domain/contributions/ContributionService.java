@@ -39,8 +39,6 @@ public class ContributionService {
     private final TransService transService;
     private final ContributionMapper mapper;
     private final BalanceService balanceService;
-    private final PenBillService penBillService;
-    private final PenaltyService penaltyService;
     private final PeriodService periodService;
 
     public List<ContributionResponseDTO> getAllContributions() {
@@ -117,9 +115,10 @@ public class ContributionService {
         return stats;
     }
 
-    public List<UserDto> getUsersNotContributedOrOwed(int month, int year) {
-        return userRepository.findUsersNotFullyContributed(month, year).stream()
+    public List<UserDto> getUsersOwedContributed(int month, int year) {
+        return userRepository.findUsersOwedContributed(month, year).stream()
                 .map(user -> UserDto.builder()
+                        .id(user.getId())
                         .email(user.getEmail())
                         .fullName(user.getFullName())
                         .role(user.getRole().name())
@@ -239,9 +238,9 @@ public class ContributionService {
         contributionRepository.save(newContribution);
         userRepository.save(user);
 
-        if (isLate) {
-            createLatePenalty(user);
-        }
+//        if (isLate) {
+//            createLatePenalty(user);
+//        }
 
         return mapper.mapToResponseDTO(newContribution);
     }
@@ -333,20 +332,20 @@ public class ContributionService {
     }
 
 
-    private void createLatePenalty(User user) {
-        PenaltyDTO penalty = penaltyService.getPenaltyByName("contribute_late");
-
-        PenBillDTO penBillDTO = PenBillDTO.builder()
-                .userId(user.getId())
-                .penaltyId(penalty.getId())
-                .amount(penalty.getAmount())
-                .dueDate(LocalDate.now())
-                .description(penalty.getDescription())
-                .build();
-
-        penBillService.createPenBill(penBillDTO);
-
-    }
+//    private void createLatePenalty(User user) {
+//        PenaltyDTO penalty = penaltyService.getPenaltyBySlug("late-contribution");
+//
+//        PenBillDTO penBillDTO = PenBillDTO.builder()
+//                .userId(user.getId())
+//                .penaltyId(penalty.getId())
+//                .amount(penalty.getAmount())
+//                .dueDate(LocalDate.now())
+//                .description(penalty.getDescription())
+//                .build();
+//
+//        penBillService.createPenBill(penBillDTO);
+//
+//    }
 
     public List<ContributionResponseDTO> getOwedContributionsByUser(Long userId) {
         return contributionRepository.findOwedContributionsByUserId(userId).stream().map(mapper::mapToResponseDTO).collect(Collectors.toList());
@@ -355,5 +354,6 @@ public class ContributionService {
     public BigDecimal getTotalContributionAmountByPeriod(int year ) {
         return contributionRepository.getTotalPaidContributionsByYear(year);
     }
+
 
 }

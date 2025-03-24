@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/trans")
+@RequestMapping("/api/${server.version}/trans")
 @RequiredArgsConstructor
 public class TransController {
     private final TransService transService;

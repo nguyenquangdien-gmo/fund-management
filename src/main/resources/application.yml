@@ -19,3 +19,7 @@ application:
       expiration: 3600000 # 1 hour
       refresh-token:
         expiration: 604800000 # a week
+
+
+server:
+  version: v1

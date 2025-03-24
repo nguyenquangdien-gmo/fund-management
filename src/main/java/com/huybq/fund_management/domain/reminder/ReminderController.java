@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/reminders")
+@RequestMapping("/api/${server.version}/reminders")
 public class ReminderController {
     private final ReminderService reminderService;
 

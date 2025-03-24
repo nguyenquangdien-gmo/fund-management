@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.expense;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
+import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
@@ -80,6 +81,7 @@ public class ExpenseService {
                     expense.setName(dto.name());
                     expense.setAmount(dto.amount());
                     expense.setDescription(dto.description());
+                    expense.setExpenseType(FundType.valueOf(dto.expenseType()));
                     TransDTO transDTO = TransDTO.builder()
                             .amount(dto.amount())
                             .description("Expense recorded: " + dto.name())

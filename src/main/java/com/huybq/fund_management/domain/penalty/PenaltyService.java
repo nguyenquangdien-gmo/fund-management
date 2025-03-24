@@ -25,9 +25,9 @@ public class PenaltyService {
                 .orElseThrow(() -> new EntityNotFoundException("Penalty not found with ID: " + id));
         return mapper.toDTO(penalty);
     }
-    public PenaltyDTO getPenaltyByName(String name) {
-        Penalty penalty = repository.findByName(name)
-                .orElseThrow(() -> new EntityNotFoundException("Penalty not found with name: " + name));
+    public PenaltyDTO getPenaltyBySlug(String slug) {
+        Penalty penalty = repository.findBySlug(slug)
+                .orElseThrow(() -> new EntityNotFoundException("Penalty not found with name: " + slug));
         return mapper.toDTO(penalty);
     }
 
