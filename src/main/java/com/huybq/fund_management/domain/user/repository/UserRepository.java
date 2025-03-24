@@ -14,6 +14,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
+    Optional<User> findByFullName(String fullName);
 
     @Query("SELECT u FROM User u WHERE u.id NOT IN " +
             "(SELECT c.user.id FROM Contribution c WHERE c.period.month = :month AND c.period.year = :year " +

@@ -38,7 +38,7 @@ public class AuthService {
 
     public AuthenticationResponse register(RegisterDto request) {
         var user = User.builder()
-                .fullName(request.fullName())
+                .fullName(request.fullName().toUpperCase())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .role(Roles.valueOf(request.role()))
@@ -51,7 +51,7 @@ public class AuthService {
         saveUserToken(savedUser, jwtToken);
         var userDto = UserDto.builder()
                 .email(user.getEmail())
-                .fullName(user.getFullName())
+                .fullName(user.getFullName().toUpperCase())
                 .role(String.valueOf(user.getRole()))
                 .build();
         return AuthenticationResponse.builder()
@@ -77,7 +77,7 @@ public class AuthService {
         var userDto = UserDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .fullName(user.getFullName())
+                .fullName(user.getFullName().toUpperCase())
                 .role(String.valueOf(user.getRole()))
                 .build();
 

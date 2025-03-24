@@ -14,6 +14,13 @@ import static com.huybq.fund_management.domain.user.entity.Permission.*;
 @RequiredArgsConstructor
 public enum Roles {
     MEMBER(Collections.emptySet()),
+    MANAGER(
+            Set.of(
+                    ADMIN_READ,
+                    ADMIN_UPDATE,
+                    ADMIN_CREATE
+            )
+    ),
     ADMIN(
             Set.of(
                     ADMIN_READ,
