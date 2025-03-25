@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.team;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,6 +25,7 @@ public class Team {
     private String name;
     private String slug;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "team")
     private List<User> members;
 

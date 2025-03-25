@@ -52,7 +52,7 @@ public class User implements UserDetails {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    private String userCode;
+    private String userToken;
 
 
     @CreationTimestamp

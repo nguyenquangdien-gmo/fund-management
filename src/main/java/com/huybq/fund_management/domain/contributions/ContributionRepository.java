@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface ContributionRepository extends JpaRepository<Contribution, Long> {
     List<Contribution> findAllByPeriodId(Long periodId);
-
+//lay ra amount trong debt 1 ky period cuar mot user
     @Query("SELECT c.owedAmount FROM Contribution c WHERE c.user.id = :userId AND c.period.month = :month AND c.period.year = :year")
     Optional<BigDecimal> findOwedAmountByUserAndPeriod(@Param("userId") Long userId, @Param("month") int month, @Param("year") int year);
 
@@ -56,4 +56,5 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
             "WHERE c.paymentStatus = 'PAID' AND c.period.year = :year")
     BigDecimal getTotalPaidContributionsByYear(@Param("year") int year);
 
+    List<Contribution> findByPaymentStatusIn(List<Contribution.PaymentStatus> statuses);
 }

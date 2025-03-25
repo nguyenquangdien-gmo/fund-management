@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-    @RequestMapping("/api/${server.version}/contributions")
+@RequestMapping("/api/${server.version}/contributions")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ContributionController {
@@ -93,6 +93,26 @@ public class ContributionController {
     @GetMapping("/yearly-stats")
     public ResponseEntity<List<Map<String, Object>>> getYearlyContributionStats() {
         return ResponseEntity.ok(contributionService.getYearlyContributionStats());
+    }
+
+    //approve when having request creation or update
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<String> approveContribution(@PathVariable Long id) {
+        contributionService.approveContribution(id);
+        return ResponseEntity.ok("Contribution approved successfully");
+    }
+
+    //reject when wrong result
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<String> rejectOrCancelContribution(@PathVariable Long id) {
+        contributionService.rejectOrCancelContribution(id);
+        return ResponseEntity.ok("Contribution rejected or update canceled successfully");
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<ContributionResponseDTO>> getPendingContributions() {
+        List<ContributionResponseDTO> pendingContributions = contributionService.getPendingContributions();
+        return ResponseEntity.ok(pendingContributions);
     }
 }
 

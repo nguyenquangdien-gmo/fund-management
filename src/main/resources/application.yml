@@ -4,6 +4,7 @@ spring:
     username: root
     password: huybq
     driver-class-name: com.mysql.cj.jdbc.Driver
+  timezone: Asia/Ho_Chi_Minh
   jpa:
     hibernate:
       ddl-auto: update

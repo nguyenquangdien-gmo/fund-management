@@ -25,5 +25,6 @@ public class Late {
 
     private LocalDate date;
     private LocalTime checkinAt;
+    private String note;
 
 }
