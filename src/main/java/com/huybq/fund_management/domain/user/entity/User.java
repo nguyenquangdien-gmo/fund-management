@@ -26,7 +26,7 @@ public class User implements UserDetails {
     @GeneratedValue
     private Long id;
 
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -53,7 +53,7 @@ public class User implements UserDetails {
     private Team team;
 
     private String userToken;
-
+    private boolean isDelete = false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -71,16 +71,19 @@ public class User implements UserDetails {
     public String getUsername() {
         return email;
     }
+
     @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
+
     @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
+
     @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {

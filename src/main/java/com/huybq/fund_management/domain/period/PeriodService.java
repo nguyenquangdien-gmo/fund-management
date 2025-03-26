@@ -68,7 +68,7 @@ public class PeriodService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        List<Period> unpaidPeriods = periodRepository.findUnpaidPeriodsByUser(userId);
+        List<Period> unpaidPeriods = periodRepository.findUnpaidOrCanceledPeriodsByUser(userId);
 
         return unpaidPeriods.stream()
                 .map(this::mapToDTO)

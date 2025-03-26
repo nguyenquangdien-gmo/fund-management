@@ -20,5 +20,12 @@ public interface LateRepository extends JpaRepository<Late, Long> {
     List<Object[]> findUsersWithLateCountInMonth(@Param("month") int month,
                                                  @Param("year") int year,
                                                  @Param("minLateCount") int minLateCount);
+
+    @Query("SELECT l.user, COUNT(l) FROM Late l " +
+            "WHERE l.date BETWEEN :startDate AND :endDate " +
+            "GROUP BY l.user " +
+            "HAVING COUNT(l) > 0")
+    List<Object[]> findUsersWithLateCountBetweenDates(@Param("startDate") LocalDate startDate,
+                                                      @Param("endDate") LocalDate endDate);
 }
 

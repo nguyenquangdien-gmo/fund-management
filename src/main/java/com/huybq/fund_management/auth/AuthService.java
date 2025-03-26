@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.password()))
                 .role(Roles.valueOf(request.role()))
                 .status(Status.ACTIVE)
+                .totalOverpaidAmount(BigDecimal.ZERO)
                 .createdAt(LocalDateTime.now())
                 .build();
         var savedUser = repository.save(user);

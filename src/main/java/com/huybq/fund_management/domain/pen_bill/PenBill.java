@@ -50,7 +50,7 @@ public class PenBill {
     private LocalDateTime updatedAt;
 
     public enum Status {
-        PENDING, PAID
+        UNPAID,PENDING, PAID, CANCELED
     }
     @PrePersist
     @PreUpdate

@@ -24,17 +24,23 @@ public class LateController {
     }
 
     @PostMapping("/process/messages")
-    public ResponseEntity<?> processLateMessage(@RequestBody String message) {
-        if (message == null || message.trim().isEmpty()) {
+    public ResponseEntity<?> processLateMessage(@RequestBody MessageRequest request) {
+        if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
             return ResponseEntity.badRequest().body(null);
         }
-        service.saveLateRecords(message);
+        System.out.println("Received message: " + request.getMessage());
+        service.saveLateRecords(request.getMessage());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/users/date")
     public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate(@RequestParam int min) {
         return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth( min));
+    }
+
+    @GetMapping("/users/monthly")
+    public List<?> getLatesFromPrevious28thToCurrent28th() {
+        return service.getLatesFromPrevious28thToCurrent28th();
     }
 
 }

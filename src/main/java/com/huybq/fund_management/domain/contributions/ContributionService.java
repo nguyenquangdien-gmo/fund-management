@@ -7,10 +7,12 @@ import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
 import com.huybq.fund_management.domain.user.dto.UserDto;
+import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContributionService {
     private final ContributionRepository contributionRepository;
     private final UserRepository userRepository;
@@ -147,21 +150,36 @@ public class ContributionService {
 
         var period = periodRepository.findById(contributionDTO.getPeriodId())
                 .orElseThrow(() -> new ResourceNotFoundException("Period not found"));
+        var existingContributions = contributionRepository.findByUserIdAndPeriodId(contributionDTO.getUserId(), contributionDTO.getPeriodId());
 
-        var existingContribution = contributionRepository.findByUserIdAndPeriodId(contributionDTO.getUserId(), contributionDTO.getPeriodId());
-        if (existingContribution.isPresent()) {
+        // Kiểm tra xem có contribution nào không bị CANCELED không
+        boolean hasValidContribution = existingContributions.stream()
+                .anyMatch(c -> c.getPaymentStatus() != Contribution.PaymentStatus.CANCELED);
+
+        if (hasValidContribution) {
             throw new IllegalArgumentException("Contribution already exists for this period. Use updateContribution instead.");
         }
 
-        BigDecimal needAmount = period.getTotalAmount(); // Giả sử số tiền cần đóng được lưu trong period
+
+        BigDecimal needAmount = period.getTotalAmount(); // Số tiền cần đóng
+        BigDecimal userOverpaid = user.getTotalOverpaidAmount(); // Số tiền dư của user
+        BigDecimal actualAmount = contributionDTO.getTotalAmount(); // Số tiền user muốn đóng
+
+        if (userOverpaid.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal totalAmount = actualAmount.add(userOverpaid); // Cộng overpaid vào số tiền đóng
+            user.setTotalOverpaidAmount(BigDecimal.ZERO); // Reset overpaid về 0 sau khi sử dụng
+            userRepository.save(user);
+            actualAmount = totalAmount;
+        }
+
         boolean isLate = LocalDateTime.now().isAfter(period.getDeadline().atStartOfDay());
 
         Contribution newContribution = Contribution.builder()
                 .user(user)
                 .period(period)
-                .totalAmount(contributionDTO.getTotalAmount())
-                .owedAmount(contributionDTO.getTotalAmount().compareTo(needAmount) < 0 ? needAmount.subtract(contributionDTO.getTotalAmount()) : BigDecimal.ZERO)
-                .overpaidAmount(contributionDTO.getTotalAmount().compareTo(needAmount) > 0 ? contributionDTO.getTotalAmount().subtract(needAmount) : BigDecimal.ZERO)
+                .totalAmount(actualAmount)
+                .owedAmount(actualAmount.compareTo(needAmount) < 0 ? needAmount.subtract(actualAmount) : BigDecimal.ZERO)
+                .overpaidAmount(actualAmount.compareTo(needAmount) > 0 ? actualAmount.subtract(needAmount) : BigDecimal.ZERO)
                 .note(contributionDTO.getNote())
                 .paymentStatus(Contribution.PaymentStatus.PENDING)
                 .isLate(isLate)
@@ -170,7 +188,6 @@ public class ContributionService {
         contributionRepository.save(newContribution);
         return mapper.mapToResponseDTO(newContribution);
     }
-
     @Transactional
     public ContributionResponseDTO updateContribution(Long contributionId, ContributionDTO contributionDTO) {
         var contribution = contributionRepository.findById(contributionId)
@@ -211,8 +228,26 @@ public class ContributionService {
 
     @Transactional
     public void approveContribution(Long contributionId) {
+        log.info("Approving contribution with ID: {}", contributionId);
+
         Contribution contribution = contributionRepository.findById(contributionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
+        log.info("Contribution found: {}", contribution);
+
+        if (contribution.getUser() == null) {
+            throw new ResourceNotFoundException("User not found for contribution: " + contributionId);
+        }
+        log.info("User found: {}", contribution.getUser());
+
+        if (contribution.getPeriod() == null) {
+            throw new ResourceNotFoundException("Period not found for contribution: " + contributionId);
+        }
+        log.info("Period found: {}", contribution.getPeriod());
+
+        if (contribution.getTotalAmount() == null) {
+            throw new IllegalArgumentException("Total amount is null for contribution: " + contributionId);
+        }
+        log.info("Total amount: {}", contribution.getTotalAmount());
 
         if (contribution.getPaymentStatus() == Contribution.PaymentStatus.PAID) {
             throw new IllegalArgumentException("Contribution is already paid");
@@ -243,39 +278,48 @@ public class ContributionService {
                 .build());
         balanceService.depositBalance("snack_fund", snackFundAmount);
 
+        User user = contribution.getUser();
+
         // Nếu số tiền đóng đủ hoặc dư -> PAID, nếu thiếu -> PARTIAL
         if (totalAmount.compareTo(needAmount) >= 0) {
             contribution.setPaymentStatus(Contribution.PaymentStatus.PAID);
-            contribution.setOverpaidAmount(totalAmount.subtract(needAmount)); // Nếu dư tiền
-            balanceService.depositBalance("overpaid_fund", contribution.getOverpaidAmount());
+            BigDecimal overpaidAmount = totalAmount.subtract(needAmount);
+
+            if (overpaidAmount.compareTo(BigDecimal.ZERO) > 0) {
+                // Cộng vào overpaid của user
+                user.setTotalOverpaidAmount(user.getTotalOverpaidAmount().add(overpaidAmount));
+                balanceService.depositBalance("common_fund", overpaidAmount);
+            }
         } else {
             contribution.setPaymentStatus(Contribution.PaymentStatus.PARTIAL);
             contribution.setOwedAmount(needAmount.subtract(totalAmount)); // Nếu thiếu tiền
         }
 
         contributionRepository.save(contribution);
+        userRepository.save(user);
     }
 
-    @Transactional
-    public void rejectNewContribution(Long contributionId) {
-        var contribution = contributionRepository.findById(contributionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
 
-        if (contribution.getPaymentStatus() != Contribution.PaymentStatus.PENDING) {
-            throw new IllegalArgumentException("Only pending contributions can be rejected");
-        }
-
-        contributionRepository.deleteById(contributionId);
-    }
+//    @Transactional
+//    public void rejectNewContribution(Long contributionId) {
+//        var contribution = contributionRepository.findById(contributionId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
+//
+//        if (contribution.getPaymentStatus() != Contribution.PaymentStatus.PENDING) {
+//            throw new IllegalArgumentException("Only pending contributions can be rejected");
+//        }
+//
+//        contributionRepository.deleteById(contributionId);
+//    }
 
     @Transactional
     public void rejectOrCancelContribution(Long contributionId) {
         var contribution = contributionRepository.findById(contributionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
 
-        // Nếu contribution đang chờ duyệt (tạo mới) -> Xóa luôn
         if (contribution.getPaymentStatus() == Contribution.PaymentStatus.PENDING) {
-            contributionRepository.deleteById(contributionId);
+            contribution.setPaymentStatus(Contribution.PaymentStatus.CANCELED);
+            contributionRepository.save(contribution);
             return;
         }
 

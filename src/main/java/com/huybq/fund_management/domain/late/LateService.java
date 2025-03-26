@@ -127,7 +127,7 @@ public class LateService {
         return lateUsers;
     }
 
-        @Scheduled(cron = "0 49 13 25 * ?", zone = "Asia/Ho_Chi_Minh")
+        @Scheduled(cron = "0 0 0 28 * ?", zone = "Asia/Ho_Chi_Minh")
 //    @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
     public void processLatePenalties() {
 
@@ -228,7 +228,49 @@ public class LateService {
         }
     }
 
-    public List<Late> getAllLateUser() {
-        return repository.findAll();
+    public List<Object[]> getLatesFromPrevious28thToCurrent28th() {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusMonths(1).withDayOfMonth(28); // 28 tháng trước
+        LocalDate endDate = today.withDayOfMonth(28); // 28 tháng này
+        return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
+    }
+
+    @Scheduled(cron = "0 0 8 28 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 28 mỗi tháng
+//    @Scheduled(cron = "0 12 14 26 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 28 mỗi tháng
+    public void sendLateReminder() {
+        LocalDate today = LocalDate.now();
+
+        List<Object[]> lateRecords = getLatesFromPrevious28thToCurrent28th();
+        int previousMonth = today.getMonthValue() - 1;
+        int currentMonth = today.getMonthValue();
+
+        if (lateRecords.isEmpty()) {
+            notification.sendNotification("@all\n🎉 **Tháng này không ai đi trễ!** 🎉");
+            return;
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("@all\n 🚨 **Danh sách đi trễ từ 28/").append(previousMonth).append(" đến 28/").append(currentMonth).append(" ** 🚨\n\n");
+        message.append("| STT | TÊN | SỐ LẦN ĐI TRỄ |\n");
+        message.append("|---|---|---|\n");
+
+        int index = 1;
+        for (Object[] record : lateRecords) {
+            User user = (User) record[0];
+            Long lateCount = (Long) record[1];
+
+            message.append("| ").append(index++).append(" | ")
+                    .append(user.getFullName()).append(" | ")
+                    .append(lateCount).append(" |\n");
+
+        }
+
+        message.append("\nRất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
+                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
+                .append("Trân trọng! \n\n")
+                .append(" #checkin-statistic ");
+
+        // Gửi thông báo lên ChatOps
+        notification.sendNotification(message.toString());
     }
 }

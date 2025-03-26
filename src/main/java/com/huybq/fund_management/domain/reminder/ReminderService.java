@@ -6,15 +6,18 @@ import com.huybq.fund_management.domain.period.PeriodRepository;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
+import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,8 @@ public class ReminderService {
     private final ReminderRepository reminderRepository;
 
     private final UserRepository userRepository;
+
+    private final Notification notification;
 
     public List<ReminderDTO> getAllUniqueReminders() {
         Set<String> uniqueDescriptions = new HashSet<>();
@@ -58,7 +63,8 @@ public class ReminderService {
                 .build()).toList();
     }
 
-    @Scheduled(cron = "0 0 0 7 * ?")
+    @Scheduled(cron = "0 0 0 7 * ?", zone = "Asia/Ho_Chi_Minh")
+//    @Scheduled(cron = "0 35 10 26 * ?", zone = "Asia/Ho_Chi_Minh")
     public void scheduleMonthlyReminderCreation() {
         LocalDate now = LocalDate.now();
         int month = now.getMonthValue();
@@ -83,6 +89,14 @@ public class ReminderService {
     }
 
     private void createReminder(int month, int year, List<User> users) {
+        StringBuilder message = new StringBuilder();
+        message.append("@all\n🔔 **Nhắc nhở đóng quỹ tháng ").append(month).append("/").append(year).append("**\n\n");
+        message.append("| STT | TÊN | TIỀN NỢ |\n");
+        message.append("|---|---|---|\n");
+
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN")); // Format tiền VND
+
+        int index = 1;
         for (User user : users) {
             Long userId = user.getId();
             BigDecimal owedAmount;
@@ -95,16 +109,26 @@ public class ReminderService {
             }
 
             if (owedAmount.compareTo(BigDecimal.ZERO) > 0) {
+                String formattedAmount = currencyFormat.format(owedAmount); // Định dạng số tiền
+
+                message.append("| ").append(index++).append(" | ")
+                        .append(user.getFullName()).append(" | ")
+                        .append(formattedAmount).append(" |\n");
+
                 Reminder reminder = new Reminder();
                 reminder.setUser(user);
-                reminder.setTitle("Reminder for Contribution");
-                reminder.setDescription("You have an outstanding balance of " + owedAmount + " to contribute in " + month + "/" + year);
-                ;
+                reminder.setTitle("Nhắc nhở đóng quỹ");
+                reminder.setDescription("Bạn đang nợ quỹ tháng " + month + "/" + year + ": " + formattedAmount);
                 reminder.setOwedAmount(owedAmount);
                 reminder.setReminderType(Reminder.ReminderType.CONTRIBUTION);
                 reminder.setStatus(Reminder.Status.SENT);
                 reminderRepository.save(reminder);
             }
+        }
+
+        // Gửi thông báo tổng hợp nếu có nợ
+        if (index > 1) {
+            notification.sendNotification(message.toString());
         }
     }
 
@@ -119,6 +143,7 @@ public class ReminderService {
             reminder.setStatus(Reminder.Status.SENT);
             reminderRepository.save(reminder);
         });
+        notification.sendNotification("@all\n"+"Chào mọi người, có thông báo mới: **"+dto.title()+"**\n\n"+dto.description()+"\n\n #reminder");
 
     }
 

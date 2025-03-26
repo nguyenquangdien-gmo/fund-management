@@ -22,9 +22,11 @@ public interface PeriodRepository extends JpaRepository<Period, Long> {
                     SELECT c FROM Contribution c 
                     WHERE c.user.id = :userId 
                     AND c.period.id = p.id 
+                    AND c.paymentStatus != 'CANCELED'
                 )
             """)
-    List<Period> findUnpaidPeriodsByUser(@Param("userId") Long userId);
+    List<Period> findUnpaidOrCanceledPeriodsByUser(@Param("userId") Long userId);
+
 
     @Query("""
                 SELECT p FROM Period p 

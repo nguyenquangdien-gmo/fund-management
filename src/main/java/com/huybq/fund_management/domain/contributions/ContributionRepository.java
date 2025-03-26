@@ -46,7 +46,7 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
             "FROM Contribution c WHERE c.isLate = true")
     List<Object[]> getLateContributors();
 
-    Optional<Contribution> findByUserIdAndPeriodId(@NotNull(message = "userId is required") Long userId, @NotNull(message = "periodId is required") Long periodId);
+    List<Contribution> findByUserIdAndPeriodId(@NotNull(message = "userId is required") Long userId, @NotNull(message = "periodId is required") Long periodId);
 
     @Query("SELECT c FROM Contribution c WHERE c.user.id = :userId AND c.owedAmount > 0")
     List<Contribution> findOwedContributionsByUserId(@Param("userId") Long userId);

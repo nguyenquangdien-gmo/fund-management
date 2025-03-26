@@ -24,6 +24,8 @@ public class Team {
     private String id;
     private String name;
     private String slug;
+    private String channelId;
+    private String qr;
 
     @JsonIgnore
     @OneToMany(mappedBy = "team")

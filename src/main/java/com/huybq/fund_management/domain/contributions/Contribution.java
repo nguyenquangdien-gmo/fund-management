@@ -70,6 +70,6 @@ public class Contribution {
     private LocalDateTime updatedAt;
 
     public enum PaymentStatus {
-        PENDING,UPDATE ,PAID, LATE, PARTIAL
+        PENDING,UPDATE ,PAID, LATE, PARTIAL, CANCELED
     }
 }

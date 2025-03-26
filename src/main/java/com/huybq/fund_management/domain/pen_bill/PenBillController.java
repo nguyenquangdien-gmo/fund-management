@@ -17,7 +17,15 @@ public class PenBillController {
     public ResponseEntity<List<PenBillDTO>> getAllPenBills() {
         return ResponseEntity.ok(penBillService.getAllPenBills());
     }
+    @GetMapping("/pending")
+    public ResponseEntity<List<PenBillDTO>> getPenBillsPending() {
+        return ResponseEntity.ok(penBillService.getPenBillsPending());
+    }
 
+    @GetMapping("/user/{userId}/unpaid")
+    public ResponseEntity<List<PenBillDTO>> getBillsUnPaidByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(penBillService.getAllBillsUnPaidByUserId(userId));
+    }
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<PenBillDTO>> getBillsByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(penBillService.getAllBillsByUserId(userId));
@@ -35,13 +43,24 @@ public class PenBillController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PenBillDTO> updatePenBill(@PathVariable Long id, @Valid @RequestBody PenBillDTO penBillDTO) {
-        return ResponseEntity.ok(penBillService.updatePenBill(id, penBillDTO));
+    public ResponseEntity<PenBillDTO> updatePenBill(@PathVariable Long id) {
+        return ResponseEntity.ok(penBillService.updatePenBill(id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePenBill(@PathVariable Long id) {
         penBillService.deletePenBill(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<Void> approvePenBill(@PathVariable Long id) {
+        penBillService.approvePenBill(id);
+        return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<Void> rejectPenBill(@PathVariable Long id) {
+        penBillService.rejectPenBill(id);
         return ResponseEntity.noContent().build();
     }
 }
