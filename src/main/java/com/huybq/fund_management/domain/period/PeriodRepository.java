@@ -51,4 +51,5 @@ public interface PeriodRepository extends JpaRepository<Period, Long> {
             """)
     List<Period> findUnpaidPeriodsByUserAndYear(@Param("userId") Long userId, @Param("year") int year);
 
+    boolean existsByMonthAndYear(int month, int year);
 }

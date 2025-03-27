@@ -5,7 +5,9 @@ import com.huybq.fund_management.domain.fund.FundRepository;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,7 +37,10 @@ public class PeriodService {
 
     public PeriodDTO createPeriod(PeriodDTO periodDTO) {
         LocalDate now = LocalDate.now();
-
+        boolean exists = periodRepository.existsByMonthAndYear(periodDTO.month(), periodDTO.year());
+        if (exists) {
+            return null;
+        }
         Period period = Period.builder()
                 .month(periodDTO.month() != null ? periodDTO.month() : now.getMonthValue())
                 .year(periodDTO.year() != null ? periodDTO.year() : now.getYear())
@@ -46,6 +51,31 @@ public class PeriodService {
 
         period = periodRepository.save(period);
         return periodMapper.toDTO(period);
+    }
+//    @Scheduled(cron = "0 0 0 1 * ?")
+    @Scheduled(cron = "0 0 15 27 * ?")
+    @Transactional
+    public void createPeriodForNewMonth() {
+        LocalDate now = LocalDate.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+
+        // Kiểm tra xem đã có Period cho tháng này chưa
+        boolean exists = periodRepository.existsByMonthAndYear(month, year);
+        if (exists) {
+            return; // Không tạo nếu đã có
+        }
+
+        Period newPeriod = Period.builder()
+                .month(month)
+                .year(year)
+                .deadline(LocalDate.of(year, month, 20))
+                .description("Quỹ nhóm tháng " + now.getMonth() + "/" + year)
+                .totalAmount(calculateTotalAmount())
+                .build();
+
+        periodRepository.save(newPeriod);
+        System.out.println("Created new period for " + month + "/" + year);
     }
 
     public PeriodDTO updatePeriod(Long id, PeriodDTO updatedPeriodDTO) {
