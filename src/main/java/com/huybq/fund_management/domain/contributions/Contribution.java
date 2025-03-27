@@ -40,28 +40,7 @@ public class Contribution {
     @Column(length = 255)
     private String note;
 
-    private BigDecimal owedAmount= BigDecimal.valueOf(0);
-    private BigDecimal overpaidAmount= BigDecimal.valueOf(0);
     private Boolean isLate;
-
-    @JsonIgnore
-    @Column(name = "previous_total_amount")
-    private BigDecimal previousTotalAmount;
-
-    @JsonIgnore
-    @Column(name = "previous_owed_amount")
-    private BigDecimal previousOwedAmount;
-
-    @JsonIgnore
-    @Column(name = "previous_overpaid_amount")
-    private BigDecimal previousOverpaidAmount;
-
-    @JsonIgnore
-    @Column(name = "previous_status")
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus previousStatus;
-
-
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -70,6 +49,6 @@ public class Contribution {
     private LocalDateTime updatedAt;
 
     public enum PaymentStatus {
-        PENDING,UPDATE ,PAID, LATE, PARTIAL, CANCELED
+         PENDING ,PAID, LATE, CANCELED
     }
 }

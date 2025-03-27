@@ -42,8 +42,8 @@ public class UserService {
         return repository.findAll();
     }
 
-    public List<UserDebtDTO> getUsersWithDebtOrNoContribution(int month, int year) {
-        return repository.findUsersWithDebtOrNoContribution(month, year);
+    public List<UserDebtDTO> getUsersWithNoContribution(int month, int year) {
+        return repository.findUsersWithNoContribution(month, year);
     }
     public User getUserByEmail(String email) {
         Optional<User> user = repository.findByEmail(email);

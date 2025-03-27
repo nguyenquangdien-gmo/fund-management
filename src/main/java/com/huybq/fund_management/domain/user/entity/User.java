@@ -23,7 +23,6 @@ import java.util.Collection;
 @Builder
 public class User implements UserDetails {
     @Id
-    @GeneratedValue
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -57,8 +56,6 @@ public class User implements UserDetails {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-    private BigDecimal totalOverpaidAmount = BigDecimal.valueOf(0);
 
     @JsonIgnore
     @Override

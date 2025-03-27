@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/${server.version}/pen-bills")
@@ -63,4 +65,21 @@ public class PenBillController {
         penBillService.rejectPenBill(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/monthly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyPenaltyStats(@RequestParam int year) {
+        return ResponseEntity.ok(penBillService.getMonthlyPenaltyStats(year));
+    }
+
+    // Tổng số tiền phạt đã thanh toán trong một năm
+    @GetMapping("/total")
+    public ResponseEntity<BigDecimal> getTotalPaidPenalties(@RequestParam int year) {
+        return ResponseEntity.ok(penBillService.getTotalPaidPenaltiesByYear(year));
+    }
+
+    // Thống kê tổng tiền phạt theo từng năm
+    @GetMapping("/yearly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getYearlyPenaltyStats() {
+        return ResponseEntity.ok(penBillService.getYearlyPenaltyStats());
+    }
+
 }

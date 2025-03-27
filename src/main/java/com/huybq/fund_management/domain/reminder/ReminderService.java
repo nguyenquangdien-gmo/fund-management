@@ -52,7 +52,6 @@ public class ReminderService {
     }
 
 
-
     public List<ReminderDTO> getRemindersByUser(Long userId) {
         return reminderRepository.findByUserIdAndStatus(userId, Reminder.Status.SENT).stream().map(reminder -> ReminderDTO.builder()
                 .id(reminder.getId())
@@ -98,15 +97,7 @@ public class ReminderService {
 
         int index = 1;
         for (User user : users) {
-            Long userId = user.getId();
-            BigDecimal owedAmount;
-
-            if (contributionRepository.existsByUserIdAndPeriod_MonthAndPeriod_Year(userId, month, year)) {
-                owedAmount = contributionRepository.findOwedAmountByUserAndPeriod(userId, month, year)
-                        .orElse(BigDecimal.ZERO);
-            } else {
-                owedAmount = periodRepository.getTotalPeriodAmountByMonthAndYear(month, year);
-            }
+            BigDecimal owedAmount = periodRepository.getTotalPeriodAmountByMonthAndYear(month, year);
 
             if (owedAmount.compareTo(BigDecimal.ZERO) > 0) {
                 String formattedAmount = currencyFormat.format(owedAmount); // Định dạng số tiền
@@ -143,7 +134,7 @@ public class ReminderService {
             reminder.setStatus(Reminder.Status.SENT);
             reminderRepository.save(reminder);
         });
-        notification.sendNotification("@all\n"+"Chào mọi người, có thông báo mới: **"+dto.title()+"**\n\n"+dto.description()+"\n\n #reminder");
+        notification.sendNotification("@all\n" + "Chào mọi người, có thông báo mới: **" + dto.title() + "**\n\n" + dto.description() + "\n\n #reminder");
 
     }
 

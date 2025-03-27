@@ -22,12 +22,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findUsersOwedContributed(@Param("month") int month, @Param("year") int year);
 
     @Query("SELECT new com.huybq.fund_management.domain.user.dto.UserDebtDTO(" +
-            "u,CAST(COALESCE(c.owedAmount, p.totalAmount) AS BigDecimal)) " +
+            "u,CAST(p.totalAmount AS BigDecimal)) " +
             "FROM User u " +
             "LEFT JOIN Contribution c ON c.user = u AND c.period.month = :month AND c.period.year = :year " +
             "JOIN Period p ON p.month = :month AND p.year = :year " +
-            "WHERE c.id IS NULL OR c.owedAmount > 0")
-    List<UserDebtDTO> findUsersWithDebtOrNoContribution(@Param("month") int month, @Param("year") int year);
+            "WHERE c.id IS NULL")
+    List<UserDebtDTO> findUsersWithNoContribution(@Param("month") int month, @Param("year") int year);
 
     @Query("SELECT new com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO(" +
             "u, c.totalAmount, c.createdAt) " +

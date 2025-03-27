@@ -79,6 +79,7 @@ public class LateService {
     }
 
     //len lich goi tu dong tu 10h05 t2- t6
+//    @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
     @Scheduled(cron = "0 5 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh") // Chạy lúc 10:05:00 từ Thứ 2 đến Thứ 6
     public void scheduledCheckinLate() {
         DayOfWeek today = LocalDateTime.now().getDayOfWeek();
@@ -117,7 +118,7 @@ public class LateService {
                 penBill.setUser(user);
                 penBill.setPenalty(penalty);
                 penBill.setDueDate(now.plusDays(7)); // Hạn nộp phạt sau 7 ngày
-                penBill.setPaymentStatus(PenBill.Status.PENDING);
+                penBill.setPaymentStatus(PenBill.Status.UNPAID);
                 penBill.setDescription("Phiếu phạt lần " + (i + 1) + " do đi trễ quá số lần quy định trong tháng " + month + "/" + year);
 
                 penBillRepository.save(penBill);

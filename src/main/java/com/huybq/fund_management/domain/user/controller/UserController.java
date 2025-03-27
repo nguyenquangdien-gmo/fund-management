@@ -22,11 +22,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
-    @GetMapping("/debt-or-no-contribution/period")
-    public List<UserDebtDTO> getUsersWithDebtOrNoContribution(
+    @GetMapping("/no-contribution/period")
+    public List<UserDebtDTO> getUsersWithNoContribution(
             @RequestParam int month,
             @RequestParam int year) {
-        return userService.getUsersWithDebtOrNoContribution(month, year);
+        return userService.getUsersWithNoContribution(month, year);
     }
 
     @PutMapping("/{id}")

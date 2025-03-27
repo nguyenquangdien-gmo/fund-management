@@ -14,8 +14,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -153,5 +155,32 @@ public class PenBillService {
                 .description(penalty.getDescription())
                 .build();
         createPenBill(penBillDTO);
+    }
+
+    // 1. Thống kê tổng tiền phạt theo từng tháng trong năm
+    public List<Map<String, Object>> getMonthlyPenaltyStats(int year) {
+        List<Object[]> results = penBillRepository.getMonthlyPenaltyStatistics(year);
+        return results.stream()
+                .map(result -> Map.of(
+                        "month", result[0],
+                        "totalAmount", result[1]
+                ))
+                .collect(Collectors.toList());
+    }
+
+    // 2. Tổng số tiền phạt đã thanh toán trong một năm
+    public BigDecimal getTotalPaidPenaltiesByYear(int year) {
+        return penBillRepository.getTotalPaidPenaltiesByYear(year);
+    }
+
+    // 3. Thống kê tổng tiền phạt theo từng năm
+    public List<Map<String, Object>> getYearlyPenaltyStats() {
+        List<Object[]> results = penBillRepository.getYearlyPenaltyStatistics();
+        return results.stream()
+                .map(result -> Map.of(
+                        "year", result[0],
+                        "totalAmount", result[1]
+                ))
+                .collect(Collectors.toList());
     }
 }

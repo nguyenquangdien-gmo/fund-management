@@ -26,6 +26,10 @@ public class ContributionController {
         return ResponseEntity.ok(contributionService.getAllContributions());
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<Contribution> getContributionById(@PathVariable Long id) {
+        return ResponseEntity.ok(contributionService.findById(id));
+    }
     @GetMapping("/owed/users")
     public ResponseEntity<List<UserDto>> getUsersNotContributed(@RequestParam int month, @RequestParam int year) {
         return ResponseEntity.ok(contributionService.getUsersOwedContributed(month, year));
@@ -66,28 +70,22 @@ public class ContributionController {
         ContributionResponseDTO newContribution = contributionService.createContribution(contributionDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(newContribution);
     }
-
-    @GetMapping("/owed/{userId}")
-    public ResponseEntity<List<ContributionResponseDTO>> getOwedContributions(@PathVariable Long userId) {
-        return ResponseEntity.ok(contributionService.getOwedContributionsByUser(userId));
-    }
-
-    @GetMapping("/total")
-    public ResponseEntity<BigDecimal> getPaidAmountContributed(@RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getTotalContributionAmountByPeriod(year));
-    }
-
     // Cập nhật contribution
     @PutMapping("/{id}")
     public ResponseEntity<ContributionResponseDTO> updateContribution(
-            @PathVariable Long id, @Valid @RequestBody ContributionDTO contributionDTO) {
-        ContributionResponseDTO updatedContribution = contributionService.updateContribution(id, contributionDTO);
+            @PathVariable Long id) {
+        ContributionResponseDTO updatedContribution = contributionService.updateContribution(id);
         return ResponseEntity.ok(updatedContribution);
     }
 
     @GetMapping("/monthly-stats")
     public ResponseEntity<List<Map<String, Object>>> getMonthlyContributionStats(@RequestParam int year) {
         return ResponseEntity.ok(contributionService.getMonthlyContributionStats(year));
+    }
+
+    @GetMapping("/total")
+    public ResponseEntity<BigDecimal> getPaidAmountContributed(@RequestParam int year) {
+        return ResponseEntity.ok(contributionService.getTotalContributionAmountByPeriod(year));
     }
 
     @GetMapping("/yearly-stats")
@@ -104,8 +102,8 @@ public class ContributionController {
 
     //reject when wrong result
     @PostMapping("/{id}/reject")
-    public ResponseEntity<String> rejectOrCancelContribution(@PathVariable Long id) {
-        contributionService.rejectOrCancelContribution(id);
+    public ResponseEntity<String> rejectContribution(@PathVariable Long id) {
+        contributionService.rejectContribution(id);
         return ResponseEntity.ok("Contribution rejected or update canceled successfully");
     }
 

@@ -25,7 +25,8 @@ public class Team {
     private String name;
     private String slug;
     private String channelId;
-    private String qr;
+    private String qrCode;
+    private String token;
 
     @JsonIgnore
     @OneToMany(mappedBy = "team")

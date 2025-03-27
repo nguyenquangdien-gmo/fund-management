@@ -43,13 +43,18 @@ public class ContributionService {
 
     public List<ContributionResponseDTO> getPendingContributions() {
         return contributionRepository.findByPaymentStatusIn(List.of(
-                        Contribution.PaymentStatus.PENDING,
-                        Contribution.PaymentStatus.UPDATE
+                        Contribution.PaymentStatus.PENDING
+
                 ))
                 .stream()
                 .map(mapper::mapToResponseDTO)
                 .toList();
     }
+    public Contribution findById(Long id) {
+        return contributionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
+    }
+
     public List<ContributionResponseDTO> findAllContributions(Long periodId) {
         List<Contribution> contributions = contributionRepository.findAllByPeriodId(periodId);
         return contributions.stream().map(mapper::mapToResponseDTO).toList();
@@ -161,15 +166,11 @@ public class ContributionService {
         }
 
 
-        BigDecimal needAmount = period.getTotalAmount(); // Số tiền cần đóng
-        BigDecimal userOverpaid = user.getTotalOverpaidAmount(); // Số tiền dư của user
+        BigDecimal needAmount = period.getTotalAmount();
         BigDecimal actualAmount = contributionDTO.getTotalAmount(); // Số tiền user muốn đóng
 
-        if (userOverpaid.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal totalAmount = actualAmount.add(userOverpaid); // Cộng overpaid vào số tiền đóng
-            user.setTotalOverpaidAmount(BigDecimal.ZERO); // Reset overpaid về 0 sau khi sử dụng
-            userRepository.save(user);
-            actualAmount = totalAmount;
+        if (actualAmount.compareTo(needAmount) < 0) {
+            throw new IllegalArgumentException("The amount is not enough to cover the total amount of the period.");
         }
 
         boolean isLate = LocalDateTime.now().isAfter(period.getDeadline().atStartOfDay());
@@ -178,8 +179,6 @@ public class ContributionService {
                 .user(user)
                 .period(period)
                 .totalAmount(actualAmount)
-                .owedAmount(actualAmount.compareTo(needAmount) < 0 ? needAmount.subtract(actualAmount) : BigDecimal.ZERO)
-                .overpaidAmount(actualAmount.compareTo(needAmount) > 0 ? actualAmount.subtract(needAmount) : BigDecimal.ZERO)
                 .note(contributionDTO.getNote())
                 .paymentStatus(Contribution.PaymentStatus.PENDING)
                 .isLate(isLate)
@@ -188,8 +187,9 @@ public class ContributionService {
         contributionRepository.save(newContribution);
         return mapper.mapToResponseDTO(newContribution);
     }
+
     @Transactional
-    public ContributionResponseDTO updateContribution(Long contributionId, ContributionDTO contributionDTO) {
+    public ContributionResponseDTO updateContribution(Long contributionId) {
         var contribution = contributionRepository.findById(contributionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
 
@@ -197,30 +197,7 @@ public class ContributionService {
             throw new IllegalArgumentException("Cannot update a fully paid contribution");
         }
 
-        BigDecimal needAmount = contribution.getPeriod().getTotalAmount();
-
-        // Lưu trạng thái trước khi cập nhật
-        contribution.setPreviousTotalAmount(contribution.getTotalAmount());
-        contribution.setPreviousOwedAmount(contribution.getOwedAmount());
-        contribution.setPreviousOverpaidAmount(contribution.getOverpaidAmount());
-        contribution.setPreviousStatus(contribution.getPaymentStatus());
-
-        // Cộng thêm số tiền mới vào số tiền hiện tại
-        BigDecimal newTotalAmount = contribution.getTotalAmount().add(contributionDTO.getTotalAmount());
-
-        // Tính toán số tiền còn thiếu hoặc dư
-        BigDecimal owedAmount = newTotalAmount.compareTo(needAmount) < 0 ? needAmount.subtract(newTotalAmount) : BigDecimal.ZERO;
-        BigDecimal overpaidAmount = newTotalAmount.compareTo(needAmount) > 0 ? newTotalAmount.subtract(needAmount) : BigDecimal.ZERO;
-
-        // **Luôn giữ trạng thái `PENDING` để đợi admin approve**
-        Contribution.PaymentStatus newStatus = Contribution.PaymentStatus.PENDING;
-
-        // Cập nhật Contribution
-        contribution.setTotalAmount(newTotalAmount);
-        contribution.setOwedAmount(owedAmount);
-        contribution.setOverpaidAmount(overpaidAmount);
-        contribution.setPaymentStatus(newStatus);
-
+        contribution.setPaymentStatus(Contribution.PaymentStatus.PENDING);
         contributionRepository.save(contribution);
         return mapper.mapToResponseDTO(contribution);
     }
@@ -228,27 +205,17 @@ public class ContributionService {
 
     @Transactional
     public void approveContribution(Long contributionId) {
-        log.info("Approving contribution with ID: {}", contributionId);
-
         Contribution contribution = contributionRepository.findById(contributionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
-        log.info("Contribution found: {}", contribution);
-
         if (contribution.getUser() == null) {
             throw new ResourceNotFoundException("User not found for contribution: " + contributionId);
         }
-        log.info("User found: {}", contribution.getUser());
-
         if (contribution.getPeriod() == null) {
             throw new ResourceNotFoundException("Period not found for contribution: " + contributionId);
         }
-        log.info("Period found: {}", contribution.getPeriod());
-
         if (contribution.getTotalAmount() == null) {
             throw new IllegalArgumentException("Total amount is null for contribution: " + contributionId);
         }
-        log.info("Total amount: {}", contribution.getTotalAmount());
-
         if (contribution.getPaymentStatus() == Contribution.PaymentStatus.PAID) {
             throw new IllegalArgumentException("Contribution is already paid");
         }
@@ -278,25 +245,12 @@ public class ContributionService {
                 .build());
         balanceService.depositBalance("snack_fund", snackFundAmount);
 
-        User user = contribution.getUser();
-
-        // Nếu số tiền đóng đủ hoặc dư -> PAID, nếu thiếu -> PARTIAL
         if (totalAmount.compareTo(needAmount) >= 0) {
             contribution.setPaymentStatus(Contribution.PaymentStatus.PAID);
-            BigDecimal overpaidAmount = totalAmount.subtract(needAmount);
-
-            if (overpaidAmount.compareTo(BigDecimal.ZERO) > 0) {
-                // Cộng vào overpaid của user
-                user.setTotalOverpaidAmount(user.getTotalOverpaidAmount().add(overpaidAmount));
-                balanceService.depositBalance("common_fund", overpaidAmount);
-            }
         } else {
-            contribution.setPaymentStatus(Contribution.PaymentStatus.PARTIAL);
-            contribution.setOwedAmount(needAmount.subtract(totalAmount)); // Nếu thiếu tiền
+            throw new IllegalArgumentException("Contribution is not fully paid");
         }
-
         contributionRepository.save(contribution);
-        userRepository.save(user);
     }
 
 
@@ -313,7 +267,7 @@ public class ContributionService {
 //    }
 
     @Transactional
-    public void rejectOrCancelContribution(Long contributionId) {
+    public void rejectContribution(Long contributionId) {
         var contribution = contributionRepository.findById(contributionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
 
@@ -322,35 +276,11 @@ public class ContributionService {
             contributionRepository.save(contribution);
             return;
         }
-
-        // Nếu contribution đã được cập nhật (PARTIAL), cần khôi phục dữ liệu cũ
-        if (contribution.getPaymentStatus() == Contribution.PaymentStatus.PARTIAL &&
-                contribution.getPreviousTotalAmount() != null && contribution.getPreviousStatus() != null) {
-
-            contribution.setTotalAmount(contribution.getPreviousTotalAmount());
-            contribution.setOwedAmount(contribution.getPreviousOwedAmount());
-            contribution.setOverpaidAmount(contribution.getPreviousOverpaidAmount());
-            contribution.setPaymentStatus(contribution.getPreviousStatus());
-
-            // Xóa dữ liệu cũ sau khi khôi phục
-            contribution.setPreviousTotalAmount(null);
-            contribution.setPreviousOwedAmount(null);
-            contribution.setPreviousOverpaidAmount(null);
-            contribution.setPreviousStatus(null);
-
-            contributionRepository.save(contribution);
-            return;
-        }
-
         throw new IllegalArgumentException("Invalid state for rejection or cancellation");
     }
 
 
-    public List<ContributionResponseDTO> getOwedContributionsByUser(Long userId) {
-        return contributionRepository.findOwedContributionsByUserId(userId).stream().map(mapper::mapToResponseDTO).collect(Collectors.toList());
-    }
-
-    public BigDecimal getTotalContributionAmountByPeriod(int year ) {
+    public BigDecimal getTotalContributionAmountByPeriod(int year) {
         return contributionRepository.getTotalPaidContributionsByYear(year);
     }
 

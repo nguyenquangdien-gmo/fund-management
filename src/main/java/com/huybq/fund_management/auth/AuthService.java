@@ -39,12 +39,12 @@ public class AuthService {
 
     public AuthenticationResponse register(RegisterDto request) {
         var user = User.builder()
+                .id(request.id())
                 .fullName(request.fullName().toUpperCase())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .role(Roles.valueOf(request.role()))
                 .status(Status.ACTIVE)
-                .totalOverpaidAmount(BigDecimal.ZERO)
                 .createdAt(LocalDateTime.now())
                 .build();
         var savedUser = repository.save(user);

@@ -20,6 +20,7 @@ public class PenaltyMapper {
                 .name(dto.getName())
                 .amount(dto.getAmount())
                 .description(dto.getDescription())
+                .slug(dto.getSlug())
                 .build();
     }
 }

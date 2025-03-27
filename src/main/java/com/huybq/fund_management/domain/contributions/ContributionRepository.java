@@ -15,9 +15,6 @@ import java.util.Optional;
 @Repository
 public interface ContributionRepository extends JpaRepository<Contribution, Long> {
     List<Contribution> findAllByPeriodId(Long periodId);
-//lay ra amount trong debt 1 ky period cuar mot user
-    @Query("SELECT c.owedAmount FROM Contribution c WHERE c.user.id = :userId AND c.period.month = :month AND c.period.year = :year")
-    Optional<BigDecimal> findOwedAmountByUserAndPeriod(@Param("userId") Long userId, @Param("month") int month, @Param("year") int year);
 
     @Query("SELECT DISTINCT c.user FROM Contribution c WHERE c.period.id = :periodId AND c.totalAmount > 0")
     List<User> findUsersByPeriodId(@Param("periodId") Long periodId);
@@ -28,7 +25,6 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
 
     List<Contribution> findByUserIdAndPaymentStatus(Long userId, Contribution.PaymentStatus paymentStatus);
 
-    boolean existsByUserIdAndPeriod_MonthAndPeriod_Year(Long userId, int month, int year);
 
     @Query("SELECT c.period.month, COALESCE(SUM(c.totalAmount), 0) " +
             "FROM Contribution c " +
@@ -48,13 +44,21 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
 
     List<Contribution> findByUserIdAndPeriodId(@NotNull(message = "userId is required") Long userId, @NotNull(message = "periodId is required") Long periodId);
 
-    @Query("SELECT c FROM Contribution c WHERE c.user.id = :userId AND c.owedAmount > 0")
-    List<Contribution> findOwedContributionsByUserId(@Param("userId") Long userId);
-
     @Query("SELECT COALESCE(SUM(c.totalAmount), 0) " +
             "FROM Contribution c " +
             "WHERE c.paymentStatus = 'PAID' AND c.period.year = :year")
     BigDecimal getTotalPaidContributionsByYear(@Param("year") int year);
 
     List<Contribution> findByPaymentStatusIn(List<Contribution.PaymentStatus> statuses);
+
+
+    @Query("""
+                SELECT u FROM User u 
+                WHERE u.id NOT IN (
+                    SELECT c.user.id FROM Contribution c 
+                    WHERE c.period.month = :month AND c.period.year = :year
+                )
+            """)
+    List<User> findUsersWithoutContributionsForPeriod(@Param("month") int month, @Param("year") int year);
+
 }
