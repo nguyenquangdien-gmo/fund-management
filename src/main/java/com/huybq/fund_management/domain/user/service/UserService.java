@@ -35,11 +35,9 @@ public class UserService {
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
     private final UserMapper mapper;
-    private final PenBillService penBillService;
-    private final PenaltyService penaltyService;
 
     public List<User> getUsers() {
-        return repository.findAll();
+        return repository.findAllByDeleteIsFalse();
     }
 
     public List<UserDebtDTO> getUsersWithNoContribution(int month, int year) {
@@ -54,8 +52,8 @@ public class UserService {
         var user = repository.findById(id);
 
         if (user.isPresent()) {
-            tokenRepository.deleteTokenByUser_Id(id);
-            repository.deleteById(id);
+            user.get().setDelete(true);
+            repository.save(user.get());
             return true;
         } else {
             return false;

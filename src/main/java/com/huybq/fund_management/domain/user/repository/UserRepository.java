@@ -37,5 +37,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE p.month = :month AND p.year = :year " +
             "AND (c.isLate = true OR c.paymentStatus = 'LATE')")
     List<UserLatePaymentDTO> findUsersWithLatePayment(int month, int year);
-
+    @Query("""
+           \s
+            Select u from User u where u.isDelete = false\s
+           \s""")
+    List<User> findAllByDeleteIsFalse();
 }
