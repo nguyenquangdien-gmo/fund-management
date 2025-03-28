@@ -23,6 +23,15 @@ public class LateController {
         return ResponseEntity.ok(lateRecords);
     }
 
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<List<LateReponseDTO>> getLateRecordsByUserId(
+            @PathVariable Long userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+        List<LateReponseDTO> lateRecords = service.getLateByUserIdWithDateRange(userId, fromDate, toDate);
+        return ResponseEntity.ok(lateRecords);
+    }
+
     @PostMapping("/process/messages")
     public ResponseEntity<?> processLateMessage(@RequestBody MessageRequest request) {
         if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
@@ -35,12 +44,12 @@ public class LateController {
 
     @GetMapping("/users/date")
     public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate(@RequestParam int min) {
-        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth( min));
+        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth(min));
     }
 
     @GetMapping("/users/monthly")
     public List<?> getLatesFromPrevious28thToCurrent28th() {
-        return service.getLatesFromPrevious28thToCurrent28th();
+        return service.getLatesFromPrevious1stToCurrent1st();
     }
 
 }

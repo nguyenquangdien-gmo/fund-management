@@ -119,7 +119,7 @@ public class ReminderService {
 
         // Gửi thông báo tổng hợp nếu có nợ
         if (index > 1) {
-            notification.sendNotification(message.toString());
+            notification.sendNotification(message.toString(),"java");
         }
     }
 
@@ -134,7 +134,7 @@ public class ReminderService {
             reminder.setStatus(Reminder.Status.SENT);
             reminderRepository.save(reminder);
         });
-        notification.sendNotification("@all\n" + "Chào mọi người, có thông báo mới: **" + dto.title() + "**\n\n" + dto.description() + "\n\n #reminder");
+        notification.sendNotification("@all\n" + "Chào mọi người, có thông báo mới: **" + dto.title() + "**\n\n" + dto.description() + "\n\n #reminder","java");
 
     }
 

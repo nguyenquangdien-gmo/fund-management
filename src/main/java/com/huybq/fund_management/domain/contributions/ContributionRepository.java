@@ -33,9 +33,11 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
             "ORDER BY c.period.month ASC")
     List<Object[]> getMonthlyContributionStatistics(@Param("year") int year);
 
-    @Query("SELECT c.period.year, COALESCE(SUM(c.totalAmount), 0) " +
-            "FROM Contribution c GROUP BY c.period.year " +
-            "ORDER BY c.period.year DESC")
+    @Query("SELECT FUNCTION('YEAR', c.updatedAt), COALESCE(SUM(c.totalAmount), 0) " +
+            "FROM Contribution c " +
+            "WHERE c.paymentStatus = 'PAID' " +
+            "GROUP BY FUNCTION('YEAR', c.updatedAt) " +
+            "ORDER BY FUNCTION('YEAR', c.updatedAt) DESC")
     List<Object[]> getYearlyContributionStatistics();
 
     @Query("SELECT c.user, c.totalAmount,c.createdAt " +
@@ -52,13 +54,5 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
     List<Contribution> findByPaymentStatusIn(List<Contribution.PaymentStatus> statuses);
 
 
-    @Query("""
-                SELECT u FROM User u 
-                WHERE u.id NOT IN (
-                    SELECT c.user.id FROM Contribution c 
-                    WHERE c.period.month = :month AND c.period.year = :year
-                )
-            """)
-    List<User> findUsersWithoutContributionsForPeriod(@Param("month") int month, @Param("year") int year);
 
 }

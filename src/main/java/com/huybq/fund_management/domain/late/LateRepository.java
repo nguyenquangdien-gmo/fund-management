@@ -1,6 +1,8 @@
 package com.huybq.fund_management.domain.late;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,6 +12,8 @@ import java.util.List;
 
 @Repository
 public interface LateRepository extends JpaRepository<Late, Long> {
+    @Modifying
+    @Transactional
     void deleteByDate(LocalDate date);
     @Query("SELECT l FROM Late l WHERE l.date BETWEEN :fromDate AND :toDate")
     List<Late> findByDateRange(@Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
@@ -27,5 +31,8 @@ public interface LateRepository extends JpaRepository<Late, Long> {
             "HAVING COUNT(l) > 0")
     List<Object[]> findUsersWithLateCountBetweenDates(@Param("startDate") LocalDate startDate,
                                                       @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT l FROM Late l WHERE l.user.id= :userId AND l.date BETWEEN :fromDate AND :toDate")
+    List<Late> findLatesByUser_IdAndDateRange(@Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate, @Param("userId") Long userId);
 }
 

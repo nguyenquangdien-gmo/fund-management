@@ -9,4 +9,7 @@ public class TeamDTO {
     private String id;
     private String name;
     private String slug;
+    private String channelId;
+    private String qrCode;
+    private String token;
 }
