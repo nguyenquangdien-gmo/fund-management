@@ -12,7 +12,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-
+  servlet:
+    multipart:
+      enabled: true
+      resolve-lazily: false
 application:
   security:
     jwt:

@@ -2,6 +2,8 @@ package com.huybq.fund_management.domain.team;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+
 @Service
 public class TeamMapper {
 
@@ -11,7 +13,7 @@ public class TeamMapper {
                 .name(team.getName())
                 .slug(team.getSlug())
                 .channelId(team.getChannelId())
-                .qrCode(team.getQrCode())
+//                .qrCode(Arrays.toString(team.getQrCode()))
                 .token(team.getToken())
                 .build();
     }
@@ -21,7 +23,7 @@ public class TeamMapper {
                 .name(teamDTO.getName())
                 .slug(teamDTO.getSlug())
                 .channelId(teamDTO.getChannelId())
-                .qrCode(teamDTO.getQrCode())
+//                .qrCode(teamDTO.getQrCode().getBytes())
                 .token(teamDTO.getToken())
                 .build();
     }
@@ -30,7 +32,7 @@ public class TeamMapper {
         team.setName(teamUpdateDTO.getName());
         team.setSlug(teamUpdateDTO.getSlug());
         team.setChannelId(teamUpdateDTO.getChannelId());
-        team.setQrCode(teamUpdateDTO.getQrCode());
+//        team.setQrCode(teamUpdateDTO.getQrCode().getBytes());
         team.setToken(teamUpdateDTO.getToken());
     }
 }

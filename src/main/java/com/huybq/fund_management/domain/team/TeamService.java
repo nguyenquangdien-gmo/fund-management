@@ -1,21 +1,15 @@
 package com.huybq.fund_management.domain.team;
 
-import com.huybq.fund_management.domain.late.Late;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -25,22 +19,41 @@ public class TeamService {
     private final TeamMapper mapper;
     private final UserRepository userRepository;
 
+    public List<TeamDTO> getTeams() {
+        return repository.findAll().stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
+
     public List<TeamDTO> getMembers(String name) {
         return repository.findUsersByName(name).stream()
                 .map(mapper::toDTO)
                 .toList();
     }
 
-    public TeamDTO createTeam(TeamDTO teamCreateDTO) {
+    public TeamDTO createTeam(TeamDTO teamCreateDTO, MultipartFile qrCode) throws IOException {
         Team team = mapper.toEntity(teamCreateDTO);
+
+        // Handle QR code upload
+        if (qrCode != null && !qrCode.isEmpty()) {
+            team.setQrCode(qrCode.getBytes());
+        }
+
         repository.save(team);
         return mapper.toDTO(team);
     }
 
-    public TeamDTO updateTeam(String slug, TeamDTO teamUpdateDTO) {
+    public TeamDTO updateTeam(String slug, TeamDTO teamUpdateDTO, MultipartFile qrCode) throws IOException {
         Team team = repository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
+
         mapper.updateEntityFromDTO(teamUpdateDTO, team);
+
+        // Handle QR code upload
+        if (qrCode != null && !qrCode.isEmpty()) {
+            team.setQrCode(qrCode.getBytes());
+        }
+
         repository.save(team);
         return mapper.toDTO(team);
     }
@@ -50,4 +63,22 @@ public class TeamService {
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
     }
 
+    // Utility method to get the QR code image
+    public byte[] getQrCode(String slug) {
+        Team team = repository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
+        return team.getQrCode();
+    }
+
+    public void deleteTeam(String slug) {
+        Team team = repository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
+        repository.delete(team);
+    }
+
+    public Team getTeamByUserId(Long userId) {
+        return userRepository.findByIdAndIsDeleteFalse(userId)
+                .map(User::getTeam)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
+    }
 }

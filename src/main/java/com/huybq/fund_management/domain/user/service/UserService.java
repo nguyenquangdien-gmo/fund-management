@@ -4,6 +4,7 @@ import com.huybq.fund_management.domain.pen_bill.PenBillDTO;
 import com.huybq.fund_management.domain.pen_bill.PenBillService;
 import com.huybq.fund_management.domain.penalty.PenaltyDTO;
 import com.huybq.fund_management.domain.penalty.PenaltyService;
+import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
 import com.huybq.fund_management.domain.token.TokenRepository;
@@ -113,6 +114,12 @@ public class UserService {
 
     public List<UserLatePaymentDTO> getLatePayments(int month, int year) {
         return repository.findUsersWithLatePayment(month, year);
+    }
+
+    public Team getTeamByUserId(Long userId) {
+        return repository.findByIdAndIsDeleteFalse(userId)
+                .map(User::getTeam)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
     }
 
 }

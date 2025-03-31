@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.user.repository;
 
+import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
 import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
 import com.huybq.fund_management.domain.user.entity.User;
@@ -42,4 +43,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             Select u from User u where u.isDelete = false\s
            \s""")
     List<User> findAllByDeleteIsFalse();
+
+    Optional<User> findByIdAndIsDeleteFalse(Long id);
 }
