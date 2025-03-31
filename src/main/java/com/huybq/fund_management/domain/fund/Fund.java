@@ -36,7 +36,4 @@ public class Fund {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-
-
 }
