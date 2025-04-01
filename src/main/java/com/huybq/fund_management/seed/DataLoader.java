@@ -91,10 +91,8 @@ public class DataLoader {
     private void createTeamIfNotExists(TeamRepository repository, String name, String slug) {
         if (repository.findBySlug(slug).isEmpty()) {
             Team team = new Team();
-            team.setId(UUID.randomUUID().toString());
             team.setName(name);
             team.setSlug(slug);
-            team.setCreatedAt(LocalDateTime.now());
             repository.save(team);
         }
     }
