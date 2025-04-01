@@ -1,7 +1,6 @@
 package com.huybq.fund_management.domain.contributions;
 
 import com.huybq.fund_management.domain.user.dto.UserDto;
-import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,97 +19,78 @@ public class ContributionController {
 
     private final ContributionService contributionService;
 
-
     @GetMapping
-    public ResponseEntity<List<ContributionResponseDTO>> getAllContributions() {
-        return ResponseEntity.ok(contributionService.getAllContributions());
+    public ResponseEntity<?> getAllContributions() {
+        try {
+            return ResponseEntity.ok(contributionService.getAllContributions());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve contributions: " + e.getMessage());
+        }
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Contribution> getContributionById(@PathVariable Long id) {
-        return ResponseEntity.ok(contributionService.findById(id));
+    public ResponseEntity<?> getContributionById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(contributionService.findById(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Contribution not found: " + e.getMessage());
+        }
     }
+
     @GetMapping("/owed/users")
-    public ResponseEntity<List<UserDto>> getUsersNotContributed(@RequestParam int month, @RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getUsersOwedContributed(month, year));
+    public ResponseEntity<?> getUsersNotContributed(@RequestParam int month, @RequestParam int year) {
+        try {
+            return ResponseEntity.ok(contributionService.getUsersOwedContributed(month, year));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve users: " + e.getMessage());
+        }
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<ContributionResponseDTO>> getContributionById(@RequestParam int month, @RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getAllContributionsByMonthAndYear(month, year));
-    }
-
-    // Lấy tất cả contributions của một kỳ (period)
-    @GetMapping("/period/{periodId}")
-    public ResponseEntity<List<ContributionResponseDTO>> getAllContributionsByPeriod(@PathVariable Long periodId) {
-        List<ContributionResponseDTO> contributions = contributionService.findAllContributions(periodId);
-        return ResponseEntity.ok(contributions);
-    }
-
-    @GetMapping("/periods/{periodId}/users")
-    public ResponseEntity<List<UserDto>> getUsersByPeriod(@PathVariable Long periodId) {
-        return ResponseEntity.ok(contributionService.getUsersContributedInPeriod(periodId));
-    }
-
-    // Lấy tất cả contributions của một user
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ContributionResponseDTO>> getAllContributionsByUser(@PathVariable Long userId) {
-        List<ContributionResponseDTO> contributions = contributionService.getAllContributionsByMember(userId);
-        return ResponseEntity.ok(contributions);
-    }
-
-    @GetMapping("/user/{userId}/pending")
-    public ResponseEntity<List<ContributionResponseDTO>> getPendingContributionsByUser(@PathVariable Long userId) {
-        List<ContributionResponseDTO> contributions = contributionService.getPendingContributionsByMember(userId);
-        return ResponseEntity.ok(contributions);
+    public ResponseEntity<?> getContributionByMonthAndYear(@RequestParam int month, @RequestParam int year) {
+        try {
+            return ResponseEntity.ok(contributionService.getAllContributionsByMonthAndYear(month, year));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve contributions: " + e.getMessage());
+        }
     }
 
     @PostMapping
-    public ResponseEntity<ContributionResponseDTO> createContribution(@Valid @RequestBody ContributionDTO contributionDTO) {
-        ContributionResponseDTO newContribution = contributionService.createContribution(contributionDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newContribution);
+    public ResponseEntity<?> createContribution(@Valid @RequestBody ContributionDTO contributionDTO) {
+        try {
+            ContributionResponseDTO newContribution = contributionService.createContribution(contributionDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newContribution);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create contribution: " + e.getMessage());
+        }
     }
-    // Cập nhật contribution
+
     @PutMapping("/{id}")
-    public ResponseEntity<ContributionResponseDTO> updateContribution(
-            @PathVariable Long id) {
-        ContributionResponseDTO updatedContribution = contributionService.updateContribution(id);
-        return ResponseEntity.ok(updatedContribution);
+    public ResponseEntity<?> updateContribution(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(contributionService.updateContribution(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Failed to update contribution: " + e.getMessage());
+        }
     }
 
-    @GetMapping("/monthly-stats")
-    public ResponseEntity<List<Map<String, Object>>> getMonthlyContributionStats(@RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getMonthlyContributionStats(year));
-    }
-
-    @GetMapping("/total")
-    public ResponseEntity<BigDecimal> getPaidAmountContributed(@RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getTotalContributionAmountByPeriod(year));
-    }
-
-    @GetMapping("/yearly-stats")
-    public ResponseEntity<List<Map<String, Object>>> getYearlyContributionStats() {
-        return ResponseEntity.ok(contributionService.getYearlyContributionStats());
-    }
-
-    //approve when having request creation or update
     @PostMapping("/{id}/approve")
-    public ResponseEntity<String> approveContribution(@PathVariable Long id) {
-        contributionService.approveContribution(id);
-        return ResponseEntity.ok("Contribution approved successfully");
+    public ResponseEntity<?> approveContribution(@PathVariable Long id) {
+        try {
+            contributionService.approveContribution(id);
+            return ResponseEntity.ok("Contribution approved successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to approve contribution: " + e.getMessage());
+        }
     }
 
-    //reject when wrong result
     @PostMapping("/{id}/reject")
-    public ResponseEntity<String> rejectContribution(@PathVariable Long id) {
-        contributionService.rejectContribution(id);
-        return ResponseEntity.ok("Contribution rejected or update canceled successfully");
-    }
-
-    @GetMapping("/pending")
-    public ResponseEntity<List<ContributionResponseDTO>> getPendingContributions() {
-        List<ContributionResponseDTO> pendingContributions = contributionService.getPendingContributions();
-        return ResponseEntity.ok(pendingContributions);
+    public ResponseEntity<?> rejectContribution(@PathVariable Long id) {
+        try {
+            contributionService.rejectContribution(id);
+            return ResponseEntity.ok("Contribution rejected or update canceled successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to reject contribution: " + e.getMessage());
+        }
     }
 }
-

@@ -30,15 +30,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
-        if (authHeader==null || !authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response);
+
+        // Nếu không có header Authorization hoặc không phải token dạng Bearer
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
             return;
         }
+
+        // Lấy token từ header Authorization
         jwt = authHeader.substring(7);
         userEmail = jwtService.extractUsername(jwt);
-        if (userEmail!=null && SecurityContextHolder.getContext().getAuthentication()==null){
+
+        // Kiểm tra xem token có hợp lệ và người dùng có xác thực chưa
+        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-            if (jwtService.isTokenValid(jwt,userDetails)){
+            // Kiểm tra token có hợp lệ không
+            if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -46,8 +53,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                // Nếu token không hợp lệ hoặc hết hạn
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                return;
             }
+        } else {
+            // Nếu không tìm thấy userEmail từ token
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized access");
+            return;
         }
-        filterChain.doFilter(request,response);
+
+        filterChain.doFilter(request, response);
     }
 }

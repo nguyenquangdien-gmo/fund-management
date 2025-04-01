@@ -56,7 +56,7 @@
             String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
             long timestamp = now.atZone(vietnamZone)
-                    .withHour(10).withMinute(5).withSecond(15)
+                    .withHour(9).withMinute(50).withSecond(0)
                     .toEpochSecond() * 1000;
 
             String url = "https://chat.runsystem.vn/api/v4/channels/" + team.getChannelId() + "/posts?since=" + timestamp;
