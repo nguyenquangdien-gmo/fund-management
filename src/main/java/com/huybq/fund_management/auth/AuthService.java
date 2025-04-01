@@ -1,6 +1,7 @@
 package com.huybq.fund_management.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huybq.fund_management.domain.team.TeamRepository;
 import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
 import com.huybq.fund_management.domain.token.TokenRepository;
@@ -11,6 +12,7 @@ import com.huybq.fund_management.domain.user.entity.Status;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.domain.user.response.AuthenticationResponse;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,14 +41,33 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final TeamRepository teamRepository;
 
     public AuthenticationResponse register(RegisterDto request) {
+        var team = teamRepository.findBySlug(request.slugTeam());
+        if (team.isEmpty()) {
+            throw new ResourceNotFoundException("Team not found");
+        }
+
+        LocalDate dob = null;
+        if (request.dob() != null && !request.dob().isEmpty()) {
+            try {
+                dob = LocalDate.parse(request.dob(), DateTimeFormatter.ISO_DATE);
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("Invalid date format for date of birth");
+            }
+        }
+
         var user = User.builder()
                 .id(request.id())
                 .fullName(request.fullName().toUpperCase())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .role(Roles.valueOf(request.role()))
+                .phone(request.phoneNumber())
+                .position(request.position())
+                .team(team.get())
+                .dob(dob)
                 .status(Status.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -55,6 +79,10 @@ public class AuthService {
                 .email(user.getEmail())
                 .fullName(user.getFullName().toUpperCase())
                 .role(String.valueOf(user.getRole()))
+                .phoneNumber(user.getPhone())
+                .position(user.getPosition())
+                .team(user.getTeam().getName())
+                .dob(user.getDob().toString())
                 .build();
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
@@ -81,6 +109,9 @@ public class AuthService {
                 .email(user.getEmail())
                 .fullName(user.getFullName().toUpperCase())
                 .role(String.valueOf(user.getRole()))
+                .phoneNumber(user.getPhone())
+                .position(user.getPosition())
+                .team(user.getTeam().getName())
                 .build();
 
         return AuthenticationResponse.builder()

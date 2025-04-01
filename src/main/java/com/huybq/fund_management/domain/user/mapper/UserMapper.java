@@ -12,6 +12,10 @@ public class UserMapper {
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .position(user.getPosition())
+                .team(user.getTeam().getName())
+                .phoneNumber(user.getPhone())
+                .dob(user.getDob().toString())
                 .build();
     }
 }

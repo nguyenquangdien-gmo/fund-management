@@ -8,6 +8,10 @@ public record UserDto (
         String fullName,
         String email,
         String password,
-        String role
+        String role,
+        String phoneNumber,
+        String position,
+        String team,
+        String dob
 ){
 }

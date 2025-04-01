@@ -5,6 +5,10 @@ public record RegisterDto (
         String fullName,
         String email,
         String password,
-        String role
+        String role,
+        String phoneNumber,
+        String position,
+        String slugTeam,
+        String dob
 ){
 }
