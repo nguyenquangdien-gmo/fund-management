@@ -7,15 +7,16 @@ import com.huybq.fund_management.domain.fund.FundRepository;
 import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.penalty.Penalty;
 import com.huybq.fund_management.domain.penalty.PenaltyRepository;
+import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamRepository;
-import com.huybq.fund_management.domain.user.entity.Roles;
 import com.huybq.fund_management.domain.user.entity.Status;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ public class DataLoader {
             BalanceRepository balanceRepository,
             FundRepository fundRepository,
             PenaltyRepository penaltyRepository,
+            RoleRepository roleRepository,
             TeamRepository teamRepository, UserRepository userRepository) {
         return args -> {
             // 🏦 Balance (Quỹ tiền)
@@ -47,7 +49,7 @@ public class DataLoader {
             createTeamIfNotExists(teamRepository, "Java", "java");
 
             // 🧑‍🤝‍🧑 User (Người dùng)
-            createAdminUserIfNotExists(userRepository, teamRepository);
+            createAdminUserIfNotExists(userRepository, teamRepository,roleRepository);
         };
     }
 
@@ -97,22 +99,22 @@ public class DataLoader {
         }
     }
 
-    private void createAdminUserIfNotExists(UserRepository repository, TeamRepository teamRepository) {
+    private void createAdminUserIfNotExists(UserRepository repository, TeamRepository teamRepository, RoleRepository roleRepository) {
         String adminEmail = "admin@runsystem.net";
 
+        var role = roleRepository.findByName("ADMIN");
         if (repository.findByEmail(adminEmail).isEmpty()) {
             User admin = new User();
             admin.setId(1L); // Nếu ID được tự động sinh, có thể bỏ dòng này
             admin.setEmail(adminEmail);
             admin.setPassword(new BCryptPasswordEncoder().encode("admin@123")); // Mật khẩu mã hóa
             admin.setFullName("Admin");
-            admin.setRole(Roles.ADMIN);
+            admin.setRole(role.get());
             admin.setStatus(Status.ACTIVE);
             admin.setPhone("0123456789");
             admin.setPosition("Administrator");
             admin.setUserToken(UUID.randomUUID().toString());
             admin.setCreatedAt(LocalDateTime.now());
-
             // Gán team nếu có
             teamRepository.findBySlug("java").ifPresent(admin::setTeam);
 

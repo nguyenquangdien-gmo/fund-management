@@ -11,11 +11,12 @@ public class UserMapper {
                 .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
-                .role(user.getRole().name())
+                .role(user.getRole().getName())
                 .position(user.getPosition())
                 .team(user.getTeam().getName())
                 .phoneNumber(user.getPhone())
                 .dob(user.getDob().toString())
+                .joinDate(user.getJoinDate().toString())
                 .build();
     }
 }

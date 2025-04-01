@@ -53,7 +53,7 @@ public class TransService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
-                .role(user.getRole().name())
+                .role(user.getRole().getName())
                 .build();
         return TransReponseDTO.builder()
                 .amount(transaction.getAmount())

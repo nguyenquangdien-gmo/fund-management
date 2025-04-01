@@ -77,4 +77,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Token refresh failed: " + e.getMessage());
         }
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto request) {
+        service.changePassword(request.email(), request.oldPassword(), request.newPassword());
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
 }

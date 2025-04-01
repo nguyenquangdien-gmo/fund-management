@@ -1,18 +1,19 @@
 package com.huybq.fund_management.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.TeamRepository;
 import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
 import com.huybq.fund_management.domain.token.TokenRepository;
 import com.huybq.fund_management.domain.token.TokenType;
 import com.huybq.fund_management.domain.user.dto.UserDto;
-import com.huybq.fund_management.domain.user.entity.Roles;
 import com.huybq.fund_management.domain.user.entity.Status;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.domain.user.response.AuthenticationResponse;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
+import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +26,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -42,39 +41,51 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final TeamRepository teamRepository;
+    private final RoleRepository roleRepository;
+    private final Notification notification;
 
     public AuthenticationResponse register(RegisterDto request) {
+        String url = "http://localhost:3000/auth/change-password";
         var team = teamRepository.findBySlug(request.slugTeam());
         if (team.isEmpty()) {
             throw new ResourceNotFoundException("Team not found");
         }
+        var role = roleRepository.findByName(request.role())
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
-        LocalDate dob = null;
-        if (request.dob() != null && !request.dob().isEmpty()) {
-            try {
-                dob = LocalDate.parse(request.dob(), DateTimeFormatter.ISO_DATE);
-            } catch (DateTimeParseException e) {
-                throw new IllegalArgumentException("Invalid date format for date of birth");
-            }
-        }
+        LocalDate dob = parseDate(request.dob(), "Invalid date format for date of birth");
+        LocalDate joinDate = parseDate(request.joinDate(), "Invalid date format for join date");
+
+        // Tạo mật khẩu tự động
+        String generatedPassword = generatePassword(request.email());
+        String encodedPassword = passwordEncoder.encode(generatedPassword);
 
         var user = User.builder()
                 .id(request.id())
                 .fullName(request.fullName().toUpperCase())
                 .email(request.email())
-                .password(passwordEncoder.encode(request.password()))
-                .role(Roles.valueOf(request.role()))
+                .password(encodedPassword)
+                .role(role)
                 .phone(request.phoneNumber())
                 .position(request.position())
                 .team(team.get())
                 .dob(dob)
+                .joinDate(joinDate)
                 .status(Status.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
+
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
+
+        notification.sendNotification("@" +user.getEmail()+
+                "\nBạn đã được thêm vào Team Java, hãy login và " +
+                "đổi mật khẩu\nLink: " +url+
+                "\nAccount: "+user.getEmail()+"\nPassword: " +
+                generatedPassword,"java");
+
         var userDto = UserDto.builder()
                 .email(user.getEmail())
                 .fullName(user.getFullName().toUpperCase())
@@ -82,14 +93,37 @@ public class AuthService {
                 .phoneNumber(user.getPhone())
                 .position(user.getPosition())
                 .team(user.getTeam().getName())
-                .dob(user.getDob().toString())
+                .dob(user.getDob() != null ? user.getDob().toString() : null)
+                .joinDate(user.getJoinDate() != null ? user.getJoinDate().toString() : null)
                 .build();
+
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
                 .user(userDto)
+                .password(generatedPassword)
                 .build();
     }
+
+    private LocalDate parseDate(String dateStr, String errorMessage) {
+        if (dateStr != null && !dateStr.isEmpty()) {
+            try {
+                return LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE);
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException(errorMessage);
+            }
+        }
+        return null;
+    }
+
+    private String generatePassword(String email) {
+        String prefix = email.split("@")[0];
+        SecureRandom random = new SecureRandom();
+        int randomNumber = 10000 + random.nextInt(90000);
+        return prefix + randomNumber;
+    }
+
+
     public AuthenticationResponse authenticate(AuthenticationDto request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -108,10 +142,12 @@ public class AuthService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName().toUpperCase())
-                .role(String.valueOf(user.getRole()))
+                .role(user.getRole().getName())
                 .phoneNumber(user.getPhone())
                 .position(user.getPosition())
                 .team(user.getTeam().getName())
+                .dob(user.getDob().toString())
+                .joinDate(user.getJoinDate().toString())
                 .build();
 
         return AuthenticationResponse.builder()
@@ -183,19 +219,32 @@ public class AuthService {
         }
     }
 
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        var user = repository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    public List<UserDto> getAllUser() {
-        List<User> users = repository.findAll();
-        List<UserDto> userDtos = new ArrayList<>();
-        for (User user : users) {
-            UserDto userDto = UserDto.builder()
-                    .email(user.getEmail())
-                    .fullName(user.getFullName())
-                    .role(String.valueOf(user.getRole()))
-                    .build();
-            userDtos.add(userDto);
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Old password is incorrect");
         }
-        return userDtos;
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        repository.save(user);
     }
+
+
+
+//    public List<UserDto> getAllUser() {
+//        List<User> users = repository.findAll();
+//        List<UserDto> userDtos = new ArrayList<>();
+//        for (User user : users) {
+//            UserDto userDto = UserDto.builder()
+//                    .email(user.getEmail())
+//                    .fullName(user.getFullName())
+//                    .role(String.valueOf(user.getRole()))
+//                    .build();
+//            userDtos.add(userDto);
+//        }
+//        return userDtos;
+//    }
 
 }

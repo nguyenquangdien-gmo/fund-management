@@ -4,6 +4,7 @@ import com.huybq.fund_management.domain.pen_bill.PenBillDTO;
 import com.huybq.fund_management.domain.pen_bill.PenBillService;
 import com.huybq.fund_management.domain.penalty.PenaltyDTO;
 import com.huybq.fund_management.domain.penalty.PenaltyService;
+import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
@@ -12,7 +13,6 @@ import com.huybq.fund_management.domain.token.TokenType;
 import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
 import com.huybq.fund_management.domain.user.dto.UserDto;
 import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
-import com.huybq.fund_management.domain.user.entity.Roles;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.mapper.UserMapper;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
@@ -36,6 +36,7 @@ public class UserService {
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
     private final UserMapper mapper;
+    private final RoleRepository roleRepository;
 
     public List<User> getUsers() {
         return repository.findAllByDeleteIsFalse();
@@ -73,11 +74,13 @@ public class UserService {
     public AuthenticationResponse updateUserById(Long id, UserDto u) {
         User user = repository.findById(id)
     .orElseThrow(() -> new EntityNotFoundException("User not found with id " + id));
+
+        var role = roleRepository.findByName(u.role()).orElseThrow(() -> new EntityNotFoundException ("Role is not found with name: "+u.role())   );
         if (user != null) {
             user.setId(id);
             user.setFullName(u.fullName());
             user.setEmail(u.email());
-            user.setRole(Roles.valueOf(u.role()));
+            user.setRole(role);
             var jwtToken = jwtService.generateToken(user);
             var refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);

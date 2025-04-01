@@ -65,7 +65,7 @@ public class ContributionService {
                 .map(user -> UserDto.builder()
                         .email(user.getEmail())
                         .fullName(user.getFullName())
-                        .role(user.getRole().name())
+                        .role(user.getRole().getName())
                         .build()
                 )
                 .toList();
@@ -128,7 +128,7 @@ public class ContributionService {
                         .id(user.getId())
                         .email(user.getEmail())
                         .fullName(user.getFullName())
-                        .role(user.getRole().name())
+                        .role(user.getRole().getName())
                         .build()
                 ).toList();
     }
