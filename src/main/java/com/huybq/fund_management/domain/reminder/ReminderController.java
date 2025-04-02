@@ -22,37 +22,43 @@ public class ReminderController {
     public ResponseEntity<List<ReminderDTO>> getRemindersByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(reminderService.getRemindersByUser(userId));
     }
-    @PostMapping("create/other")
-    public ResponseEntity<?> createOtherReminder(@RequestBody ReminderDTO reminderDTO) {
-        reminderService.createOtherReminder(reminderDTO);
+    @PostMapping("/create")
+    public ResponseEntity<?> createReminder(@RequestBody ReminderDTO reminderDTO) {
+        reminderService.createReminder(reminderDTO, null, reminderDTO.isSendChatGroup());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/create/monthly")
-    public ResponseEntity<?> createMonthlyReminders(@RequestParam int month, @RequestParam int year) {
-        if (month < 1 || month > 12) {
-            return ResponseEntity.badRequest().body("Invalid month: " + month);
-        }
-        if (year > LocalDate.now().getYear()) {
-            return ResponseEntity.badRequest().body("Invalid year: " + year);
-        }
+//    @PutMapping("/update/{id}")
+//    public ResponseEntity<?> updateReminder(@PathVariable Long id, @RequestBody ReminderDTO reminderDTO) {
+//        reminderService.updateReminder(id, reminderDTO);
+//        return ResponseEntity.noContent().build();
+//    }
 
-        reminderService.createMonthlyReminders(month, year);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/create/not-contributed")
-    public ResponseEntity<?> createRemindersNotYetContributed(@RequestParam int month, @RequestParam int year) {
-        if (month < 1 || month > 12) {
-            return ResponseEntity.badRequest().body("Invalid month: " + month);
-        }
-        if (year > LocalDate.now().getYear()) {
-            return ResponseEntity.badRequest().body("Invalid year: " + year);
-        }
-
-        reminderService.createRemindersForUserNotContributionOrOwed(month, year);
-        return ResponseEntity.noContent().build();
-    }
+//    @PostMapping("/create/monthly")
+//    public ResponseEntity<?> createMonthlyReminders(@RequestParam int month, @RequestParam int year) {
+//        if (month < 1 || month > 12) {
+//            return ResponseEntity.badRequest().body("Invalid month: " + month);
+//        }
+//        if (year > LocalDate.now().getYear()) {
+//            return ResponseEntity.badRequest().body("Invalid year: " + year);
+//        }
+//
+//        reminderService.createMonthlyReminders(month, year);
+//        return ResponseEntity.noContent().build();
+//    }
+//
+//    @PostMapping("/create/not-contributed")
+//    public ResponseEntity<?> createRemindersNotYetContributed(@RequestParam int month, @RequestParam int year) {
+//        if (month < 1 || month > 12) {
+//            return ResponseEntity.badRequest().body("Invalid month: " + month);
+//        }
+//        if (year > LocalDate.now().getYear()) {
+//            return ResponseEntity.badRequest().body("Invalid year: " + year);
+//        }
+//
+//        reminderService.createRemindersForUserNotContributionOrOwed(month, year);
+//        return ResponseEntity.noContent().build();
+//    }
 
 
     @PutMapping("/mark-read/{reminderId}")

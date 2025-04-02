@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -19,13 +20,17 @@ public class Reminder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @ManyToMany
+    @JoinTable(
+            name = "reminder_users",
+            joinColumns = @JoinColumn(name = "reminder_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> users;
 
     private String title;
     private String description;
-    private BigDecimal owedAmount;
+//    private BigDecimal owedAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -34,6 +39,10 @@ public class Reminder {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.SENT;
+
+    private LocalDateTime scheduledTime;
+
+    private boolean isSendChatGroup;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
