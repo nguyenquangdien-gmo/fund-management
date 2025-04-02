@@ -1,11 +1,9 @@
 package com.huybq.fund_management.domain.user.service;
 
-import com.huybq.fund_management.domain.pen_bill.PenBillDTO;
-import com.huybq.fund_management.domain.pen_bill.PenBillService;
-import com.huybq.fund_management.domain.penalty.PenaltyDTO;
-import com.huybq.fund_management.domain.penalty.PenaltyService;
+import com.huybq.fund_management.domain.role.Role;
 import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.Team;
+import com.huybq.fund_management.domain.team.TeamRepository;
 import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
 import com.huybq.fund_management.domain.token.TokenRepository;
@@ -25,7 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +34,7 @@ public class UserService {
     private final TokenRepository tokenRepository;
     private final UserMapper mapper;
     private final RoleRepository roleRepository;
+    private final TeamRepository teamRepository;
 
     public List<User> getUsers() {
         return repository.findAllByDeleteIsFalse();
@@ -45,9 +43,9 @@ public class UserService {
     public List<UserDebtDTO> getUsersWithNoContribution(int month, int year) {
         return repository.findUsersWithNoContribution(month, year);
     }
-    public User getUserByEmail(String email) {
+    public UserDto getUserByEmail(String email) {
         Optional<User> user = repository.findByEmail(email);
-        return user.orElse(null);
+        return mapper.toDto(user.get());
     }
     @Transactional
     public boolean deleteUserById(Long id) {
@@ -75,12 +73,20 @@ public class UserService {
         User user = repository.findById(id)
     .orElseThrow(() -> new EntityNotFoundException("User not found with id " + id));
 
-        var role = roleRepository.findByName(u.role()).orElseThrow(() -> new EntityNotFoundException ("Role is not found with name: "+u.role())   );
+        Team team = teamRepository.findBySlug(u.slugTeam()).orElseThrow(() -> new EntityNotFoundException ("Team is not found with slug: "+u.slugTeam())   );
+
+        Role role = roleRepository.findByName(u.role()).orElseThrow(() -> new EntityNotFoundException ("Role is not found with name: "+u.role())   );
         if (user != null) {
             user.setId(id);
             user.setFullName(u.fullName());
             user.setEmail(u.email());
             user.setRole(role);
+            user.setPhone(u.phoneNumber());
+            user.setPosition(u.position());
+            user.setTeam(team);
+            user.setJoinDate(LocalDate.parse(u.joinDate()));
+            user.setDob(LocalDate.parse(u.dob()));
+
             var jwtToken = jwtService.generateToken(user);
             var refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);

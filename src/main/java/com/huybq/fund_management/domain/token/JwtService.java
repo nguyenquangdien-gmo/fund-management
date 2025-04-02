@@ -103,6 +103,13 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    public boolean isTokenValidAndNotExpired(String token) {
+        if (token == null || !token.contains(".")) {
+            return false;
+        }
+        return isTokenExpired(token);
+    }
+
     public boolean isAdmin(String token) {
         String role = extractRole(token);
         return "ADMIN".equalsIgnoreCase(role);

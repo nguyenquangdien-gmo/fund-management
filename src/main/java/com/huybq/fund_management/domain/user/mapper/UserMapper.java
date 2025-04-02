@@ -13,7 +13,7 @@ public class UserMapper {
                 .email(user.getEmail())
                 .role(user.getRole().getName())
                 .position(user.getPosition())
-                .team(user.getTeam().getName())
+                .slugTeam(user.getTeam().getName())
                 .phoneNumber(user.getPhone())
                 .dob(user.getDob().toString())
                 .joinDate(user.getJoinDate().toString())

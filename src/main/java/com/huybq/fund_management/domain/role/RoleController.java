@@ -28,13 +28,13 @@ public class RoleController {
     }
 
     @PostMapping
-    public ResponseEntity<Role> createRole(@RequestBody Role role) {
-        return ResponseEntity.ok(roleService.createRole(role));
+    public ResponseEntity<Role> createRole(@RequestBody RoleDTO dto) {
+        return ResponseEntity.ok(roleService.createRole(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Role> updateRole(@PathVariable Integer id, @RequestBody Role role) {
-        return ResponseEntity.ok(roleService.updateRole(id, role));
+    public ResponseEntity<Role> updateRole(@PathVariable Integer id, @RequestBody RoleDTO dto) {
+        return ResponseEntity.ok(roleService.updateRole(id, dto));
     }
 
     @DeleteMapping("/{id}")

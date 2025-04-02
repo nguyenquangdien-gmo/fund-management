@@ -46,11 +46,11 @@ public class AuthService {
 
     public AuthenticationResponse register(RegisterDto request) {
         String url = "http://localhost:3000/auth/change-password";
-        var team = teamRepository.findBySlug(request.slugTeam());
+        var team = teamRepository.findBySlug(request.slugTeam().toLowerCase());
         if (team.isEmpty()) {
             throw new ResourceNotFoundException("Team not found");
         }
-        var role = roleRepository.findByName(request.role())
+        var role = roleRepository.findByName(request.role().toUpperCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
         LocalDate dob = parseDate(request.dob(), "Invalid date format for date of birth");
@@ -92,7 +92,7 @@ public class AuthService {
                 .role(String.valueOf(user.getRole()))
                 .phoneNumber(user.getPhone())
                 .position(user.getPosition())
-                .team(user.getTeam().getName())
+                .slugTeam(user.getTeam().getName())
                 .dob(user.getDob() != null ? user.getDob().toString() : null)
                 .joinDate(user.getJoinDate() != null ? user.getJoinDate().toString() : null)
                 .build();
@@ -145,7 +145,7 @@ public class AuthService {
                 .role(user.getRole().getName())
                 .phoneNumber(user.getPhone())
                 .position(user.getPosition())
-                .team(user.getTeam().getName())
+                .slugTeam(user.getTeam().getName())
                 .dob(user.getDob().toString())
                 .joinDate(user.getJoinDate().toString())
                 .build();

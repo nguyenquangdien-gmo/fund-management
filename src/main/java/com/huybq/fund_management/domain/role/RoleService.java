@@ -23,15 +23,17 @@ public class RoleService {
         return roleRepository.findByName(name);
     }
 
-    public Role createRole(Role role) {
-        role.setName(role.getName().toUpperCase());
+    public Role createRole(RoleDTO dto) {
+        var role = Role.builder()
+                .name(dto.name().toUpperCase())
+                .build();
         return roleRepository.save(role);
     }
 
-    public Role updateRole(Integer id, Role updatedRole) {
+    public Role updateRole(Integer id, RoleDTO dto) {
         return roleRepository.findById(id)
                 .map(existingRole -> {
-                    existingRole.setName(updatedRole.getName().toUpperCase());
+                    existingRole.setName(dto.name().toUpperCase());
                     return roleRepository.save(existingRole);
                 })
                 .orElseThrow(() -> new RuntimeException("Role not found"));

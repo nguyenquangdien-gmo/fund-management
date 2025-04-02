@@ -19,7 +19,7 @@ public class TokenController {
     }
     @GetMapping("/expired")
     public ResponseEntity<Boolean>isExpired(@RequestParam String token) {
-        return ResponseEntity.ok(service.isTokenExpired(token));
+        return ResponseEntity.ok(service.isTokenValidAndNotExpired(token));
     }
 
 }

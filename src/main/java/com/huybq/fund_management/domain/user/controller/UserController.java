@@ -5,11 +5,14 @@ import com.huybq.fund_management.domain.user.dto.UserDto;
 import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.service.UserService;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -22,6 +25,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
+    @PostMapping("/get-user")
+    public ResponseEntity<UserDto> getUserByEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email"); // Lấy email từ body request
+        UserDto user = userService.getUserByEmail(email);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        return ResponseEntity.ok(user);
+    }
+
     @GetMapping("/no-contribution/period")
     public List<UserDebtDTO> getUsersWithNoContribution(
             @RequestParam int month,
@@ -30,8 +43,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @RequestBody UserDto userDtouser) {
-        return ResponseEntity.ok(userService.updateUserById(userId, userDtouser));
+    public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @RequestBody UserDto userDto) {
+        return ResponseEntity.ok(userService.updateUserById(userId, userDto));
     }
 
     @DeleteMapping("/{id}")

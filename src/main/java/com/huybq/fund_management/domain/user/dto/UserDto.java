@@ -11,7 +11,7 @@ public record UserDto (
         String role,
         String phoneNumber,
         String position,
-        String team,
+        String slugTeam,
         String dob,
         String joinDate
 ){
