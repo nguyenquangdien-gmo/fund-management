@@ -1,6 +1,7 @@
     package com.huybq.fund_management.domain.user.entity;
 
     import com.fasterxml.jackson.annotation.JsonIgnore;
+    import com.huybq.fund_management.domain.reminder.Reminder;
     import com.huybq.fund_management.domain.role.Role;
     import com.huybq.fund_management.domain.team.Team;
     import jakarta.persistence.*;
@@ -17,6 +18,7 @@
     import java.math.BigDecimal;
     import java.time.LocalDate;
     import java.time.LocalDateTime;
+    import java.util.ArrayList;
     import java.util.Collection;
     import java.util.Collections;
     import java.util.List;
@@ -57,6 +59,11 @@
         @ManyToOne
         @JoinColumn(name = "team_id")
         private Team team;
+
+        @JsonIgnore
+        @ManyToMany(mappedBy = "users")
+        private List<Reminder> reminders= new ArrayList<>();
+
 
         private String userToken;
         private boolean isDelete = false;

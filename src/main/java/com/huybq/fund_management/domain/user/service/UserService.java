@@ -1,5 +1,7 @@
 package com.huybq.fund_management.domain.user.service;
 
+import com.huybq.fund_management.domain.reminder.Reminder;
+import com.huybq.fund_management.domain.reminder.ReminderRepository;
 import com.huybq.fund_management.domain.role.Role;
 import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.Team;
@@ -15,6 +17,7 @@ import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.mapper.UserMapper;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.domain.user.response.AuthenticationResponse;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +26,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +38,22 @@ public class UserService {
     private final UserMapper mapper;
     private final RoleRepository roleRepository;
     private final TeamRepository teamRepository;
+    private final ReminderRepository reminderRepository;
 
     public List<User> getUsers() {
-        return repository.findAllByDeleteIsFalse();
+        return repository.findAllByIsDeleteIsFalse();
     }
+
+    public List<Reminder> findRemindersByUserId(Long userId) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        return user.getReminders().stream()
+                .sorted(Comparator.comparing(Reminder::getCreatedAt).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+    }
+
 
     public List<UserDebtDTO> getUsersWithNoContribution(int month, int year) {
         return repository.findUsersWithNoContribution(month, year);
@@ -126,7 +141,7 @@ public class UserService {
     }
 
     public Team getTeamByUserId(Long userId) {
-        return repository.findByIdAndIsDeleteFalse(userId)
+        return repository.findByIdAndIsDeleteIsFalse(userId)
                 .map(User::getTeam)
                 .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
     }

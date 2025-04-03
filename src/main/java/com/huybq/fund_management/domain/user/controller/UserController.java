@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.user.controller;
 
+import com.huybq.fund_management.domain.reminder.Reminder;
 import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
 import com.huybq.fund_management.domain.user.dto.UserDto;
 import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
@@ -25,6 +26,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
+    @GetMapping("/{userId}/reminders")
+    public ResponseEntity<List<Reminder>> getRemindersByUserId(@PathVariable Long userId) {
+        List<Reminder> reminders = userService.findRemindersByUserId(userId);
+        return ResponseEntity.ok(reminders);
+    }
     @PostMapping("/get-user")
     public ResponseEntity<UserDto> getUserByEmail(@RequestBody Map<String, String> request) {
         String email = request.get("email"); // Lấy email từ body request

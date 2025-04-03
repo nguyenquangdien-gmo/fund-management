@@ -77,7 +77,7 @@ public class TeamService {
     }
 
     public Team getTeamByUserId(Long userId) {
-        return userRepository.findByIdAndIsDeleteFalse(userId)
+        return userRepository.findByIdAndIsDeleteIsFalse(userId)
                 .map(User::getTeam)
                 .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
     }

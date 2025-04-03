@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -22,11 +23,11 @@ public class Reminder {
 
     @ManyToMany
     @JoinTable(
-            name = "reminder_users",
+            name = "reminder_user",
             joinColumns = @JoinColumn(name = "reminder_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> users;
+    private Set<User> users = new HashSet<>();
 
     private String title;
     private String description;

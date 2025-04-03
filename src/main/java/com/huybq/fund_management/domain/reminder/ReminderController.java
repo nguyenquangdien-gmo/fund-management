@@ -1,11 +1,13 @@
 package com.huybq.fund_management.domain.reminder;
 
+import com.huybq.fund_management.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -14,25 +16,31 @@ public class ReminderController {
     private final ReminderService reminderService;
 
     @GetMapping()
-    public ResponseEntity<List<ReminderDTO>> getAllReminders() {
-        return ResponseEntity.ok(reminderService.getAllUniqueReminders());
+    public ResponseEntity<List<ReminderResponseDTO>> getAllReminders() {
+        return ResponseEntity.ok(reminderService.getAllReminders());
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ReminderDTO>> getRemindersByUserId(@PathVariable Long userId) {
-        return ResponseEntity.ok(reminderService.getRemindersByUser(userId));
+    @GetMapping("/{reminderId}/users")
+    public ResponseEntity<Set<User>> getUsersByReminderId(@PathVariable Long reminderId) {
+        Set<User> users = reminderService.findUsersByReminderId(reminderId);
+        return ResponseEntity.ok(users);
     }
+
+//    @GetMapping("/user/{userId}")
+//    public ResponseEntity<List<ReminderDTO>> getRemindersByUserId(@PathVariable Long userId) {
+//        return ResponseEntity.ok(reminderService.getRemindersByUser(userId));
+//    }
     @PostMapping("/create")
     public ResponseEntity<?> createReminder(@RequestBody ReminderDTO reminderDTO) {
-        reminderService.createReminder(reminderDTO, null, reminderDTO.isSendChatGroup());
+        reminderService.createReminder(reminderDTO);
         return ResponseEntity.noContent().build();
     }
 
-//    @PutMapping("/update/{id}")
-//    public ResponseEntity<?> updateReminder(@PathVariable Long id, @RequestBody ReminderDTO reminderDTO) {
-//        reminderService.updateReminder(id, reminderDTO);
-//        return ResponseEntity.noContent().build();
-//    }
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateReminder(@PathVariable Long id, @RequestBody ReminderDTO reminderDTO) {
+        reminderService.updateReminder(id, reminderDTO);
+        return ResponseEntity.noContent().build();
+    }
 
 //    @PostMapping("/create/monthly")
 //    public ResponseEntity<?> createMonthlyReminders(@RequestParam int month, @RequestParam int year) {
@@ -73,4 +81,9 @@ public class ReminderController {
         return ResponseEntity.ok("Reminders marked as read successfully.");
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteReminder(@PathVariable Long id) {
+        reminderService.deleteReminder(id);
+        return ResponseEntity.noContent().build();
+    }
 }

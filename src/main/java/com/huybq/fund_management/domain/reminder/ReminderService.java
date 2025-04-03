@@ -16,10 +16,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,31 +32,37 @@ public class ReminderService {
 
     private final Notification notification;
 
-    public List<ReminderDTO> getAllUniqueReminders() {
+    public List<ReminderResponseDTO> getAllReminders() {
         Set<String> uniqueDescriptions = new HashSet<>();
         return reminderRepository.findAll().stream()
-                .filter(reminder -> uniqueDescriptions.add(reminder.getDescription())) // Chỉ thêm nếu chưa tồn tại
-                .map(reminder -> ReminderDTO.builder()
+                .map(reminder -> ReminderResponseDTO.builder()
                         .id(reminder.getId())
                         .title(reminder.getTitle())
                         .description(reminder.getDescription())
                         .type(reminder.getReminderType().name())
                         .status(reminder.getStatus().name())
+                        .users(reminder.getUsers().stream().toList())
+                        .isSendChatGroup(reminder.isSendChatGroup())
+                        .scheduledTime(reminder.getScheduledTime())
                         .createdAt(String.valueOf(reminder.getCreatedAt()))
                         .build())
                 .toList();
     }
 
-
-    public List<ReminderDTO> getRemindersByUser(Long userId) {
-        return reminderRepository.findByUserId(userId).stream().map(reminder -> ReminderDTO.builder()
-                .id(reminder.getId())
-                .title(reminder.getTitle())
-                .description(reminder.getDescription())
-                .type(reminder.getReminderType().name())
-                .status(reminder.getStatus().name())
-                .build()).toList();
+    public Set<User> findUsersByReminderId(Long reminderId) {
+        Reminder reminder = reminderRepository.findById(reminderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reminder not found with id: " + reminderId));
+        return reminder.getUsers();
     }
+//    public List<ReminderDTO> getRemindersByUser(Long userId) {
+//        return reminderRepository.findByUserId(userId).stream().map(reminder -> ReminderDTO.builder()
+//                .id(reminder.getId())
+//                .title(reminder.getTitle())
+//                .description(reminder.getDescription())
+//                .type(reminder.getReminderType().name())
+//                .status(reminder.getStatus().name())
+//                .build()).toList();
+//    }
 
 //    @Scheduled(cron = "0 0 0 7 * ?", zone = "Asia/Ho_Chi_Minh")
 
@@ -122,75 +125,103 @@ public class ReminderService {
 //            notification.sendNotification(message.toString(),"java");
 //        }
 //    }
-    @Transactional
-    public void createReminder(ReminderDTO dto, List<User> users, boolean sendChatGroup) {
-        if (users == null || users.isEmpty()) {
-            users = userRepository.findAllByDeleteIsFalse();
-        }
+    public void createReminder(ReminderDTO reminderDTO) {
+
 
         Reminder reminder = new Reminder();
-        reminder.setUsers(Set.copyOf(users));
-        reminder.setTitle(dto.title());
-        reminder.setDescription(dto.description());
-        reminder.setReminderType(Reminder.ReminderType.valueOf(dto.type()));
+        reminder.setUsers(new HashSet<>(getUserFromDTO(reminderDTO)));
+
+        reminder.setTitle(reminderDTO.title());
+        reminder.setDescription(reminderDTO.description());
+        reminder.setReminderType(Reminder.ReminderType.valueOf(reminderDTO.type()));
         reminder.setStatus(Reminder.Status.SENT);
-        reminder.setScheduledTime(dto.scheduledTime());
-        reminder.setSendChatGroup(sendChatGroup);
+        reminder.setScheduledTime(reminderDTO.scheduledTime());
+        reminder.setSendChatGroup(reminderDTO.isSendChatGroup());
+
         reminderRepository.save(reminder);
 
-        if (dto.scheduledTime() == null || dto.scheduledTime().isBefore(LocalDateTime.now())) {
-            sendReminder(reminder);
+        if (reminderDTO.isSendChatGroup()&&(reminderDTO.scheduledTime() == null || reminderDTO.scheduledTime().isBefore(LocalDateTime.now()))) {
+            sendNotification(reminder);  // Gửi reminder ngay lập tức nếu cần
         }
 
-        if (sendChatGroup) {
-            notification.sendNotification("@all\n" + "🔔 " + dto.title() + "\n" + dto.description() + "\n\n #reminder","java");
-        }
+//        // Nếu cần gửi thông báo vào nhóm chat
+//        if (reminderDTO.isSendChatGroup()) {
+//           sendNotification(reminder);
+//        }
     }
+
+    private void sendNotification(Reminder reminder) {
+        String message = "@all \n🔔 Thông báo mới " + reminder.getTitle() + "\nNội dung: " + reminder.getDescription();
+        notification.sendNotification(message, "java");
+        reminder.setStatus(Reminder.Status.READ);
+        reminderRepository.save(reminder);
+    }
+
 
     @Scheduled(fixedRate = 60000) // Chạy mỗi phút
     public void processScheduledReminders() {
         LocalDateTime now = LocalDateTime.now();
         List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.SENT);
-        reminders.forEach(this::sendReminder);
+        reminders.forEach(this::sendNotification);
     }
 
-    private void sendReminder(Reminder reminder) {
-        String message = "🔔 " + reminder.getTitle() + "\n" + reminder.getDescription();
-        notification.sendNotification(message, "java");
-        reminder.setStatus(Reminder.Status.READ);
-        reminderRepository.save(reminder);
-    }
+//    private void sendReminder(Reminder reminder) {
+//        String message = "🔔 " + reminder.getTitle() + "\n" + reminder.getDescription();
+//        notification.sendNotification(message, "java");
+//        reminder.setStatus(Reminder.Status.READ);
+//        reminderRepository.save(reminder);
+//    }
 
     @Transactional
     public void updateReminder(Long id, ReminderDTO dto) {
         Reminder reminder = reminderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found"));
 
+
+        List<User> users = getUserFromDTO(dto);
+
+        reminder.setUsers(new HashSet<>(users));
+
         reminder.setTitle(dto.title());
         reminder.setDescription(dto.description());
         reminder.setReminderType(Reminder.ReminderType.valueOf(dto.type()));
-        reminder.setStatus(Reminder.Status.valueOf(dto.status()));
+        reminder.setStatus(Reminder.Status.SENT);  // Giả sử status là PENDING
         reminder.setScheduledTime(dto.scheduledTime());
         reminder.setSendChatGroup(dto.isSendChatGroup());
+
         reminderRepository.save(reminder);
-    }
 
-    @Transactional
-    public void updateAllReminders(ReminderDTO dto) {
-        List<Reminder> reminders = reminderRepository.findAll();
-
-        for (Reminder reminder : reminders) {
-            reminder.setTitle(dto.title());
-            reminder.setDescription(dto.description());
-            reminder.setScheduledTime(dto.scheduledTime());
-            reminder.setSendChatGroup(dto.isSendChatGroup());
-            reminderRepository.save(reminder);
-        }
-
-        if (dto.isSendChatGroup()) {
-            notification.sendNotification("@all\n" + "Cập nhật thông báo: **" + dto.title() + "**\n\n" + dto.description() + "\n\n #reminder","java");
+        if (dto.isSendChatGroup()&&(dto.scheduledTime() == null || dto.scheduledTime().isBefore(LocalDateTime.now()))) {
+            sendNotification(reminder);  // Gửi reminder ngay lập tức nếu cần
         }
     }
+
+    private List<User> getUserFromDTO(ReminderDTO dto) {
+        if (dto.userIds() == null || dto.userIds().isEmpty()) {
+            return userRepository.findAllByIsDeleteIsFalse();
+        } else {
+            return userRepository.findAllById(dto.userIds()).stream()
+                    .filter(user -> !user.isDelete())
+                    .collect(Collectors.toList());
+        }
+    }
+
+//    @Transactional
+//    public void updateAllReminders(ReminderDTO dto) {
+//        List<Reminder> reminders = reminderRepository.findAll();
+//
+//        for (Reminder reminder : reminders) {
+//            reminder.setTitle(dto.title());
+//            reminder.setDescription(dto.description());
+//            reminder.setScheduledTime(dto.scheduledTime());
+//            reminder.setSendChatGroup(dto.isSendChatGroup());
+//            reminderRepository.save(reminder);
+//        }
+//
+//        if (dto.isSendChatGroup()) {
+//            notification.sendNotification("@all\n" + "Cập nhật thông báo: **" + dto.title() + "**\n\n" + dto.description() + "\n\n #reminder", "java");
+//        }
+//    }
 
 
     public void markAsRead(Long reminderId) {
