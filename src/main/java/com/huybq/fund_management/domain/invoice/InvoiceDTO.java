@@ -1,4 +1,4 @@
-package com.huybq.fund_management.domain.expense;
+package com.huybq.fund_management.domain.invoice;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -7,13 +7,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Builder
-public record ExpenseDTO(
-        Long id,
+public record InvoiceDTO(
         String name,
-        String expenseType,
+        String fundType,
+        String invoiceType,
         String description,
         @NotNull(message = "userId is required") Long userId,
-        @NotNull(message = "Amount is required") BigDecimal amount,
-        LocalDateTime createdAt
+        @NotNull(message = "Amount is required") BigDecimal amount
 ) {
 }

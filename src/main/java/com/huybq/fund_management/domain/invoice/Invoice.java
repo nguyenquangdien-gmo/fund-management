@@ -1,4 +1,4 @@
-package com.huybq.fund_management.domain.expense;
+package com.huybq.fund_management.domain.invoice;
 
 import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.user.entity.User;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Expense {
+public class Invoice {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
@@ -30,10 +30,13 @@ public class Expense {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    private FundType expenseType;
+    private FundType fundType;
+
+    private InvoiceType invoiceType;
+
+    private InvoiceStatus status;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
 
 }

@@ -233,7 +233,7 @@ public class ContributionService {
                 .transactionType(Trans.TransactionType.INCOME_FUND)
                 .description("Common Fund Contribution")
                 .build());
-        balanceService.depositBalance("common_fund", commonFundAmount);
+        balanceService.depositBalance("common", commonFundAmount);
 
         // Cập nhật balance cho Snack Fund
         transService.createTransaction(TransDTO.builder()
@@ -243,7 +243,7 @@ public class ContributionService {
                 .transactionType(Trans.TransactionType.INCOME_FUND)
                 .description("Snack Fund Contribution")
                 .build());
-        balanceService.depositBalance("snack_fund", snackFundAmount);
+        balanceService.depositBalance("snack", snackFundAmount);
 
         if (totalAmount.compareTo(needAmount) >= 0) {
             contribution.setPaymentStatus(Contribution.PaymentStatus.PAID);

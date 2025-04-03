@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.reminder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,6 +22,7 @@ public class Reminder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "reminder_user",
