@@ -25,40 +25,41 @@ public class InvoiceService {
     private final TransService transService;
 
     public List<InvoiceResponseDTO> getInvoices() {
-        return repository.findAll().stream()
+        return repository.findAllByStatusInOrderByCreatedAtDesc(List.of(InvoiceStatus.APPROVED)).stream()
                 .map(mapper::toDTO)
                 .toList();
     }
 
-    public List<InvoiceResponseDTO> getInvoicesWithStatusPending()  {
-        return repository.findAllByStatus(InvoiceStatus.PENDING).stream()
+    public List<InvoiceResponseDTO> getInvoicesWithStatusPending() {
+        return repository.findAllByStatusOrderByCreatedAtDesc(InvoiceStatus.PENDING).stream()
                 .map(mapper::toDTO)
                 .toList();
     }
+
     public List<InvoiceResponseDTO> getInvoicesByUserId(Long userId) {
-        return repository.findAllByUser_Id(userId).stream()
+        return repository.findAllByUser_IdOrderByCreatedAtDesc(userId).stream()
                 .map(mapper::toDTO)
                 .toList();
     }
 
     public BigDecimal getTotalAmount(String invoiceType) {
-        return repository.findAllByInvoiceTypeAndStatus(InvoiceType.valueOf(invoiceType.toUpperCase()),InvoiceStatus.APPROVED).stream()
+        return repository.findAllByInvoiceTypeAndStatus(InvoiceType.valueOf(invoiceType.toUpperCase()), InvoiceStatus.APPROVED).stream()
                 .map(Invoice::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public List<InvoiceResponseDTO> getInvoiceByMonthAndYear(String invoiceType,int month, int year) {
-        return repository.findByMonthAndYearAndTypeAndStatus(month, year, InvoiceType.valueOf(invoiceType.toUpperCase()),InvoiceStatus.APPROVED).stream()
+    public List<InvoiceResponseDTO> getInvoiceByMonthAndYear(String invoiceType, int month, int year) {
+        return repository.findByMonthAndYearAndTypeAndStatus(month, year, InvoiceType.valueOf(invoiceType.toUpperCase()), InvoiceStatus.APPROVED).stream()
                 .map(mapper::toDTO)
                 .toList();
     }
 
     public BigDecimal getTotalAmountByMonthAndYear(int month, int year, String invoiceType) {
-        return repository.getTotalByMonthAndYearAndTypeAndStatus(month, year, InvoiceType.valueOf(invoiceType.toUpperCase()),InvoiceStatus.APPROVED);
+        return repository.getTotalByMonthAndYearAndTypeAndStatus(month, year, InvoiceType.valueOf(invoiceType.toUpperCase()), InvoiceStatus.APPROVED);
     }
 
-    public BigDecimal getTotalAmountByYear(int year,String invoiceType) {
-        return repository.getTotalByYearAndTypeAndStatus(year, InvoiceType.valueOf(invoiceType.toUpperCase()),InvoiceStatus.APPROVED);
+    public BigDecimal getTotalAmountByYear(int year, String invoiceType) {
+        return repository.getTotalByYearAndTypeAndStatus(year, InvoiceType.valueOf(invoiceType.toUpperCase()), InvoiceStatus.APPROVED);
     }
 
     @Transactional
@@ -72,17 +73,28 @@ public class InvoiceService {
         return mapper.toDTO(invoice);
     }
 
-    public InvoiceResponseDTO approve(Long idInvoice) {
+    public InvoiceResponseDTO approve(Long idInvoice, String fundType) {
         return repository.findById(idInvoice)
                 .map(invoice -> {
                     if (invoice.getStatus() == InvoiceStatus.APPROVED) {
                         throw new IllegalStateException("Invoice is already approved.");
                     }
-                    balanceService.depositBalance(invoice.getFundType().name(), invoice.getAmount());
+                    var balance = balanceService.findBalanceByTitle(fundType.toLowerCase());
+                    if (balance == null) {
+                        throw new EntityNotFoundException("Balance not found with title: " + fundType);
+                    }
+                    if (invoice.getInvoiceType() == InvoiceType.EXPENSE) {
+                        if (balance.getTotalAmount().compareTo(invoice.getAmount()) < 0) {
+                            throw new IllegalStateException("Insufficient balance to approve the invoice.");
+                        }
+                        balanceService.withdrawBalance(fundType.toLowerCase(), invoice.getAmount());
+                    } else {
+                        balanceService.depositBalance(fundType.toLowerCase(), invoice.getAmount());
+                    }
 
                     TransDTO transDTO = TransDTO.builder()
                             .amount(invoice.getAmount())
-                            .description("Approved transaction for: " + invoice.getName())
+                            .description("Phê duyệt phiếu: " + invoice.getName()+ " - "+invoice.getUser().getFullName())
                             .transactionType(invoice.getInvoiceType() == InvoiceType.EXPENSE
                                     ? Trans.TransactionType.EXPENSE
                                     : Trans.TransactionType.INCOME_FUND)
@@ -90,12 +102,13 @@ public class InvoiceService {
                             .build();
 
                     transService.createTransaction(transDTO);
-
+                    invoice.setFundType(FundType.valueOf(fundType.toUpperCase()));
                     invoice.setStatus(InvoiceStatus.APPROVED);
                     return mapper.toDTO(repository.save(invoice));
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found with ID: " + idInvoice));
     }
+
     public InvoiceResponseDTO update(Long idInvoice, InvoiceDTO dto) {
         return repository.findById(idInvoice)
                 .map(invoice -> {
@@ -123,13 +136,21 @@ public class InvoiceService {
                     if (invoice.getStatus() == InvoiceStatus.APPROVED) {
                         throw new IllegalStateException("Cannot reject an approved invoice.");
                     }
+                    TransDTO transDTO = TransDTO.builder()
+                            .amount(invoice.getAmount())
+                            .description("Hủy phiếu: " + invoice.getName()+ " - "+invoice.getUser().getFullName())
+                            .transactionType(invoice.getInvoiceType() == InvoiceType.EXPENSE
+                                    ? Trans.TransactionType.EXPENSE
+                                    : Trans.TransactionType.INCOME_FUND)
+                            .userId(invoice.getUser().getId())
+                            .build();
 
+                    transService.createTransaction(transDTO);
                     invoice.setStatus(InvoiceStatus.CANCELLED);
                     return mapper.toDTO(repository.save(invoice));
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found with ID: " + idInvoice));
     }
-
 
 
     public void delete(Long idInvoice) {

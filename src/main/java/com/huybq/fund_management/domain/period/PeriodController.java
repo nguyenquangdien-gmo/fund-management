@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/${server.version}/periods")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class PeriodController {
     private final PeriodService periodService;
 
@@ -27,18 +26,21 @@ public class PeriodController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PeriodDTO> createPeriod(@Valid @RequestBody PeriodDTO periodDTO) {
         PeriodDTO createdPeriod = periodService.createPeriod(periodDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPeriod);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PeriodDTO> updatePeriod(@PathVariable Long id, @Valid @RequestBody PeriodDTO updatedPeriod) {
         PeriodDTO updated = periodService.updatePeriod(id, updatedPeriod);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePeriod(@PathVariable Long id) {
         periodService.deletePeriod(id);
         return ResponseEntity.noContent().build();

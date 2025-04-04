@@ -40,7 +40,7 @@ public class TransService {
     }
 
     public List<TransReponseDTO> getAllTransactions() {
-        List<Trans> transactions = transRepository.findAll();
+        List<Trans> transactions = transRepository.findAllByOrderByCreatedAtDesc();
         return transactions.stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());

@@ -1,10 +1,14 @@
 package com.huybq.fund_management.domain.invoice;
 
 import com.huybq.fund_management.domain.fund.FundType;
+import com.huybq.fund_management.domain.user.mapper.UserMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class InvoiceMapper {
+    private final UserMapper mapper;
 
     public InvoiceResponseDTO toDTO(Invoice invoice) {
         return InvoiceResponseDTO.builder()
@@ -13,7 +17,7 @@ public class InvoiceMapper {
                 .invoiceType(String.valueOf(invoice.getInvoiceType()))
                 .fundType(String.valueOf(invoice.getFundType()))
                 .description(invoice.getDescription())
-                .userId(invoice.getUser().getId())
+                .user(mapper.toDto(invoice.getUser()))
                 .amount(invoice.getAmount())
                 .status(invoice.getStatus().name())
                 .createdAt(invoice.getCreatedAt())

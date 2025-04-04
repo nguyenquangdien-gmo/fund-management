@@ -23,7 +23,7 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
 
     List<Contribution> findByUserId(Long userId);
 
-    List<Contribution> findByUserIdAndPaymentStatus(Long userId, Contribution.PaymentStatus paymentStatus);
+    List<Contribution> findByUserIdAndPaymentStatusOrderByCreatedAtDesc(Long userId, Contribution.PaymentStatus paymentStatus);
 
 
     @Query("SELECT c.period.month, COALESCE(SUM(c.totalAmount), 0) " +
@@ -51,7 +51,7 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
             "WHERE c.paymentStatus = 'PAID' AND c.period.year = :year")
     BigDecimal getTotalPaidContributionsByYear(@Param("year") int year);
 
-    List<Contribution> findByPaymentStatusIn(List<Contribution.PaymentStatus> statuses);
+    List<Contribution> findByPaymentStatusInOrderByCreatedAtDesc(List<Contribution.PaymentStatus> statuses);
 
 
 

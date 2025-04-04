@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.invoice;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -25,6 +26,7 @@ public class Invoice {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "user_id")
     private User user;
     private BigDecimal amount;

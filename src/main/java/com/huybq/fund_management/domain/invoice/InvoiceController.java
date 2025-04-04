@@ -63,8 +63,8 @@ public class InvoiceController {
     }
 
     @PutMapping("/{id}/approve")
-    public ResponseEntity<InvoiceResponseDTO> approveInvoice(@PathVariable Long id) {
-        return ResponseEntity.ok(service.approve(id));
+    public ResponseEntity<InvoiceResponseDTO> approveInvoice(@PathVariable Long id, @RequestParam String fundType) {
+        return ResponseEntity.ok(service.approve(id, fundType));
     }
 
     @PutMapping("/{id}/reject")

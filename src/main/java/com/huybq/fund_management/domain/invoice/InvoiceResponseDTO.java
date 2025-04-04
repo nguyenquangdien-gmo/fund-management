@@ -1,5 +1,7 @@
 package com.huybq.fund_management.domain.invoice;
 
+import com.huybq.fund_management.domain.user.dto.UserDto;
+import com.huybq.fund_management.domain.user.entity.User;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -12,7 +14,7 @@ public record InvoiceResponseDTO (
         String invoiceType,
         String status,
         String description,
-        Long userId,
+        UserDto user,
         BigDecimal amount,
         LocalDateTime createdAt
 ){

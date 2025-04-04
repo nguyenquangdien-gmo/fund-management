@@ -42,7 +42,7 @@ public class ContributionService {
     }
 
     public List<ContributionResponseDTO> getPendingContributions() {
-        return contributionRepository.findByPaymentStatusIn(List.of(
+        return contributionRepository.findByPaymentStatusInOrderByCreatedAtDesc(List.of(
                         Contribution.PaymentStatus.PENDING
 
                 ))
@@ -85,7 +85,7 @@ public class ContributionService {
     }
 
     public List<ContributionResponseDTO> getPendingContributionsByMember(Long userId) {
-        List<Contribution> contributions = contributionRepository.findByUserIdAndPaymentStatus(
+        List<Contribution> contributions = contributionRepository.findByUserIdAndPaymentStatusOrderByCreatedAtDesc(
                 userId, Contribution.PaymentStatus.PENDING);
         return contributions.stream()
                 .map(mapper::mapToResponseDTO)
@@ -231,7 +231,7 @@ public class ContributionService {
                 .periodId(contribution.getPeriod().getId())
                 .amount(commonFundAmount)
                 .transactionType(Trans.TransactionType.INCOME_FUND)
-                .description("Common Fund Contribution")
+                .description("Đóng quỹ chung")
                 .build());
         balanceService.depositBalance("common", commonFundAmount);
 
@@ -241,7 +241,7 @@ public class ContributionService {
                 .periodId(contribution.getPeriod().getId())
                 .amount(snackFundAmount)
                 .transactionType(Trans.TransactionType.INCOME_FUND)
-                .description("Snack Fund Contribution")
+                .description("Đóng quỹ ăn vặt")
                 .build());
         balanceService.depositBalance("snack", snackFundAmount);
 
