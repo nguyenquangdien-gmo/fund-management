@@ -1,6 +1,5 @@
 package com.huybq.fund_management.domain.schedule;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,27 +8,15 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Schedule {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ScheduleResponse {
     private Long id;
-
+    private String title;
     private LocalDateTime fromDate;
     private LocalDateTime toDate;
-
     private LocalTime sendTime;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false,unique = true)
-    private NotificationType type;
-
-
-    public enum NotificationType {
-        LATE_NOTIFICATION, EVENT_NOTIFICATION, CHECK_IN
-    }
+    private Schedule.NotificationType type;
 }

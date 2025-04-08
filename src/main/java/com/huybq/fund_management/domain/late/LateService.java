@@ -142,7 +142,7 @@
         }
 
         @Scheduled(cron = "0 0 0 1 * ?", zone = "Asia/Ho_Chi_Minh")
-    //    @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
+//        @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
         public void processLatePenalties() {
             int minLateCount = 1;
             List<LateDTO> lateUsers = getUsersWithMultipleLatesInMonth(minLateCount);
@@ -174,13 +174,9 @@
                 }
 
                 String note = "";
-                if (checkinAt.contains("(Có đơn NP)")) {
-                    note = "Có đơn NP";
-                    checkinAt = checkinAt.replaceAll("\\(Có đơn NP\\)", "").trim();
-                }
-                if (checkinAt.equalsIgnoreCase("Nghỉ phép") || checkinAt.equals("-") || checkinAt.isEmpty()) {
-                    note = "Nghỉ phép";
-                    checkinAt = null;
+                if (checkinAt.contains("(Có đơn NP)")
+                        || checkinAt.equalsIgnoreCase("Nghỉ phép")) {
+                    continue;
                 }
 
                 Optional<User> userOpt = userRepository.findByFullName(name);
@@ -243,7 +239,7 @@
             return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
         }
 
-            @Scheduled(cron = "0 0 8 1 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 1 mỗi tháng
+//            @Scheduled(cron = "0 0 8 1 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 1 mỗi tháng
     //    @Scheduled(cron = "0 12 14 26 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 28 mỗi tháng
     //@Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
         public void sendLateReminder() {
@@ -259,7 +255,7 @@
             }
 
             StringBuilder message = new StringBuilder();
-            message.append("@all\n 🚨 **Danh sách đi trễ từ 1/").append(previousMonth).append(" đến 1/").append(currentMonth).append(" ** 🚨\n\n");
+            message.append("@all\n 🚨 **Danh sách đi trễ tháng ").append(previousMonth).append(" ** 🚨\n\n");
             message.append("| STT | TÊN | SỐ LẦN ĐI TRỄ |\n");
             message.append("|---|---|---|\n");
 

@@ -16,26 +16,52 @@ public class Notification {
     private final TeamService teamService;
 
     private static final String API_URL = "https://chat.runsystem.vn/api/v4/posts";
-//    private static final String CHANNEL_ID = "mo66frnazir7uqq397h6wjhnrw";
-//    private static final String TOKEN = "gnuook57mfg7mgw61oxmece6ty"; // Thay token thật vào đây
 
-    public void sendNotification(String messageContent,String teamSlug) {
-        Team team = teamService.getTeamBySlug(teamSlug); // Thay slug team thật vào đây
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + team.getToken());
+    public void sendNotification(String messageContent, String teamSlug) {
+        try {
+            Team team = teamService.getTeamBySlug(teamSlug);
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + team.getToken());
 
-        Map<String, String> body = new HashMap<>();
-        body.put("message",  messageContent);
-        body.put("channel_id", team.getChannelId());
+            Map<String, String> body = new HashMap<>();
+            body.put("message", messageContent);
+            body.put("channel_id", team.getChannelId());
 
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
+            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, requestEntity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, requestEntity, String.class);
 
-        System.out.println(response.getStatusCode() + ": " + response.getBody());
+            System.out.println(response.getStatusCode() + ": " + response.getBody());
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi thông báo: " + e.getMessage());
+            e.printStackTrace(); // In stack trace để dễ debug
+        }
     }
+    public void sendNotificationForMember(String messageContent, String userGroupIdm, String teamSlug) {
+        try {
+            Team team = teamService.getTeamBySlug(teamSlug);
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + team.getToken());
+
+            Map<String, String> body = new HashMap<>();
+            body.put("message", messageContent);
+            body.put("channel_id", team.getChannelId());
+
+            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, requestEntity, String.class);
+
+            System.out.println(response.getStatusCode() + ": " + response.getBody());
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi thông báo: " + e.getMessage());
+            e.printStackTrace(); // In stack trace để dễ debug
+        }
+    }
+
 
     public static void main(String[] args) {
 //        Notification notification = new Notification("java");

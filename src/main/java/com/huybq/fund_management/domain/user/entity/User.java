@@ -10,12 +10,9 @@
     import lombok.Data;
     import lombok.NoArgsConstructor;
     import org.hibernate.annotations.CreationTimestamp;
-    import org.hibernate.annotations.UpdateTimestamp;
     import org.springframework.security.core.GrantedAuthority;
     import org.springframework.security.core.authority.SimpleGrantedAuthority;
     import org.springframework.security.core.userdetails.UserDetails;
-
-    import java.math.BigDecimal;
     import java.time.LocalDate;
     import java.time.LocalDateTime;
     import java.util.ArrayList;
@@ -64,8 +61,7 @@
         @ManyToMany(mappedBy = "users")
         private List<Reminder> reminders= new ArrayList<>();
 
-
-        private String userToken;
+        private String userGroupId;
         private boolean isDelete = false;
 
 

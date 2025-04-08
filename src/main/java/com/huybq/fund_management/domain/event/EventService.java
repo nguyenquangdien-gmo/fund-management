@@ -1,5 +1,8 @@
 package com.huybq.fund_management.domain.event;
 
+import com.huybq.fund_management.domain.schedule.Schedule;
+import com.huybq.fund_management.domain.schedule.ScheduleRepository;
+import com.huybq.fund_management.domain.schedule.ScheduleService;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
@@ -8,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -18,6 +23,7 @@ import java.util.List;
 public class EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final ScheduleRepository scheduleRepository;
     private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private final Notification notification;
 
@@ -35,30 +41,82 @@ public class EventService {
     }
 
 
-        @Scheduled(cron = "0 0 8 * * *", zone = "Asia/Ho_Chi_Minh") // Chạy mỗi ngày 08:00 sáng
+//        @Scheduled(cron = "0 0 8 * * *", zone = "Asia/Ho_Chi_Minh") // Chạy mỗi ngày 08:00 sáng
 //    @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
+//@Scheduled(cron = "0 0 * * * *", zone = "Asia/Ho_Chi_Minh") // hoặc đặt cron phù hợp
+//public void sendEventNotifications() {
+//    LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
+//
+//    Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.EVENT_NOTIFICATION)
+//            .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
+//
+//    List<Event> events = eventRepository.findByEventTimeBetween(schedule.getFromDate(), schedule.getToDate());
+//
+//    for (Event event : events) {
+//        LocalDateTime eventTime = event.getEventTime();
+//
+//        // if thời điểm hiện tại là sendTime của ngày hôm nay
+//        LocalTime sendTime = schedule.getSendTime();
+//        LocalDateTime todaySendTime = LocalDateTime.of(now.toLocalDate(), sendTime);
+//
+//        if (now.isAfter(todaySendTime.minusMinutes(1)) && now.isBefore(todaySendTime.plusMinutes(1))) {
+//            // Kiểm tra sự kiện diễn ra sau 1 hoặc 2 ngày nữa
+//            if (eventTime.toLocalDate().equals(now.toLocalDate().plusDays(1)) ||
+//                    eventTime.toLocalDate().equals(now.toLocalDate().plusDays(2))) {
+//
+//                notification.sendNotification("📢 Nhắc lịch: Sự kiện " + event.getName() +
+//                        "\nSẽ diễn ra vào " + eventTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
+//                        "\nTại " + event.getLocation() + "\nChủ sự là: " + event.getHosts(), "java");
+//            }
+//        }
+//
+//        // 3. Thông báo trước 1 giờ diễn ra sự kiện
+//        Duration duration = Duration.between(now, eventTime);
+//        if (!duration.isNegative() && duration.toMinutes() <= 60 && duration.toMinutes() >= 59) {
+//            notification.sendNotification("🚀 Sự kiện " + event.getName() +
+//                    " sắp diễn ra trong 1 giờ tại " + event.getLocation(), "java");
+//        }
+//    }
+//}
+
     public void sendEventNotifications() {
         LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
 
-        List<Event> events = eventRepository.findAll();
+        Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.EVENT_NOTIFICATION)
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
+
+        List<Event> events = eventRepository.findByEventTimeBetween(schedule.getFromDate(), schedule.getToDate());
 
         for (Event event : events) {
-            LocalDateTime eventTime = event.getEventTime(); // Lấy thời gian sự kiện
+            LocalDateTime eventTime = event.getEventTime();
 
-            // Kiểm tra nếu hôm nay là 2 ngày trước sự kiện
-            if (now.toLocalDate().equals(eventTime.minusDays(2).toLocalDate()) || now.toLocalDate().equals(eventTime.minusDays(1).toLocalDate())) {
-                notification.sendNotification("📢 Nhắc lịch: Sự kiện " + event.getName() +
-                        " sẽ diễn ra vào " + eventTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
-                        " tại " + event.getLocation(), "java");
+            // Gửi thông báo trước 1 hoặc 2 ngày
+            if (eventTime.toLocalDate().equals(now.toLocalDate().plusDays(1)) ||
+                    eventTime.toLocalDate().equals(now.toLocalDate().plusDays(2))) {
+
+                notification.sendNotification("\uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
+                        "\nSẽ diễn ra vào " + eventTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
+                        "\nTại " + event.getLocation() + "\nChủ sự là: " + event.getHosts(), "java");
             }
+        }
+    }
 
-            // Kiểm tra nếu thời gian hiện tại là 1 giờ trước sự kiện
-            if (now.isAfter(eventTime.minusHours(1)) && now.isBefore(eventTime)) {
-                notification.sendNotification("🚀 Sự kiện " + event.getName() +
+
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Ho_Chi_Minh")
+    public void sendOneHourBeforeNotifications() {
+        LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
+
+        List<Event> events = eventRepository.findAll();
+        for (Event event : events) {
+            LocalDateTime eventTime = event.getEventTime();
+            Duration duration = Duration.between(now, eventTime);
+            if (!duration.isNegative() && duration.toMinutes() <= 60 && duration.toMinutes() >= 59) {
+                notification.sendNotification("\uD83D\uDE80 Sự kiện " + event.getName() +
                         " sắp diễn ra trong 1 giờ tại " + event.getLocation(), "java");
             }
         }
     }
+
 
     public List<Event> getAllEvents() {
         return eventRepository.findAll();

@@ -5,8 +5,12 @@ import com.huybq.fund_management.domain.balance.BalanceRepository;
 import com.huybq.fund_management.domain.fund.Fund;
 import com.huybq.fund_management.domain.fund.FundRepository;
 import com.huybq.fund_management.domain.fund.FundType;
+import com.huybq.fund_management.domain.penalty.Penalty;
+import com.huybq.fund_management.domain.penalty.PenaltyRepository;
 import com.huybq.fund_management.domain.role.Role;
 import com.huybq.fund_management.domain.role.RoleRepository;
+import com.huybq.fund_management.domain.schedule.Schedule;
+import com.huybq.fund_management.domain.schedule.ScheduleRepository;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamRepository;
 import com.huybq.fund_management.domain.user.entity.Status;
@@ -20,6 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Configuration
@@ -31,7 +36,9 @@ public class DataLoader {
             FundRepository fundRepository,
             RoleRepository roleRepository,
             TeamRepository teamRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            PenaltyRepository penaltyRepository,
+            ScheduleRepository scheduleRepository) {
         return args -> {
             createBalanceIfNotExists(balanceRepository, "common_fund");
             createBalanceIfNotExists(balanceRepository, "snack_fund");
@@ -45,6 +52,10 @@ public class DataLoader {
             createTeamIfNotExists(teamRepository, "Java", "java", "mo66frnazir7uqq397h6wjhnrw", "gnuook57mfg7mgw61oxmece6ty");
 
             createAdminUserIfNotExists(userRepository, teamRepository, roleRepository);
+
+            createPenaltyIfNotExists(penaltyRepository, "Đi trễ", "Phạt khi đi làm muộn", new BigDecimal("50000"), "late-check-in");
+
+            createSchedulesIfNotExist(scheduleRepository);
         };
     }
 
@@ -56,6 +67,36 @@ public class DataLoader {
             repository.save(balance);
         }
     }
+
+    private void createPenaltyIfNotExists(PenaltyRepository repository, String name, String description, BigDecimal amount, String slug) {
+        if (repository.findBySlug(slug).isEmpty()) {
+            Penalty penalty = new Penalty();
+            penalty.setName(name);
+            penalty.setDescription(description);
+            penalty.setAmount(amount);
+            penalty.setSlug(slug);
+            penalty.setCreatedAt(LocalDateTime.now());
+            penalty.setUpdatedAt(LocalDateTime.now());
+            repository.save(penalty);
+        }
+    }
+
+    private void createSchedulesIfNotExist(ScheduleRepository repository) {
+        for (Schedule.NotificationType type : Schedule.NotificationType.values()) {
+            if (repository.findByType(type).isEmpty()) {
+                Schedule schedule = new Schedule();
+                LocalDateTime now = LocalDateTime.now();
+
+                schedule.setFromDate(now);
+                schedule.setToDate(now.plusDays(30)); // ví dụ default 30 ngày
+                schedule.setSendTime(LocalTime.of(10, 5)); // mặc định giờ gửi
+                schedule.setType(type);
+
+                repository.save(schedule);
+            }
+        }
+    }
+
 
     private void createFundIfNotExists(FundRepository repository, String name, String description, FundType type, BigDecimal amount) {
         if (repository.findByName(name).isEmpty()) {
@@ -105,7 +146,7 @@ public class DataLoader {
             admin.setPosition("Administrator");
             admin.setDob(LocalDate.of(1990, 1, 1));
             admin.setJoinDate(LocalDate.now());
-            admin.setUserToken(UUID.randomUUID().toString());
+            admin.setUserGroupId(UUID.randomUUID().toString());
             admin.setCreatedAt(LocalDateTime.now());
             teamRepository.findBySlug("java").ifPresent(admin::setTeam);
 

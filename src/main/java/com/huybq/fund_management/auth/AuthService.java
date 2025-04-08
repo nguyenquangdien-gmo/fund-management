@@ -17,13 +17,16 @@ import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.security.SecureRandom;
@@ -31,6 +34,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -105,6 +111,45 @@ public class AuthService {
                 .build();
     }
 
+
+    private String fetchUserId(String email, String teamId, RestTemplate restTemplate, String token) {
+        try {
+            String searchApiUrl = "https://your-api.com/api/v4/users/search"; // Replace with actual URL
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + token);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("term", email);
+            body.put("team_id", teamId);
+            body.put("not_in_channel_id", "");
+            body.put("group_constrained", false);
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                    searchApiUrl,
+                    HttpMethod.POST,
+                    requestEntity,
+                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                List<Map<String, Object>> users = response.getBody();
+                if (!users.isEmpty()) {
+                    return (String) users.get(0).get("id");
+                }
+            }
+        } catch (HttpClientErrorException e) {
+            System.err.println("API error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Error fetching userId: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
     private LocalDate parseDate(String dateStr, String errorMessage) {
         if (dateStr != null && !dateStr.isEmpty()) {
             try {
