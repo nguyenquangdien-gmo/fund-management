@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
@@ -102,32 +99,46 @@ public class ScheduleManager {
             lateSummaryTask.cancel(false);
         }
 
-        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
-        ZonedDateTime firstOfNextMonth = now.withDayOfMonth(1)
-                .withHour(10).withMinute(0).withSecond(0).withNano(0);
+        Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.LATE_NOTIFICATION)
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
 
-        if (firstOfNextMonth.isBefore(now)) {
-            firstOfNextMonth = firstOfNextMonth.plusMonths(1);
+        LocalDateTime fromDate = schedule.getFromDate(); // ví dụ: 2024-04-31
+        LocalTime sendTime = schedule.getSendTime(); // ví dụ: 10:00
+        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
+
+        int configuredDay = fromDate.getDayOfMonth();
+        int maxDayOfThisMonth = now.toLocalDate().lengthOfMonth();
+
+        int safeDay = Math.min(configuredDay, maxDayOfThisMonth); // ví dụ: 31 vs 30 => 30
+
+        ZonedDateTime firstRun = now.withDayOfMonth(safeDay)
+                .withHour(sendTime.getHour())
+                .withMinute(sendTime.getMinute())
+                .withSecond(0)
+                .withNano(0);
+
+        if (firstRun.isBefore(now)) {
+            // Tháng sau
+            ZonedDateTime nextMonth = now.plusMonths(1);
+            int maxDayOfNextMonth = nextMonth.toLocalDate().lengthOfMonth();
+            int safeNextDay = Math.min(configuredDay, maxDayOfNextMonth);
+
+            firstRun = nextMonth.withDayOfMonth(safeNextDay)
+                    .withHour(sendTime.getHour())
+                    .withMinute(sendTime.getMinute())
+                    .withSecond(0)
+                    .withNano(0);
         }
 
-        long oneMonth = Duration.ofDays(30).toMillis(); // safe default, không hoàn hảo nếu tháng 28/29/31
+        long oneMonth = Duration.ofDays(30).toMillis(); // đơn giản, ổn cho now
 
         lateSummaryTask = taskScheduler.scheduleAtFixedRate(
                 lateService::sendLateReminder,
-                Date.from(firstOfNextMonth.toInstant()),
+                Date.from(firstRun.toInstant()),
                 oneMonth
         );
-//        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
-//        ZonedDateTime firstRun = now.plusSeconds(10); // 👈 chỉ để test: chạy sau 10 giây
-//
-//        long oneMonth = Duration.ofSeconds(10).toMillis(); // hoặc Duration.ofMinutes(1) để test lặp lại
-//
-//        lateSummaryTask = taskScheduler.scheduleAtFixedRate(
-//                lateService::sendLateReminder,
-//                Date.from(firstRun.toInstant()),
-//                oneMonth
-//        );
     }
+
 
     public synchronized void updateSchedule(Schedule.NotificationType type) {
         if (type == Schedule.NotificationType.EVENT_NOTIFICATION) {
