@@ -78,14 +78,14 @@ public class ContributionController {
         return ResponseEntity.ok(updatedContribution);
     }
 
-    @GetMapping("/monthly-stats")
-    public ResponseEntity<List<Map<String, Object>>> getMonthlyContributionStats(@RequestParam int year) {
-        return ResponseEntity.ok(contributionService.getMonthlyContributionStats(year));
-    }
-
     @GetMapping("/total")
     public ResponseEntity<BigDecimal> getPaidAmountContributed(@RequestParam int year) {
         return ResponseEntity.ok(contributionService.getTotalContributionAmountByPeriod(year));
+    }
+
+    @GetMapping("/monthly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyContributionStats(@RequestParam int year) {
+        return ResponseEntity.ok(contributionService.getMonthlyContributionStats(year));
     }
 
     @GetMapping("/yearly-stats")

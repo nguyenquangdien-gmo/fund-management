@@ -15,7 +15,8 @@ import java.util.List;
 public interface PenBillRepository extends JpaRepository<PenBill, Long> {
     List<PenBill> findByUserId(Long userId);
     List<PenBill> findByUserIdAndPaymentStatus(Long userId, PenBill.Status status);
-    List<PenBill> findByPaymentStatusIn(List<PenBill.Status> statuses);
+    List<PenBill> findByPaymentStatusInOrderByCreatedAtDesc(List<PenBill.Status> statuses);
+    List<PenBill> findAllByOrderByCreatedAtDesc();
     // Thống kê tổng tiền phạt theo từng tháng trong một năm
     @Query("SELECT FUNCTION('MONTH', p.dueDate), COALESCE(SUM(p.totalAmount), 0) " +
             "FROM PenBill p " +

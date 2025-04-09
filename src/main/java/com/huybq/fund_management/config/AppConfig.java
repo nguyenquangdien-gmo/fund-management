@@ -1,6 +1,7 @@
 package com.huybq.fund_management.config;
 
 import com.huybq.fund_management.domain.user.repository.UserRepository;
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,5 +49,12 @@ public class AppConfig {
     public PasswordEncoder passwordEncoder() {
 
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public Dotenv dotenv() {
+        return Dotenv.configure()
+                .ignoreIfMissing() // Không lỗi nếu không có file .env (tùy chọn)
+                .load();
     }
 }

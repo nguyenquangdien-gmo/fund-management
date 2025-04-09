@@ -42,10 +42,7 @@ public class ContributionService {
     }
 
     public List<ContributionResponseDTO> getPendingContributions() {
-        return contributionRepository.findByPaymentStatusInOrderByCreatedAtDesc(List.of(
-                        Contribution.PaymentStatus.PENDING
-
-                ))
+        return contributionRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(mapper::mapToResponseDTO)
                 .toList();

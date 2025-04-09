@@ -17,6 +17,7 @@ import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -51,7 +52,7 @@ public class AuthService {
     private final Notification notification;
 
     public AuthenticationResponse register(RegisterDto request) {
-        String url = "http://localhost:3000/auth/change-password";
+        String url = "${server.url-change-password}";
         var team = teamRepository.findBySlug(request.slugTeam().toLowerCase());
         if (team.isEmpty()) {
             throw new ResourceNotFoundException("Team not found");

@@ -20,7 +20,7 @@ public class PenBillController {
         return ResponseEntity.ok(penBillService.getAllPenBills());
     }
     @GetMapping("/pending")
-    public ResponseEntity<List<PenBillDTO>> getPenBillsPending() {
+    public ResponseEntity<List<PenBillResponse>> getPenBillsPending() {
         return ResponseEntity.ok(penBillService.getPenBillsPending());
     }
 

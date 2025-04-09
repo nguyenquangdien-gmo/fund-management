@@ -17,6 +17,7 @@ public class UserMapper {
                 .phoneNumber(user.getPhone())
                 .dob(user.getDob().toString())
                 .joinDate(user.getJoinDate().toString())
+                .userIdChat(user.getUserIdChat())
                 .build();
     }
 }

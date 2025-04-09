@@ -13,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +34,7 @@ public class InvoiceService {
     }
 
     public List<InvoiceResponseDTO> getInvoicesWithStatusPending() {
-        return repository.findAllByStatusOrderByCreatedAtDesc(InvoiceStatus.PENDING).stream()
+        return repository.findAllByOrderByCreatedAtDesc().stream()
                 .map(mapper::toDTO)
                 .toList();
     }
@@ -62,6 +65,38 @@ public class InvoiceService {
         return repository.getTotalByYearAndTypeAndStatus(year, InvoiceType.valueOf(invoiceType.toUpperCase()), InvoiceStatus.APPROVED);
     }
 
+    public List<Map<String, Object>> getMonthlyInvoiceStats(int year, String type) {
+        List<Object[]> results = repository.getMonthlyInvoiceStatistics(year, InvoiceType.valueOf(type.toUpperCase()));
+        List<Map<String, Object>> response = new ArrayList<>();
+
+        for (Object[] row : results) {
+            if (row.length >= 2) {
+                Map<String, Object> data = new HashMap<>();
+                data.put("month", row[0]); // Tháng (int)
+                data.put("totalAmount", row[1]); // Tổng tiền (BigDecimal)
+                response.add(data);
+            }
+        }
+
+        return response;
+    }
+
+    public List<Map<String, Object>> getYearlyInvoiceStats(String type) {
+        List<Object[]> results = repository.getYearlyInvoiceStatistics(InvoiceType.valueOf(type.toUpperCase()));
+        List<Map<String, Object>> stats = new ArrayList<>();
+
+        for (Object[] row : results) {
+            if (row.length >= 2) {
+                Map<String, Object> stat = new HashMap<>();
+                stat.put("year", row[0]); // Năm (int)
+                stat.put("totalAmount", row[1]); // Tổng tiền (BigDecimal)
+                stats.add(stat);
+            }
+        }
+
+        return stats;
+    }
+
     @Transactional
     public InvoiceResponseDTO create(InvoiceDTO dto) {
         var user = userRepository.findById(dto.userId())
@@ -84,9 +119,9 @@ public class InvoiceService {
                         throw new EntityNotFoundException("Balance not found with title: " + fundType);
                     }
                     if (invoice.getInvoiceType() == InvoiceType.EXPENSE) {
-                        if (balance.getTotalAmount().compareTo(invoice.getAmount()) < 0) {
-                            throw new IllegalStateException("Insufficient balance to approve the invoice.");
-                        }
+//                        if (balance.getTotalAmount().compareTo(invoice.getAmount()) < 0) {
+//                            throw new IllegalStateException("Insufficient balance to approve the invoice.");
+//                        }
                         balanceService.withdrawBalance(fundType.toLowerCase(), invoice.getAmount());
                     } else {
                         balanceService.depositBalance(fundType.toLowerCase(), invoice.getAmount());

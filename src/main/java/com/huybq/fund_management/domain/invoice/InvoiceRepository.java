@@ -21,10 +21,30 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Invoice e WHERE FUNCTION('YEAR', e.createdAt) = :year AND e.invoiceType = :invoiceType AND e.status = :status")
     BigDecimal getTotalByYearAndTypeAndStatus(@Param("year") int year, @Param("invoiceType") InvoiceType invoiceType, @Param("status") InvoiceStatus status);
 
+    @Query("SELECT FUNCTION('MONTH', i.createdAt), COALESCE(SUM(i.amount), 0) " +
+            "FROM Invoice i " +
+            "WHERE FUNCTION('YEAR', i.createdAt) = :year " +
+            "AND i.status = com.huybq.fund_management.domain.invoice.InvoiceStatus.APPROVED " +
+            "AND (:type IS NULL OR i.invoiceType = :type) " +
+            "GROUP BY FUNCTION('MONTH', i.createdAt) " +
+            "ORDER BY FUNCTION('MONTH', i.createdAt)")
+    List<Object[]> getMonthlyInvoiceStatistics(
+            @Param("year") int year,
+            @Param("type") InvoiceType type
+    );
+
+    @Query("SELECT FUNCTION('YEAR', i.createdAt), COALESCE(SUM(i.amount), 0) " +
+            "FROM Invoice i " +
+            "WHERE i.status = com.huybq.fund_management.domain.invoice.InvoiceStatus.APPROVED " +
+            "AND (:type IS NULL OR i.invoiceType = :type) " +
+            "GROUP BY FUNCTION('YEAR', i.createdAt) " +
+            "ORDER BY FUNCTION('YEAR', i.createdAt) DESC")
+    List<Object[]> getYearlyInvoiceStatistics(@Param("type") InvoiceType type);
+
 
     List<Invoice> findAllByInvoiceTypeAndStatus(InvoiceType invoiceType, InvoiceStatus status);
 
-    List<Invoice> findAllByStatusOrderByCreatedAtDesc(InvoiceStatus status);
+    List<Invoice> findAllByOrderByCreatedAtDesc();
 
     List<Invoice> findAllByUser_IdOrderByCreatedAtDesc(Long userId);
 

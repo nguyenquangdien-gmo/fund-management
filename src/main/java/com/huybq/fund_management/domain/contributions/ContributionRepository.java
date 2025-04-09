@@ -51,7 +51,7 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
             "WHERE c.paymentStatus = 'PAID' AND c.period.year = :year")
     BigDecimal getTotalPaidContributionsByYear(@Param("year") int year);
 
-    List<Contribution> findByPaymentStatusInOrderByCreatedAtDesc(List<Contribution.PaymentStatus> statuses);
+    List<Contribution> findAllByOrderByCreatedAtDesc();
 
 
 

@@ -48,13 +48,13 @@ public class PenBillService {
     }
 
     public List<PenBillDTO> getAllPenBills() {
-        return penBillRepository.findByPaymentStatusIn(List.of(PenBill.Status.PENDING, PenBill.Status.UNPAID, PenBill.Status.CANCELED)).stream()
+        return penBillRepository.findByPaymentStatusInOrderByCreatedAtDesc(List.of(PenBill.Status.PENDING, PenBill.Status.UNPAID, PenBill.Status.CANCELED)).stream()
                 .map(mapper::toDTO)
                 .collect(Collectors.toList());
     }
-    public List<PenBillDTO> getPenBillsPending() {
-        return penBillRepository.findByPaymentStatusIn(List.of(PenBill.Status.PENDING)).stream()
-                .map(mapper::toDTO)
+    public List<PenBillResponse> getPenBillsPending() {
+        return penBillRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(mapper::toPenBillResponse)
                 .collect(Collectors.toList());
     }
 

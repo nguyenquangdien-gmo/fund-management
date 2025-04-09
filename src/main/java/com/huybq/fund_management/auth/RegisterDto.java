@@ -9,6 +9,7 @@ public record RegisterDto (
         String position,
         String slugTeam,
         String dob,
-        String joinDate
+        String joinDate,
+        String userIdChat
 ){
 }

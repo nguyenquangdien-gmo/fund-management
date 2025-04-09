@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/${server.version}/invoices")
@@ -55,6 +56,21 @@ public class InvoiceController {
             @RequestParam int year,
             @RequestParam String type) {
         return ResponseEntity.ok(service.getTotalAmountByYear(year,type));
+    }
+
+    @GetMapping("/monthly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyInvoiceStats(
+            @RequestParam int year,
+            @RequestParam String type
+    ) {
+        return ResponseEntity.ok(service.getMonthlyInvoiceStats(year, type));
+    }
+
+    @GetMapping("/yearly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getYearlyInvoiceStats(
+            @RequestParam String type
+    ) {
+        return ResponseEntity.ok(service.getYearlyInvoiceStats(type));
     }
 
     @PostMapping

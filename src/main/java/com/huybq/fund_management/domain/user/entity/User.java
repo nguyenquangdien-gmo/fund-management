@@ -61,7 +61,7 @@
         @ManyToMany(mappedBy = "users")
         private List<Reminder> reminders= new ArrayList<>();
 
-        private String userGroupId;
+        private String userIdChat;
         private boolean isDelete = false;
 
 

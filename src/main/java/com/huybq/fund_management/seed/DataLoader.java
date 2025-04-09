@@ -40,8 +40,8 @@ public class DataLoader {
             PenaltyRepository penaltyRepository,
             ScheduleRepository scheduleRepository) {
         return args -> {
-            createBalanceIfNotExists(balanceRepository, "common_fund");
-            createBalanceIfNotExists(balanceRepository, "snack_fund");
+            createBalanceIfNotExists(balanceRepository, "common");
+            createBalanceIfNotExists(balanceRepository, "snack");
 
             createFundIfNotExists(fundRepository, "Ăn vặt", "Quỹ dành cho ăn vặt", FundType.SNACK, new BigDecimal("120000"));
             createFundIfNotExists(fundRepository, "Chung", "Quỹ dành cho các hoạt động chung", FundType.COMMON, new BigDecimal("30000"));
@@ -146,7 +146,7 @@ public class DataLoader {
             admin.setPosition("Administrator");
             admin.setDob(LocalDate.of(1990, 1, 1));
             admin.setJoinDate(LocalDate.now());
-            admin.setUserGroupId(UUID.randomUUID().toString());
+            admin.setUserIdChat(null);
             admin.setCreatedAt(LocalDateTime.now());
             teamRepository.findBySlug("java").ifPresent(admin::setTeam);
 
