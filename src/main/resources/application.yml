@@ -33,5 +33,8 @@ server:
   domain:
     url-v1: http://localhost:3000
     url-v2: http://localhost:5173
-    url-change-password: http://localhost:3000/change-password
   version: v1
+chatops:
+  api:
+    base-url: https://chat.runsystem.vn
+    token: gnuook57mfg7mgw61oxmece6ty

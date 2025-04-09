@@ -1,5 +1,6 @@
 package com.huybq.fund_management.utils.chatops;
 
+import com.huybq.fund_management.domain.chatopsApi.ChatopsService;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class Notification {
     private final TeamService teamService;
+    private final ChatopsService chatopsService;
 
     private static final String API_URL = "https://chat.runsystem.vn/api/v4/posts";
 
@@ -39,28 +41,24 @@ public class Notification {
             e.printStackTrace(); // In stack trace để dễ debug
         }
     }
-    public void sendNotificationForMember(String messageContent, String userGroupIdm, String teamSlug) {
+    public void sendNotificationForMember(String messageContent, String receiverEmail, String senderIdChat) {
         try {
-            Team team = teamService.getTeamBySlug(teamSlug);
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + team.getToken());
+            // Lấy thông tin user nhận bằng email
+            Map<String, Object> receiver = chatopsService.getUserByEmail(receiverEmail);
+            String receiverIdChat = (String) receiver.get("id");
 
-            Map<String, String> body = new HashMap<>();
-            body.put("message", messageContent);
-            body.put("channel_id", team.getChannelId());
+            // Tạo channel direct giữa sender và receiver
+            String channelId = chatopsService.getDirectChannelId(senderIdChat, receiverIdChat);
 
-            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
+            // Gửi tin nhắn
+            chatopsService.sendMessage(channelId, messageContent);
 
-            ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, requestEntity, String.class);
-
-            System.out.println(response.getStatusCode() + ": " + response.getBody());
         } catch (Exception e) {
-            System.err.println("Lỗi khi gửi thông báo: " + e.getMessage());
-            e.printStackTrace(); // In stack trace để dễ debug
+            // Log lỗi rõ ràng để xử lý hoặc gửi fallback nếu cần
+            System.err.println("Failed to send message to " + receiverEmail + ": " + e.getMessage());
         }
     }
+
 
 
     public static void main(String[] args) {

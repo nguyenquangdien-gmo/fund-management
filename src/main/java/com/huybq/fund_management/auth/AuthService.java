@@ -1,6 +1,7 @@
 package com.huybq.fund_management.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huybq.fund_management.domain.chatopsApi.ChatopsService;
 import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.TeamRepository;
 import com.huybq.fund_management.domain.token.JwtService;
@@ -17,7 +18,7 @@ import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,6 +43,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    @Value("${server.domain.url-v1}")
+    private String url;
     private final UserRepository repository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
@@ -50,9 +53,10 @@ public class AuthService {
     private final TeamRepository teamRepository;
     private final RoleRepository roleRepository;
     private final Notification notification;
+    private final ChatopsService chatopsService;
 
-    public AuthenticationResponse register(RegisterDto request) {
-        String url = "${server.url-change-password}";
+
+    public AuthenticationResponse register(RegisterDto request,String emailAdmin) {
         var team = teamRepository.findBySlug(request.slugTeam().toLowerCase());
         if (team.isEmpty()) {
             throw new ResourceNotFoundException("Team not found");
@@ -67,6 +71,9 @@ public class AuthService {
         String generatedPassword = generatePassword(request.email());
         String encodedPassword = passwordEncoder.encode(generatedPassword);
 
+        Map<String, Object> chatUser = chatopsService.getUserByEmail(request.email());
+        String userIdChat = (String) chatUser.get("id");
+
         var user = User.builder()
                 .id(request.id())
                 .fullName(request.fullName().toUpperCase())
@@ -80,6 +87,7 @@ public class AuthService {
                 .joinDate(joinDate)
                 .status(Status.ACTIVE)
                 .createdAt(LocalDateTime.now())
+                .userIdChat(userIdChat)
                 .build();
 
         var savedUser = repository.save(user);
@@ -87,11 +95,11 @@ public class AuthService {
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
 
-        notification.sendNotification("@" +user.getEmail()+
-                "\nBạn đã được thêm vào Team Java, hãy login và " +
-                "đổi mật khẩu\nLink: " +url+
+        notification.sendNotificationForMember(
+                "Bạn đã được thêm vào Team Java, hãy login và " +
+                "đổi mật khẩu\nLink: " +url+"/change-password"+
                 "\nAccount: "+user.getEmail()+"\nPassword: " +
-                generatedPassword,"java");
+                generatedPassword,emailAdmin,userIdChat);
 
         var userDto = UserDto.builder()
                 .email(user.getEmail())
@@ -112,45 +120,6 @@ public class AuthService {
                 .build();
     }
 
-
-    private String fetchUserId(String email, String teamId, RestTemplate restTemplate, String token) {
-        try {
-            String searchApiUrl = "https://your-api.com/api/v4/users/search"; // Replace with actual URL
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + token);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("term", email);
-            body.put("team_id", teamId);
-            body.put("not_in_channel_id", "");
-            body.put("group_constrained", false);
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                    searchApiUrl,
-                    HttpMethod.POST,
-                    requestEntity,
-                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-            );
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                List<Map<String, Object>> users = response.getBody();
-                if (!users.isEmpty()) {
-                    return (String) users.get(0).get("id");
-                }
-            }
-        } catch (HttpClientErrorException e) {
-            System.err.println("API error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            e.printStackTrace();
-        } catch (Exception e) {
-            System.err.println("Error fetching userId: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
-    }
     private LocalDate parseDate(String dateStr, String errorMessage) {
         if (dateStr != null && !dateStr.isEmpty()) {
             try {

@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -22,9 +23,13 @@ public class AuthController {
     private final AuthService service;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterDto request) {
+    public ResponseEntity<AuthenticationResponse> register(
+            @RequestBody RegisterDto request,
+            Principal principal
+    ) {
+        String emailLoggedInUser = principal.getName(); // hoặc SecurityContextHolder.getContext().getAuthentication().getName()
 
-        return ResponseEntity.ok(service.register(request));
+        return ResponseEntity.ok(service.register(request, emailLoggedInUser));
     }
 
     @PostMapping("/login")
