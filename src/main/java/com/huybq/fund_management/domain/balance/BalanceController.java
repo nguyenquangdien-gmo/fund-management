@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/${server.version}/balances")
-@PreAuthorize("hasRole('ADMIN')")
+//@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class BalanceController {
     private final BalanceService balanceService;
