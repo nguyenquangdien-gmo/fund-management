@@ -34,7 +34,7 @@ public class InvoiceService {
     }
 
     public List<InvoiceResponseDTO> getInvoicesWithStatusPending() {
-        return repository.findAllByOrderByCreatedAtDesc().stream()
+        return repository.findAllOrderByStatusPriority().stream()
                 .map(mapper::toDTO)
                 .toList();
     }

@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.contributions;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
+import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.period.PeriodRepository;
 import com.huybq.fund_management.domain.period.PeriodService;
 import com.huybq.fund_management.domain.trans.Trans;
@@ -17,10 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,11 +40,12 @@ public class ContributionService {
     }
 
     public List<ContributionResponseDTO> getPendingContributions() {
-        return contributionRepository.findAllByOrderByCreatedAtDesc()
+        return contributionRepository.findAllOrderByPaymentStatusPriority()
                 .stream()
                 .map(mapper::mapToResponseDTO)
                 .toList();
     }
+
     public Contribution findById(Long id) {
         return contributionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
@@ -162,14 +161,7 @@ public class ContributionService {
             throw new IllegalArgumentException("Contribution already exists for this period. Use updateContribution instead.");
         }
 
-
-        BigDecimal needAmount = period.getTotalAmount();
         BigDecimal actualAmount = contributionDTO.getTotalAmount(); // Số tiền user muốn đóng
-
-        if (actualAmount.compareTo(needAmount) < 0) {
-            throw new IllegalArgumentException("The amount is not enough to cover the total amount of the period.");
-        }
-
         boolean isLate = LocalDateTime.now().isAfter(period.getDeadline().atStartOfDay());
 
         Contribution newContribution = Contribution.builder()
@@ -178,6 +170,7 @@ public class ContributionService {
                 .totalAmount(actualAmount)
                 .note(contributionDTO.getNote())
                 .paymentStatus(Contribution.PaymentStatus.PENDING)
+                .fundType(!Objects.equals(contributionDTO.getFundType(), "") ? FundType.valueOf(contributionDTO.getFundType()) : null)
                 .isLate(isLate)
                 .build();
 
@@ -218,38 +211,49 @@ public class ContributionService {
         }
 
         BigDecimal totalAmount = contribution.getTotalAmount();
-        BigDecimal needAmount = contribution.getPeriod().getTotalAmount();
-        BigDecimal commonFundAmount = totalAmount.min(BigDecimal.valueOf(30000));
-        BigDecimal snackFundAmount = totalAmount.subtract(commonFundAmount);
 
-        // Cập nhật balance cho Common Fund
-        transService.createTransaction(TransDTO.builder()
-                .userId(contribution.getUser().getId())
-                .periodId(contribution.getPeriod().getId())
-                .amount(commonFundAmount)
-                .transactionType(Trans.TransactionType.INCOME_FUND)
-                .description("Đóng quỹ chung")
-                .build());
-        balanceService.depositBalance("common", commonFundAmount);
+        if (contribution.getFundType() != null) {
+            FundType fundType = contribution.getFundType();
+            String fundKey = fundType.name().toLowerCase(); // "common" hoặc "snack"
 
-        // Cập nhật balance cho Snack Fund
-        transService.createTransaction(TransDTO.builder()
-                .userId(contribution.getUser().getId())
-                .periodId(contribution.getPeriod().getId())
-                .amount(snackFundAmount)
-                .transactionType(Trans.TransactionType.INCOME_FUND)
-                .description("Đóng quỹ ăn vặt")
-                .build());
-        balanceService.depositBalance("snack", snackFundAmount);
+            transService.createTransaction(TransDTO.builder()
+                    .userId(contribution.getUser().getId())
+                    .periodId(contribution.getPeriod().getId())
+                    .amount(totalAmount)
+                    .transactionType(Trans.TransactionType.INCOME_FUND)
+                    .description("Đóng quỹ " + fundKey)
+                    .build());
 
-        if (totalAmount.compareTo(needAmount) >= 0) {
-            contribution.setPaymentStatus(Contribution.PaymentStatus.PAID);
+            balanceService.depositBalance(fundKey, totalAmount);
         } else {
-            throw new IllegalArgumentException("Contribution is not fully paid");
+            // Không có fundType => chia theo mặc định
+            BigDecimal commonFundAmount = totalAmount.min(BigDecimal.valueOf(30000));
+            BigDecimal snackFundAmount = totalAmount.subtract(commonFundAmount);
+
+            // Cộng quỹ chung
+            transService.createTransaction(TransDTO.builder()
+                    .userId(contribution.getUser().getId())
+                    .periodId(contribution.getPeriod().getId())
+                    .amount(commonFundAmount)
+                    .transactionType(Trans.TransactionType.INCOME_FUND)
+                    .description("Đóng quỹ chung")
+                    .build());
+            balanceService.depositBalance("common", commonFundAmount);
+
+            // Cộng quỹ ăn vặt
+            transService.createTransaction(TransDTO.builder()
+                    .userId(contribution.getUser().getId())
+                    .periodId(contribution.getPeriod().getId())
+                    .amount(snackFundAmount)
+                    .transactionType(Trans.TransactionType.INCOME_FUND)
+                    .description("Đóng quỹ ăn vặt")
+                    .build());
+            balanceService.depositBalance("snack", snackFundAmount);
         }
+
+        contribution.setPaymentStatus(Contribution.PaymentStatus.PAID);
         contributionRepository.save(contribution);
     }
-
 
 //    @Transactional
 //    public void rejectNewContribution(Long contributionId) {

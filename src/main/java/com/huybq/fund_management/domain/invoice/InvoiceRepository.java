@@ -49,4 +49,12 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findAllByUser_IdOrderByCreatedAtDesc(Long userId);
 
     List<Invoice> findAllByStatusInOrderByCreatedAtDesc(List<InvoiceStatus> status);
+    @Query("SELECT i FROM Invoice i ORDER BY " +
+            "CASE i.status " +
+            "WHEN 'PENDING' THEN 0 " +
+            "WHEN 'APPROVED' THEN 1 " +
+            "WHEN 'CANCELLED' THEN 2 " +
+            "ELSE 3 END, i.createdAt DESC")
+    List<Invoice> findAllOrderByStatusPriority();
+
 }

@@ -138,6 +138,23 @@ public class AuthService {
         return prefix + randomNumber;
     }
 
+    public void resetPassword(String email,String emailAdmin) {
+        System.out.println("Email to reset: " + email);
+        System.out.println("Admin who reset: " + emailAdmin);
+
+        var user = repository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        String generatedPassword = generatePassword(email);
+
+        user.setPassword(passwordEncoder.encode(generatedPassword));
+        repository.save(user);
+
+        notification.sendNotificationForMember(
+                "Tài khoản của bạn đã được reset, hãy login và " +
+                        "đổi mật khẩu\nLink: " +url+"/change-password"+
+                        "\nAccount: "+user.getEmail()+"\nPassword: " +
+                        generatedPassword,emailAdmin,user.getUserIdChat());
+    }
 
     public AuthenticationResponse authenticate(AuthenticationDto request) {
         authenticationManager.authenticate(
@@ -245,6 +262,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(newPassword));
         repository.save(user);
     }
+
 
 
 

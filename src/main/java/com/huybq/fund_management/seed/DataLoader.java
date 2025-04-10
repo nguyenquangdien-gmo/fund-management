@@ -131,7 +131,7 @@ public class DataLoader {
     }
 
     private void createAdminUserIfNotExists(UserRepository repository, TeamRepository teamRepository, RoleRepository roleRepository) {
-        String adminEmail = "admin@example.com";
+        String adminEmail = "huybq@runsystem.net";
 
         var role = roleRepository.findByName("ADMIN");
         if (repository.findByEmail(adminEmail).isEmpty() && role.isPresent()) {

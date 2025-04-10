@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.contributions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -41,6 +42,9 @@ public class Contribution {
     private String note;
 
     private Boolean isLate;
+
+    @Enumerated(EnumType.STRING)
+    private FundType fundType;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

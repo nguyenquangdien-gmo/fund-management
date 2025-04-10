@@ -23,4 +23,5 @@ public class ContributionDTO {
     @Positive(message = "amount must be positive")
     private BigDecimal totalAmount;
     private String note;
+    private String fundType;
 }

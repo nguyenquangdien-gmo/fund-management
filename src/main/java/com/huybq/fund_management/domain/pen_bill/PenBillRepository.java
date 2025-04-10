@@ -17,6 +17,16 @@ public interface PenBillRepository extends JpaRepository<PenBill, Long> {
     List<PenBill> findByUserIdAndPaymentStatus(Long userId, PenBill.Status status);
     List<PenBill> findByPaymentStatusInOrderByCreatedAtDesc(List<PenBill.Status> statuses);
     List<PenBill> findAllByOrderByCreatedAtDesc();
+
+    @Query("SELECT p FROM PenBill p ORDER BY " +
+            "CASE p.paymentStatus " +
+            "WHEN 'PENDING' THEN 0 " +
+            "WHEN 'UNPAID' THEN 1 " +
+            "WHEN 'PAID' THEN 2 " +
+            "WHEN 'CANCELED' THEN 3 " +
+            "ELSE 4 END, p.dueDate ASC")
+    List<PenBill> findAllOrderByStatusPriority();
+
     // Thống kê tổng tiền phạt theo từng tháng trong một năm
     @Query("SELECT FUNCTION('MONTH', p.dueDate), COALESCE(SUM(p.totalAmount), 0) " +
             "FROM PenBill p " +

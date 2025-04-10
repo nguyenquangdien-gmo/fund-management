@@ -53,7 +53,7 @@ public class PenBillService {
                 .collect(Collectors.toList());
     }
     public List<PenBillResponse> getPenBillsPending() {
-        return penBillRepository.findAllByOrderByCreatedAtDesc().stream()
+        return penBillRepository.findAllOrderByStatusPriority().stream()
                 .map(mapper::toPenBillResponse)
                 .collect(Collectors.toList());
     }
@@ -108,7 +108,7 @@ public class PenBillService {
         penBillRepository.save(penBill);
 
         // Cộng tiền vào common_fund
-        balanceService.depositBalance("common_fund", penBill.getTotalAmount());
+        balanceService.depositBalance("common", penBill.getTotalAmount());
 
         // Ghi log giao dịch vào bảng Trans
         Trans transaction = new Trans();

@@ -26,6 +26,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
+    @GetMapping("/exclude-current")
+    public ResponseEntity<List<User>> getUsersExcludeCurrent() {
+        return ResponseEntity.ok(userService.getUsersExcludeCurrent());
+    }
+
+
     @GetMapping("/{userId}/reminders")
     public ResponseEntity<List<Reminder>> getRemindersByUserId(@PathVariable Long userId) {
         List<Reminder> reminders = userService.findRemindersByUserId(userId);

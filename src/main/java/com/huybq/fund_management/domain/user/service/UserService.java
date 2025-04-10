@@ -13,6 +13,7 @@ import com.huybq.fund_management.domain.token.TokenType;
 import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
 import com.huybq.fund_management.domain.user.dto.UserDto;
 import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
+import com.huybq.fund_management.domain.user.entity.Status;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.mapper.UserMapper;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
@@ -44,6 +45,14 @@ public class UserService {
         return repository.findAllByIsDeleteIsFalse();
     }
 
+    public List<User> getUsersExcludeCurrent() {
+        // Lấy username từ security context
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Lấy toàn bộ user ngoại trừ user đã bị xóa và user hiện tại
+        return repository.findAllByIsDeleteIsFalseAndEmailNot(currentUsername);
+    }
+
     public List<Reminder> findRemindersByUserId(Long userId) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -68,6 +77,7 @@ public class UserService {
 
         if (user.isPresent()) {
             user.get().setDelete(true);
+            user.get().setStatus(Status.INACTIVE);
             repository.save(user.get());
             return true;
         } else {

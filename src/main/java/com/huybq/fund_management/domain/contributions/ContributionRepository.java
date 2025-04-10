@@ -53,6 +53,14 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
 
     List<Contribution> findAllByOrderByCreatedAtDesc();
 
+    @Query("SELECT c FROM Contribution c ORDER BY " +
+            "CASE c.paymentStatus " +
+            "WHEN 'PENDING' THEN 0 " +
+            "WHEN 'LATE' THEN 1 " +
+            "WHEN 'PAID' THEN 2 " +
+            "WHEN 'CANCELED' THEN 3 " +
+            "ELSE 4 END, c.createdAt ASC")
+    List<Contribution> findAllOrderByPaymentStatusPriority();
 
 
 }

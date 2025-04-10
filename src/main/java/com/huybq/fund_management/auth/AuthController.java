@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/${server.version}/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class AuthController {
@@ -67,6 +68,12 @@ public class AuthController {
         return ResponseEntity.ok("Password changed successfully");
     }
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request, Principal principal) {
+        String email = request.get("email");
+        service.resetPassword(email, principal.getName());
+        return ResponseEntity.ok("Password changed successfully");
+    }
 
 
 }
