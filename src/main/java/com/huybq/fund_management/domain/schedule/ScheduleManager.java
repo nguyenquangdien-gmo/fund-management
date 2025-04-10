@@ -34,7 +34,7 @@ public class ScheduleManager {
     public void init() {
         rescheduleEventNotificationTask();
         scheduleLateTask();
-        scheduleMonthlyLateSummaryTask();
+//        scheduleMonthlyLateSummaryTask();
     }
 
     public synchronized void rescheduleEventNotificationTask() {
@@ -94,50 +94,50 @@ public class ScheduleManager {
         );
     }
 
-    public synchronized void scheduleMonthlyLateSummaryTask() {
-        if (lateSummaryTask != null && !lateSummaryTask.isCancelled()) {
-            lateSummaryTask.cancel(false);
-        }
-
-        Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.LATE_NOTIFICATION)
-                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
-
-        LocalDateTime fromDate = schedule.getFromDate(); // ví dụ: 2024-04-31
-        LocalTime sendTime = schedule.getSendTime(); // ví dụ: 10:00
-        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
-
-        int configuredDay = fromDate.getDayOfMonth();
-        int maxDayOfThisMonth = now.toLocalDate().lengthOfMonth();
-
-        int safeDay = Math.min(configuredDay, maxDayOfThisMonth); // ví dụ: 31 vs 30 => 30
-
-        ZonedDateTime firstRun = now.withDayOfMonth(safeDay)
-                .withHour(sendTime.getHour())
-                .withMinute(sendTime.getMinute())
-                .withSecond(0)
-                .withNano(0);
-
-        if (firstRun.isBefore(now)) {
-            // Tháng sau
-            ZonedDateTime nextMonth = now.plusMonths(1);
-            int maxDayOfNextMonth = nextMonth.toLocalDate().lengthOfMonth();
-            int safeNextDay = Math.min(configuredDay, maxDayOfNextMonth);
-
-            firstRun = nextMonth.withDayOfMonth(safeNextDay)
-                    .withHour(sendTime.getHour())
-                    .withMinute(sendTime.getMinute())
-                    .withSecond(0)
-                    .withNano(0);
-        }
-
-        long oneMonth = Duration.ofDays(30).toMillis(); // đơn giản, ổn cho now
-
-        lateSummaryTask = taskScheduler.scheduleAtFixedRate(
-                lateService::sendLateReminder,
-                Date.from(firstRun.toInstant()),
-                oneMonth
-        );
-    }
+//    public synchronized void scheduleMonthlyLateSummaryTask() {
+//        if (lateSummaryTask != null && !lateSummaryTask.isCancelled()) {
+//            lateSummaryTask.cancel(false);
+//        }
+//
+//        Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.LATE_NOTIFICATION)
+//                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
+//
+//        LocalDateTime fromDate = schedule.getFromDate(); // ví dụ: 2024-04-31
+//        LocalTime sendTime = schedule.getSendTime(); // ví dụ: 10:00
+//        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
+//
+//        int configuredDay = fromDate.getDayOfMonth();
+//        int maxDayOfThisMonth = now.toLocalDate().lengthOfMonth();
+//
+//        int safeDay = Math.min(configuredDay, maxDayOfThisMonth); // ví dụ: 31 vs 30 => 30
+//
+//        ZonedDateTime firstRun = now.withDayOfMonth(safeDay)
+//                .withHour(sendTime.getHour())
+//                .withMinute(sendTime.getMinute())
+//                .withSecond(0)
+//                .withNano(0);
+//
+//        if (firstRun.isBefore(now)) {
+//            // Tháng sau
+//            ZonedDateTime nextMonth = now.plusMonths(1);
+//            int maxDayOfNextMonth = nextMonth.toLocalDate().lengthOfMonth();
+//            int safeNextDay = Math.min(configuredDay, maxDayOfNextMonth);
+//
+//            firstRun = nextMonth.withDayOfMonth(safeNextDay)
+//                    .withHour(sendTime.getHour())
+//                    .withMinute(sendTime.getMinute())
+//                    .withSecond(0)
+//                    .withNano(0);
+//        }
+//
+//        long oneMonth = Duration.ofDays(30).toMillis(); // đơn giản, ổn cho now
+//
+//        lateSummaryTask = taskScheduler.scheduleAtFixedRate(
+//                lateService::sendLateReminder,
+//                Date.from(firstRun.toInstant()),
+//                oneMonth
+//        );
+//    }
 
 
     public synchronized void updateSchedule(Schedule.NotificationType type) {
@@ -145,8 +145,9 @@ public class ScheduleManager {
             rescheduleEventNotificationTask();
         } else if (type == Schedule.NotificationType.LATE_NOTIFICATION) {
             scheduleLateTask(); // sẽ cancel và reschedule
-        }else {
-            scheduleMonthlyLateSummaryTask();
         }
+//        else {
+//            scheduleMonthlyLateSummaryTask();
+//        }
     }
 }

@@ -36,7 +36,7 @@ public class ScheduleController {
     @PutMapping("/{type}")
     public ResponseEntity<ScheduleResponse> updateSchedule(@PathVariable String type,
                                                            @RequestBody ScheduleDTO request) {
-        return ResponseEntity.ok(scheduleService.updateSchedule(type, request));
+        return ResponseEntity.ok(scheduleService.updateSchedule(type.toUpperCase(), request));
     }
 
     // DELETE

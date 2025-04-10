@@ -38,7 +38,7 @@ public class ScheduleService {
     }
 
     public ScheduleResponse updateSchedule(String type, ScheduleDTO request) {
-        Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf(type.toUpperCase()))
+        Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf(type))
                 .orElseThrow(()-> new ResourceNotFoundException("Schedule not found with type: " + type));
         schedule.setFromDate(request.getFromDate());
         schedule.setToDate(request.getToDate());
