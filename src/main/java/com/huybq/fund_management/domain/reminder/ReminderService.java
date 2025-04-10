@@ -197,12 +197,29 @@ public class ReminderService {
     }
 
     private List<User> getUserFromDTO(ReminderDTO dto) {
-        if (dto.userIds() == null || dto.userIds().isEmpty()) {
-            return userRepository.findAllByIsDeleteIsFalse();
-        } else {
-            return userRepository.findAllById(dto.userIds()).stream()
-                    .filter(user -> !user.isDelete())
-                    .collect(Collectors.toList());
+        try {
+            if ((dto.userIds() == null || dto.userIds().isEmpty()) && dto.emailException() != null) {
+                return userRepository.findAllByIsDeleteIsFalseAndEmailNot(dto.emailException());
+            } else {
+                if (dto.userIds() == null) {
+                    return new ArrayList<>(); // Trả về danh sách rỗng thay vì sử dụng assert
+                }
+
+                List<User> users = new ArrayList<>();
+                try {
+                    users = userRepository.findAllById(dto.userIds()).stream()
+                            .filter(user -> !user.isDelete())
+                            .collect(Collectors.toList());
+                } catch (Exception e) {
+                    // Log lỗi nhưng vẫn tiếp tục với danh sách rỗng
+                    System.err.println("Error finding users by IDs: " + e.getMessage());
+                }
+
+                return users;
+            }
+        } catch (Exception e) {
+            System.err.println("Error in getUserFromDTO: " + e.getMessage());
+            return new ArrayList<>(); // Trả về danh sách rỗng để hàm tiếp tục thực thi
         }
     }
 

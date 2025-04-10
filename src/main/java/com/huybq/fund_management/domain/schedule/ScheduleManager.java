@@ -46,36 +46,36 @@ public class ScheduleManager {
         Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.EVENT_NOTIFICATION)
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
 
-//        LocalTime sendTime = schedule.getSendTime();
-//        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
-//        ZonedDateTime firstRun = now.withHour(sendTime.getHour()).withMinute(sendTime.getMinute()).withSecond(0);
-//
-//        if (firstRun.isBefore(now)) {
-//            firstRun = firstRun.plusDays(1);
-//        }
-//
-//        long initialDelay = Duration.between(now, firstRun).toMillis();
-//        long oneDay = Duration.ofDays(1).toMillis();
-//
-//        eventTask = taskScheduler.scheduleAtFixedRate(
-//                eventService::sendEventNotifications,
-//                new Date(System.currentTimeMillis() + initialDelay),
-//                oneDay
-//        );
-        // DEBUG: set chạy sau 5 giây
-        long initialDelay = 5 * 1000L; // 5 giây
-        long repeatInterval = 10 * 1000L; // lặp lại mỗi 10 giây (cho dễ test)
+        LocalTime sendTime = schedule.getSendTime();
+        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
+        ZonedDateTime firstRun = now.withHour(sendTime.getHour()).withMinute(sendTime.getMinute()).withSecond(0);
 
-        System.out.println("[EventTask] Scheduled to start in 5s, repeat every 10s");
+        if (firstRun.isBefore(now)) {
+            firstRun = firstRun.plusDays(1);
+        }
+
+        long initialDelay = Duration.between(now, firstRun).toMillis();
+        long oneDay = Duration.ofDays(1).toMillis();
 
         eventTask = taskScheduler.scheduleAtFixedRate(
-                () -> {
-                    System.out.println("[EventTask] Running at " + ZonedDateTime.now(VIETNAM_ZONE));
-                    eventService.sendEventNotifications();
-                },
+                eventService::sendEventNotifications,
                 new Date(System.currentTimeMillis() + initialDelay),
-                repeatInterval
+                oneDay
         );
+        // DEBUG: set chạy sau 5 giây
+//        long initialDelay = 5 * 1000L; // 5 giây
+//        long repeatInterval = 10 * 1000L; // lặp lại mỗi 10 giây (cho dễ test)
+//
+//        System.out.println("[EventTask] Scheduled to start in 5s, repeat every 10s");
+//
+//        eventTask = taskScheduler.scheduleAtFixedRate(
+//                () -> {
+//                    System.out.println("[EventTask] Running at " + ZonedDateTime.now(VIETNAM_ZONE));
+//                    eventService.sendEventNotifications();
+//                },
+//                new Date(System.currentTimeMillis() + initialDelay),
+//                repeatInterval
+//        );
     }
 
     public synchronized void scheduleLateTask() {
@@ -107,6 +107,19 @@ public class ScheduleManager {
                 Date.from(firstRun.toInstant()),
                 oneDay
         );
+//        long initialDelay = 5 * 1000L; // 5 giây
+//        long repeatInterval = 10 * 1000L; // lặp lại mỗi 10 giây (cho dễ test)
+//
+//        System.out.println("[EventTask] Scheduled to start in 5s, repeat every 10s");
+//
+//        lateTask = taskScheduler.scheduleAtFixedRate(
+//                () -> {
+//                    System.out.println("[EventTask] Running at " + ZonedDateTime.now(VIETNAM_ZONE));
+//                    lateService.fetchLateCheckins(schedule.getSendTime());
+//                },
+//                new Date(System.currentTimeMillis() + initialDelay),
+//                repeatInterval
+//        );
 
     }
 
