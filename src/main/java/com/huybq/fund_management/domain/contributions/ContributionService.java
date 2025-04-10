@@ -168,7 +168,7 @@ public class ContributionService {
                 .user(user)
                 .period(period)
                 .totalAmount(actualAmount)
-                .note(contributionDTO.getNote())
+                .note(period.getDescription())
                 .paymentStatus(Contribution.PaymentStatus.PENDING)
                 .fundType(!Objects.equals(contributionDTO.getFundType(), "") ? FundType.valueOf(contributionDTO.getFundType()) : null)
                 .isLate(isLate)

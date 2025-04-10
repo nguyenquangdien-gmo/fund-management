@@ -30,12 +30,12 @@ public class ScheduleManager {
     private ScheduledFuture<?> lateSummaryTask;
 
 
-    @PostConstruct
-    public void init() {
-        rescheduleEventNotificationTask();
-        scheduleLateTask();
-//        scheduleMonthlyLateSummaryTask();
-    }
+//    @PostConstruct
+//    public void init() {
+//        rescheduleEventNotificationTask();
+//        scheduleLateTask();
+////        scheduleMonthlyLateSummaryTask();
+//    }
 
     public synchronized void rescheduleEventNotificationTask() {
         // Hủy task cũ nếu đang chạy
