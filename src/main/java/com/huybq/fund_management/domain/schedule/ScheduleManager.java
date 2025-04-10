@@ -16,7 +16,7 @@ import java.util.concurrent.ScheduledFuture;
 @Service
 @RequiredArgsConstructor
 public class ScheduleManager {
-    private  final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+    private final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private final TaskScheduler taskScheduler;
 
     private final ScheduleRepository scheduleRepository;
@@ -34,9 +34,9 @@ public class ScheduleManager {
 //    public void init() {
 //        rescheduleEventNotificationTask();
 //        scheduleLateTask();
-////        scheduleMonthlyLateSummaryTask();
-//    }
 
+    /// /        scheduleMonthlyLateSummaryTask();
+//    }
     public synchronized void rescheduleEventNotificationTask() {
         // Hủy task cũ nếu đang chạy
         if (eventTask != null && !eventTask.isCancelled()) {
@@ -63,6 +63,7 @@ public class ScheduleManager {
                 oneDay
         );
     }
+
     public synchronized void scheduleLateTask() {
         // Cancel task cũ nếu đang tồn tại
         if (lateTask != null && !lateTask.isCancelled()) {
@@ -88,10 +89,11 @@ public class ScheduleManager {
         long oneDay = Duration.ofDays(1).toMillis();
 
         lateTask = taskScheduler.scheduleAtFixedRate(
-                lateService::fetchLateCheckins,
+                () -> lateService.fetchLateCheckins(schedule.getSendTime()),
                 Date.from(firstRun.toInstant()),
                 oneDay
         );
+
     }
 
 //    public synchronized void scheduleMonthlyLateSummaryTask() {

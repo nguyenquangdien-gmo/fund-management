@@ -6,7 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +32,12 @@ public class LateController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
         List<LateReponseDTO> lateRecords = service.getLateByUserIdWithDateRange(userId, fromDate, toDate);
         return ResponseEntity.ok(lateRecords);
+    }
+
+    @PostMapping("/check-now")
+    public ResponseEntity<?> checkLateNow(@RequestBody Map<String,String> time) {
+        service.fetchLateCheckins(LocalTime.parse(time.get("time")));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/process/messages")

@@ -49,14 +49,14 @@
             return repository.findLatesByUser_IdAndDateRange(fromDate,toDate,userId).stream().map(mapper::toDTO).toList();
         }
 
-        public void fetchLateCheckins() {
+        public void fetchLateCheckins(LocalTime time) {
             Team team = teamService.getTeamBySlug("java");
 
             LocalDateTime now = LocalDateTime.now();
             String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
             long timestamp = now.atZone(vietnamZone)
-                    .withHour(9).withMinute(50).withSecond(0)
+                    .withHour(time.getHour()).withMinute(time.getMinute()).withSecond(time.getSecond())
                     .toEpochSecond() * 1000;
 
             String url = "https://chat.runsystem.vn/api/v4/channels/" + team.getChannelId() + "/posts?since=" + timestamp;
@@ -93,14 +93,14 @@
 
         //len lich goi tu dong tu 10h05 t2- t6
 //        @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
-        @Scheduled(cron = "30 4 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
-        public void scheduledCheckinLate() {
-            DayOfWeek today = LocalDateTime.now().getDayOfWeek();
-            if (today != DayOfWeek.SATURDAY && today != DayOfWeek.SUNDAY) {
-                System.out.println("calling api check in late at 10:05...");
-                fetchLateCheckins();
-            }
-        }
+//        @Scheduled(cron = "30 4 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
+//        public void scheduledCheckinLate() {
+//            DayOfWeek today = LocalDateTime.now().getDayOfWeek();
+//            if (today != DayOfWeek.SATURDAY && today != DayOfWeek.SUNDAY) {
+//                System.out.println("calling api check in late at 10:05...");
+//                fetchLateCheckins();
+//            }
+//        }
 
         @Transactional
         public List<LateDTO> getUsersWithMultipleLatesInMonth(int minLateCount) {
