@@ -34,9 +34,9 @@ public class EventController {
     }
 
     @PostMapping("/send-now")
-    public ResponseEntity<Event> sendNow(@RequestBody Map<String,Long> id) {
-        Event event = eventService.getEventById(id.get("id"));
-        return ResponseEntity.ok(event);
+    public ResponseEntity<?> sendNow(@RequestBody Map<String,Long> id) {
+        eventService.sendNowNotifications(id.get("id"));
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")

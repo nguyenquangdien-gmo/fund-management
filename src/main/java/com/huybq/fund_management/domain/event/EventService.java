@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -104,9 +105,13 @@ public class EventService {
     public void sendNowNotifications(Long idEvent) {
         Event event = eventRepository.findById(idEvent)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
-        notification.sendNotification("\uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
-                "\nSẽ diễn ra vào " + event.getEventTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
-                "\nTại " + event.getLocation() + "\nChủ sự là: " + event.getHosts(), "java");
+
+        String hosts = event.getHosts().stream()
+                .map(User::getFullName)
+                .collect(Collectors.joining(", "));
+        notification.sendNotification("@all\n \uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
+                "\nSẽ diễn ra vào: " + event.getEventTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
+                "\nTại: " + event.getLocation() + "\nChủ sự là: " + hosts, "java");
     }
 
 
