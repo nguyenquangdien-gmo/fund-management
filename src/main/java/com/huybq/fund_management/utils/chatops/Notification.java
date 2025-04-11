@@ -3,12 +3,17 @@ package com.huybq.fund_management.utils.chatops;
 import com.huybq.fund_management.domain.chatopsApi.ChatopsService;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamService;
+import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -16,6 +21,7 @@ import java.util.Map;
 public class Notification {
     private final TeamService teamService;
     private final ChatopsService chatopsService;
+    private final UserRepository userRepository;
 
     private static final String API_URL = "https://chat.runsystem.vn/api/v4/posts";
 
@@ -54,12 +60,35 @@ public class Notification {
             chatopsService.sendMessage(channelId, messageContent);
 
         } catch (Exception e) {
-            // Log lỗi rõ ràng để xử lý hoặc gửi fallback nếu cần
             System.err.println("Failed to send message to " + receiverEmail + ": " + e.getMessage());
         }
     }
+    @Scheduled(cron = "0 0 9 * * *") // chạy mỗi ngày lúc 9h sáng
+    public void sendBirthdayAndAnniversaryNotifications() {
+        LocalDate today = LocalDate.now();
 
+        List<User> users = userRepository.findAllByIsDeleteIsFalse();
 
+        for (User user : users) {
+            if (user.getDob() != null &&
+                    user.getDob().getMonth() == today.getMonth() &&
+                    user.getDob().getDayOfMonth() == today.getDayOfMonth()) {
+                String message = "@all\n🎂 Hôm nay là sinh nhật của " + user.getFullName() + " 🎉\n"
+                        + "Chúc bạn một ngày sinh nhật vui vẻ và thật nhiều niềm vui!";
+                sendNotification( message,"java");
+            }
+
+            // thông báo kỷ niệm gia nhập
+            if (user.getJoinDate() != null &&
+                    user.getJoinDate().getMonth() == today.getMonth() &&
+                    user.getJoinDate().getDayOfMonth() == today.getDayOfMonth()) {
+                int years = today.getYear() - user.getJoinDate().getYear();
+                String message = "@all\n🎉 Hôm nay là kỷ niệm " + years + " năm " + user.getFullName()
+                        + " gia nhập team!\nCảm ơn bạn đã đồng hành cùng tập thể team và công ty nhé!❤️";
+                sendNotification(message, "java");
+            }
+        }
+    }
 
     public static void main(String[] args) {
 //        Notification notification = new Notification("java");

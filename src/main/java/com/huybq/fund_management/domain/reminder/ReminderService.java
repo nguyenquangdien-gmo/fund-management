@@ -181,7 +181,9 @@ public class ReminderService {
         LocalDateTime now = LocalDateTime.now();
         List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.UNSENT);
         reminders.forEach(reminder->{
-            sendNotification(reminder);
+            if (reminder.isSendChatGroup()){
+                sendNotification(reminder);
+            }
             reminder.setStatus(Reminder.Status.SENT);
             reminderRepository.save(reminder);
         });

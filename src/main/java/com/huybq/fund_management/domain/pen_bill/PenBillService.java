@@ -188,7 +188,7 @@ public class PenBillService {
     }
 
 
-    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh") // Chạy mỗi ngày 08:00 sáng
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh")
     public void sendNotificationPenBill() {
         LocalDate now = LocalDate.now();
         int month = now.getMonthValue();
