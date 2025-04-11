@@ -33,8 +33,8 @@ public class ReminderService {
     private final Notification notification;
 
     public List<ReminderResponseDTO> getAllReminders() {
-        Set<String> uniqueDescriptions = new HashSet<>();
-        return reminderRepository.findAll().stream()
+//        Set<String> uniqueDescriptions = new HashSet<>();
+        return reminderRepository.findAllByOrderByScheduledTimeAsc().stream()
                 .map(reminder -> ReminderResponseDTO.builder()
                         .id(reminder.getId())
                         .title(reminder.getTitle())
@@ -126,11 +126,8 @@ public class ReminderService {
 //        }
 //    }
     public void createReminder(ReminderDTO reminderDTO) {
-
-
         Reminder reminder = new Reminder();
         reminder.setUsers(new HashSet<>(getUserFromDTO(reminderDTO)));
-
         reminder.setTitle(reminderDTO.title());
         reminder.setDescription(reminderDTO.description());
         reminder.setReminderType(Reminder.ReminderType.valueOf(reminderDTO.type()));
@@ -151,10 +148,31 @@ public class ReminderService {
     }
 
     private void sendNotification(Reminder reminder) {
-        String message = "@all \n🔔 Thông báo mới " + reminder.getTitle() + "\nNội dung: " + reminder.getDescription();
+        Set<User> users = reminder.getUsers();
+        String mention;
+
+        boolean isAllUsers = isAllUsersSelected(users); // Bạn cần hàm này kiểm tra xem có phải tất cả user không
+
+        if (isAllUsers) {
+            mention = "@all";
+        } else {
+            mention = users.stream()
+                    .map(user -> "@" + user.getEmail().replace("@", "-"))
+                    .collect(Collectors.joining(" "));
+        }
+
+        String message = mention + "\n🔔 Thông báo mới: " + reminder.getTitle() +
+                "\nNội dung: " + reminder.getDescription();
+
         notification.sendNotification(message, "java");
+
         reminder.setStatus(Reminder.Status.READ);
         reminderRepository.save(reminder);
+    }
+
+    private boolean isAllUsersSelected(Set<User> selectedUsers) {
+        long totalUsers = userRepository.findAllByIsDeleteIsFalse().size();
+        return selectedUsers.size() == totalUsers;
     }
 
 
@@ -197,29 +215,12 @@ public class ReminderService {
     }
 
     private List<User> getUserFromDTO(ReminderDTO dto) {
-        try {
-            if ((dto.userIds() == null || dto.userIds().isEmpty()) && dto.emailException() != null) {
-                return userRepository.findAllByIsDeleteIsFalseAndEmailNot(dto.emailException());
-            } else {
-                if (dto.userIds() == null) {
-                    return new ArrayList<>(); // Trả về danh sách rỗng thay vì sử dụng assert
-                }
-
-                List<User> users = new ArrayList<>();
-                try {
-                    users = userRepository.findAllById(dto.userIds()).stream()
-                            .filter(user -> !user.isDelete())
-                            .collect(Collectors.toList());
-                } catch (Exception e) {
-                    // Log lỗi nhưng vẫn tiếp tục với danh sách rỗng
-                    System.err.println("Error finding users by IDs: " + e.getMessage());
-                }
-
-                return users;
-            }
-        } catch (Exception e) {
-            System.err.println("Error in getUserFromDTO: " + e.getMessage());
-            return new ArrayList<>(); // Trả về danh sách rỗng để hàm tiếp tục thực thi
+        if ((dto.userIds() == null || dto.userIds().isEmpty())) {
+            return userRepository.findAllByIsDeleteIsFalse();
+        } else {
+            return userRepository.findAllById(dto.userIds()).stream()
+                    .filter(user -> !user.isDelete())
+                    .collect(Collectors.toList());
         }
     }
 

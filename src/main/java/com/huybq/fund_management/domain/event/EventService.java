@@ -101,6 +101,14 @@ public class EventService {
         }
     }
 
+    public void sendNowNotifications(Long idEvent) {
+        Event event = eventRepository.findById(idEvent)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+        notification.sendNotification("\uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
+                "\nSẽ diễn ra vào " + event.getEventTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
+                "\nTại " + event.getLocation() + "\nChủ sự là: " + event.getHosts(), "java");
+    }
+
 
     @Scheduled(cron = "0 * * * * *", zone = "Asia/Ho_Chi_Minh")
     public void sendOneHourBeforeNotifications() {
@@ -119,7 +127,7 @@ public class EventService {
 
 
     public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+        return eventRepository.findAllByEventTimeGreaterThanEqual(LocalDateTime.now());
     }
 
     public Event getEventById(Long id) {

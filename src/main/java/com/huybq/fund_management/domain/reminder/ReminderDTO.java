@@ -12,8 +12,7 @@ public record ReminderDTO(
         String type,
         LocalDateTime scheduledTime,
         boolean isSendChatGroup,
-        List<Long> userIds,
-        String emailException
+        List<Long> userIds
 ) {
 
 }

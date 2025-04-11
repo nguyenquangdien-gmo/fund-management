@@ -9,5 +9,8 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByNameContaining(String name);
+
     List<Event> findByEventTimeBetween(LocalDateTime start, LocalDateTime end);
+
+    List<Event> findAllByEventTimeGreaterThanEqual(LocalDateTime eventTime);
 }

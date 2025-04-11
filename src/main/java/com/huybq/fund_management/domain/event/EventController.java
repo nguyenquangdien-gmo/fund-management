@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/${server.version}/events")
@@ -29,6 +30,12 @@ public class EventController {
     @GetMapping("/{id}")
     public ResponseEntity<Event> getEventById(@PathVariable Long id) {
         Event event = eventService.getEventById(id);
+        return ResponseEntity.ok(event);
+    }
+
+    @PostMapping("/send-now")
+    public ResponseEntity<Event> sendNow(@RequestBody Map<String,Long> id) {
+        Event event = eventService.getEventById(id.get("id"));
         return ResponseEntity.ok(event);
     }
 

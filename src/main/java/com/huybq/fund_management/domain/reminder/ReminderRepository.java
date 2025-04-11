@@ -23,4 +23,5 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 //    List<Reminder> findActiveRemindersByUserId(@Param("userId") Long userId);
     List<Reminder> findByScheduledTimeBeforeAndStatus(LocalDateTime now, Reminder.Status status);
     List<Reminder> findAllByStatus(Reminder.Status status);
+    List<Reminder> findAllByOrderByScheduledTimeAsc();
 }
