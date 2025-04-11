@@ -147,7 +147,7 @@ public class ReminderService {
 //        }
     }
 
-    private void sendNotification(Reminder reminder) {
+    public void sendNotification(Reminder reminder) {
         Set<User> users = reminder.getUsers();
         String mention;
 
@@ -176,12 +176,18 @@ public class ReminderService {
     }
 
 
-    @Scheduled(fixedRate = 60000) // Chạy mỗi phút
+    @Scheduled(fixedRate = 60000)
     public void processScheduledReminders() {
         LocalDateTime now = LocalDateTime.now();
-        List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.SENT);
-        reminders.forEach(this::sendNotification);
+        List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.UNSENT);
+        reminders.forEach(reminder->{
+            sendNotification(reminder);
+            reminder.setStatus(Reminder.Status.SENT);
+            reminderRepository.save(reminder);
+        });
+
     }
+
 
 //    private void sendReminder(Reminder reminder) {
 //        String message = "🔔 " + reminder.getTitle() + "\n" + reminder.getDescription();

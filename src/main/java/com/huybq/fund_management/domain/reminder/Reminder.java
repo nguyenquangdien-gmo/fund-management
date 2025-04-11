@@ -55,7 +55,7 @@ public class Reminder {
     }
 
     public enum Status {
-        SENT, READ
+        UNSENT,SENT, READ
     }
 }
 

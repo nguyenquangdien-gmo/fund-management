@@ -28,6 +28,8 @@ public class ScheduleManager {
     private ScheduledFuture<?> eventTask;
     private ScheduledFuture<?> lateTask;
     private ScheduledFuture<?> lateSummaryTask;
+    private ScheduledFuture<?> reminderTask;
+
 
 
 //    @PostConstruct
@@ -37,6 +39,7 @@ public class ScheduleManager {
 
     /// /        scheduleMonthlyLateSummaryTask();
 //    }
+
     public synchronized void rescheduleEventNotificationTask() {
         // Hủy task cũ nếu đang chạy
         if (eventTask != null && !eventTask.isCancelled()) {

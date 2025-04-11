@@ -7,6 +7,7 @@ import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import com.huybq.fund_management.utils.chatops.Notification;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -86,21 +87,27 @@ public class EventService {
         Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.EVENT_NOTIFICATION)
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
 
+        // Dùng phương thức có @EntityGraph
         List<Event> events = eventRepository.findByEventTimeBetween(schedule.getFromDate(), schedule.getToDate());
 
         for (Event event : events) {
             LocalDateTime eventTime = event.getEventTime();
 
-            // Gửi thông báo trước 1 hoặc 2 ngày
             if (eventTime.toLocalDate().equals(now.toLocalDate().plusDays(1)) ||
                     eventTime.toLocalDate().equals(now.toLocalDate().plusDays(2))) {
 
+                String hosts = event.getHosts().stream()
+                        .map(User::getFullName)
+                        .collect(Collectors.joining(", "));
+
                 notification.sendNotification("\uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
                         "\nSẽ diễn ra vào " + eventTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
-                        "\nTại " + event.getLocation() + "\nChủ sự là: " + event.getHosts(), "java");
+                        "\nTại " + event.getLocation() +
+                        "\nChủ sự là: " + hosts, "java");
             }
         }
     }
+
 
     public void sendNowNotifications(Long idEvent) {
         Event event = eventRepository.findById(idEvent)
