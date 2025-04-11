@@ -9,9 +9,11 @@ import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransRepository;
 import com.huybq.fund_management.domain.user.entity.User;
 import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,6 +32,7 @@ public class PenBillService {
     private final BalanceService balanceService;
     private final PenaltyService penaltyService;
     private final PenBillMapper mapper;
+    private final Notification notification;
 
     public List<PenBillDTO> getAllBillsUnPaidByUserId(Long userId) {
         List<PenBill> penBills = penBillRepository.findByUserIdAndPaymentStatus(userId,PenBill.Status.UNPAID);
@@ -183,4 +186,29 @@ public class PenBillService {
                 ))
                 .collect(Collectors.toList());
     }
+
+
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh") // Chạy mỗi ngày 08:00 sáng
+    public void sendNotificationPenBill() {
+        LocalDate now = LocalDate.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+
+        List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
+
+        for (Object[] row : unpaidInfoList) {
+            User user = (User) row[0];
+            BigDecimal totalUnpaid = (BigDecimal) row[1];
+
+            String mention = "@" + user.getEmail().replace("@", "-");
+
+            String message = mention +
+                    "\n💸 Bạn có hóa đơn phạt chưa thanh toán!" +
+                    "\n🗓 Vào ngày: " + month + "/" + year +
+                    "\n💰 Số tiền: " + totalUnpaid + " VNĐ";
+
+            notification.sendNotification(message, "java");
+        }
+    }
+
 }

@@ -51,8 +51,8 @@ public class LateController {
     }
 
     @GetMapping("/users/date")
-    public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate(@RequestParam int min) {
-        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth(min));
+    public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate() {
+        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth());
     }
 
     @GetMapping("/users/monthly")

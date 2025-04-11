@@ -49,4 +49,17 @@ public interface PenBillRepository extends JpaRepository<PenBill, Long> {
             "WHERE p.paymentStatus = 'PAID' AND FUNCTION('YEAR', p.dueDate) = :year")
     BigDecimal getTotalPaidPenaltiesByYear(@Param("year") int year);
 
+    @Query("""
+    SELECT p.user, SUM(p.totalAmount)
+    FROM PenBill p
+    WHERE FUNCTION('YEAR', p.dueDate) = :year
+      AND FUNCTION('MONTH', p.dueDate) = :month
+      AND p.paymentStatus = 'UNPAID'
+    GROUP BY p.user,p.createdAt
+""")
+    List<Object[]> findUserAndTotalUnpaidAmountByMonthAndYear(
+            @Param("month") int month,
+            @Param("year") int year
+    );
+
 }
