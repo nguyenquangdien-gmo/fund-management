@@ -17,4 +17,5 @@ public class ScheduleDTO {
     private LocalDateTime toDate;
     private LocalTime sendTime;
     private String type;
+    private String channelId;
 }

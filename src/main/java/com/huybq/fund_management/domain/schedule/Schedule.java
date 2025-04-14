@@ -27,6 +27,7 @@ public class Schedule {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false,unique = true)
     private NotificationType type;
+    private String channelId;
 
 
     public enum NotificationType {

@@ -28,11 +28,19 @@ public class PeriodService {
                 .map(periodMapper::toDTO)
                 .toList();
     }
+    public Period getPeriodByMonthAndYear(int month, int year) {
+        return periodRepository.findByMonthAndYear(month, year)
+                .orElseThrow(() -> new EntityNotFoundException("Period not found with month: " + month + " and year: " + year));
+    }
 
     public PeriodDTO getPeriodById(Long id) {
         Period period = periodRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Period not found with ID: " + id));
         return periodMapper.toDTO(period);
+    }
+
+    public void savePeriod(Period period) {
+        periodRepository.save(period);
     }
 
     public PeriodDTO createPeriod(PeriodDTO periodDTO) {

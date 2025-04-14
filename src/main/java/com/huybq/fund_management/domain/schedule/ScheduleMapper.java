@@ -10,6 +10,7 @@ public class ScheduleMapper {
                 .fromDate(schedule.getFromDate())
                 .toDate(schedule.getToDate())
                 .sendTime(schedule.getSendTime())
+                .channelId(schedule.getChannelId())
                 .type(schedule.getType())
                 .build();
     }
@@ -19,6 +20,7 @@ public class ScheduleMapper {
                 .toDate(scheduleDTO.getToDate())
                 .sendTime(scheduleDTO.getSendTime())
                 .type(Schedule.NotificationType.valueOf(scheduleDTO.getType().toUpperCase()))
+                .channelId(scheduleDTO.getChannelId())
                 .build();
     }
 }

@@ -106,7 +106,7 @@ public class ScheduleManager {
         long oneDay = Duration.ofDays(1).toMillis();
 
         lateTask = taskScheduler.scheduleAtFixedRate(
-                () -> lateService.fetchLateCheckins(schedule.getSendTime()),
+                () -> lateService.fetchLateCheckins(schedule.getSendTime(),schedule.getChannelId()),
                 Date.from(firstRun.toInstant()),
                 oneDay
         );

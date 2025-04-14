@@ -74,7 +74,8 @@ public class Notification {
                     user.getDob().getMonth() == today.getMonth() &&
                     user.getDob().getDayOfMonth() == today.getDayOfMonth()) {
                 String message = "@all\n🎂 Hôm nay là sinh nhật của " + user.getFullName() + " 🎉\n"
-                        + "Chúc bạn một ngày sinh nhật vui vẻ và thật nhiều niềm vui!";
+                        +"Chúng ta hãy cùng gửi những lời chúc sinh nhật thật nhiều ý nghĩa tới những người đồng nghiệp của mình nhé!\n"
+                        + ":emo_flower: Chúc bạn một ngày sinh nhật vui vẻ và thật nhiều niềm vui!";
                 sendNotification( message,"java");
             }
 

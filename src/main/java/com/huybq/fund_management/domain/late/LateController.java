@@ -35,8 +35,9 @@ public class LateController {
     }
 
     @PostMapping("/check-now")
-    public ResponseEntity<?> checkLateNow(@RequestBody Map<String,String> time) {
-        service.fetchLateCheckins(LocalTime.parse(time.get("time")));
+    public ResponseEntity<?> checkLateNow(@RequestBody Map<String,String> schedule) {
+        System.out.println("Received schedule: " + schedule.get("channelId"));
+        service.fetchLateCheckins(LocalTime.parse(schedule.get("time")),schedule.get("channelId"));
         return ResponseEntity.ok().build();
     }
 

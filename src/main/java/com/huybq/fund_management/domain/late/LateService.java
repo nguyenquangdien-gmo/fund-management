@@ -4,6 +4,9 @@ import com.huybq.fund_management.domain.pen_bill.PenBill;
 import com.huybq.fund_management.domain.pen_bill.PenBillRepository;
 import com.huybq.fund_management.domain.penalty.Penalty;
 import com.huybq.fund_management.domain.penalty.PenaltyRepository;
+import com.huybq.fund_management.domain.schedule.Schedule;
+import com.huybq.fund_management.domain.schedule.ScheduleRepository;
+import com.huybq.fund_management.domain.schedule.ScheduleService;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamService;
 import com.huybq.fund_management.domain.user.entity.User;
@@ -41,6 +44,7 @@ public class LateService {
     private final LateMapper mapper;
     private final Notification notification;
     private final TeamService teamService;
+    private final ScheduleRepository scheduleRepository;
     //    private static final String API_URL = "https://chat.runsystem.vn/mqi9zi75fbdyxrowjirgz4h78r/posts?since=";
     //    private static final String TOKEN = "xxxxxxxxxxxxxxxx";
 
@@ -49,8 +53,14 @@ public class LateService {
         return repository.findLatesByUser_IdAndDateRange(fromDate, toDate, userId).stream().map(mapper::toDTO).toList();
     }
 
-    public void fetchLateCheckins(LocalTime time) {
+    public void fetchLateCheckins(LocalTime time,String channelId) {
         Team team = teamService.getTeamBySlug("java");
+
+        if (channelId==null){
+            Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("late_notification".toUpperCase()))
+                    .orElseThrow(()->new ResourceNotFoundException("Schedule late_notification not found"));
+            channelId = schedule.getChannelId();
+        }
 
         LocalDateTime now = LocalDateTime.now();
         String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
@@ -59,7 +69,7 @@ public class LateService {
                 .withHour(time.getHour()).withMinute(time.getMinute()).withSecond(time.getSecond())
                 .toEpochSecond() * 1000;
 
-        String url = "https://chat.runsystem.vn/api/v4/channels/" + team.getChannelId() + "/posts?since=" + timestamp;
+        String url = "https://chat.runsystem.vn/api/v4/channels/" + channelId+ "/posts?since=" + timestamp;
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

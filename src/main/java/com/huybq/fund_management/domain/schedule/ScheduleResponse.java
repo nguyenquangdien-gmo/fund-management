@@ -19,4 +19,5 @@ public class ScheduleResponse {
     private LocalDateTime toDate;
     private LocalTime sendTime;
     private Schedule.NotificationType type;
+    private String channelId;
 }

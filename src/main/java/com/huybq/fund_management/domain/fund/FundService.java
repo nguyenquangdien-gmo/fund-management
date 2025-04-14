@@ -4,17 +4,20 @@ import com.huybq.fund_management.domain.contributions.Contribution;
 import com.huybq.fund_management.domain.contributions.ContributionRepository;
 import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.period.PeriodRepository;
+import com.huybq.fund_management.domain.period.PeriodService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class FundService {
     private final FundRepository fundRepository;
+    private final PeriodService periodService;
 
     public Fund createFund(FundDTO fundDTO) {
         // Tạo Fund mới
@@ -37,7 +40,7 @@ public class FundService {
     }
 
     public Fund updateFund(Integer id, FundDTO fundDTO) {
-        return fundRepository.findById(id)
+        Fund updatedFund = fundRepository.findById(id)
                 .map(existingFund -> {
                     existingFund.setName(fundDTO.name());
                     existingFund.setDescription(fundDTO.description());
@@ -46,6 +49,13 @@ public class FundService {
                     return fundRepository.save(existingFund);
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Fund not found with ID: " + id));
+
+        LocalDate currentDate = LocalDate.now();
+        var period = periodService.getPeriodByMonthAndYear(currentDate.getMonthValue(), currentDate.getYear());
+        period.setTotalAmount(periodService.calculateTotalAmount());
+        periodService.savePeriod(period);
+
+        return updatedFund;
     }
 
     public void deleteFund(Integer id) {

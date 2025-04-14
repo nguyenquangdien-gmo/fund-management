@@ -43,6 +43,7 @@ public class ScheduleService {
         schedule.setFromDate(request.getFromDate());
         schedule.setToDate(request.getToDate());
         schedule.setSendTime(request.getSendTime());
+        schedule.setChannelId(request.getChannelId());
 
         try {
             Schedule updated = scheduleRepository.save(schedule);
