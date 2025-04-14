@@ -27,5 +27,5 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 
     List<Reminder> findAllByStatus(Reminder.Status status);
 
-    List<Reminder> findAllByOrderByScheduledTimeAsc();
+    List<Reminder> findAllByOrderByScheduledTimeDesc();
 }

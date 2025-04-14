@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class ReminderService {
 
 
-    private final PeriodRepository periodRepository;
+//    private final PeriodRepository periodRepository;
 
     private final ReminderRepository reminderRepository;
 
@@ -34,7 +34,7 @@ public class ReminderService {
 
     public List<ReminderResponseDTO> getAllReminders() {
 //        Set<String> uniqueDescriptions = new HashSet<>();
-        return reminderRepository.findAllByOrderByScheduledTimeAsc().stream()
+        return reminderRepository.findAllByOrderByScheduledTimeDesc().stream()
                 .map(reminder -> ReminderResponseDTO.builder()
                         .id(reminder.getId())
                         .title(reminder.getTitle())

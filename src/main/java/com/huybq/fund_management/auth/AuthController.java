@@ -28,7 +28,7 @@ public class AuthController {
             @RequestBody RegisterDto request,
             Principal principal
     ) {
-        String emailLoggedInUser = principal.getName(); // hoặc SecurityContextHolder.getContext().getAuthentication().getName()
+        String emailLoggedInUser = principal.getName();//get email of logged in
 
         return ResponseEntity.ok(service.register(request, emailLoggedInUser));
     }

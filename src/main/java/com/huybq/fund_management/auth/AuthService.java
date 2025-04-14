@@ -97,7 +97,7 @@ public class AuthService {
 
         notification.sendNotificationForMember(
                 "Bạn đã được thêm vào Team Java, hãy login và " +
-                "đổi mật khẩu\nLink: " +url+"/change-password"+
+                "đổi mật khẩu\nLink: " +url+"/login"+
                 "\nAccount: "+user.getEmail()+"\nPassword: " +
                 generatedPassword,emailAdmin,userIdChat);
 
