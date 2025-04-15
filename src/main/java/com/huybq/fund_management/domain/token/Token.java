@@ -1,6 +1,6 @@
 package com.huybq.fund_management.domain.token;
 
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

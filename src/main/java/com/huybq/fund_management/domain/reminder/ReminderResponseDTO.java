@@ -1,6 +1,6 @@
 package com.huybq.fund_management.domain.reminder;
 
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

@@ -1,14 +1,12 @@
 package com.huybq.fund_management.domain.reminder;
 
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @RestController

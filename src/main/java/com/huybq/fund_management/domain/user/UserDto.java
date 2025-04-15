@@ -1,4 +1,4 @@
-package com.huybq.fund_management.domain.user.dto;
+package com.huybq.fund_management.domain.user;
 
 import lombok.Builder;
 

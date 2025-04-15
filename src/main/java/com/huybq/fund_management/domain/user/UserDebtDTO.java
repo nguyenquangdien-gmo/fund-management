@@ -1,6 +1,5 @@
-package com.huybq.fund_management.domain.user.dto;
+package com.huybq.fund_management.domain.user;
 
-import com.huybq.fund_management.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

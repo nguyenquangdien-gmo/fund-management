@@ -1,11 +1,10 @@
 package com.huybq.fund_management.domain.team;
 
-import com.huybq.fund_management.domain.user.entity.User;
-import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

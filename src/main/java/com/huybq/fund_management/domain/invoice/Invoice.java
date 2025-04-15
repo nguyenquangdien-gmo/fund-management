@@ -2,7 +2,7 @@ package com.huybq.fund_management.domain.invoice;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.huybq.fund_management.domain.fund.FundType;
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,7 +1,7 @@
 package com.huybq.fund_management.domain.reminder.reminder_user;
 
 import com.huybq.fund_management.domain.reminder.Reminder;
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

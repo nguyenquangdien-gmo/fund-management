@@ -1,6 +1,6 @@
 package com.huybq.fund_management.domain.team;
 
-import com.huybq.fund_management.domain.user.service.UserService;
+import com.huybq.fund_management.domain.user.UserService;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

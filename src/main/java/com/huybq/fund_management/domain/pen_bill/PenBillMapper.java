@@ -1,7 +1,7 @@
 package com.huybq.fund_management.domain.pen_bill;
 
 import com.huybq.fund_management.domain.penalty.PenaltyMapper;
-import com.huybq.fund_management.domain.user.mapper.UserMapper;
+import com.huybq.fund_management.domain.user.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

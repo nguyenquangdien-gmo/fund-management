@@ -1,7 +1,7 @@
 package com.huybq.fund_management.domain.trans;
 
 import com.huybq.fund_management.domain.period.Period;
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

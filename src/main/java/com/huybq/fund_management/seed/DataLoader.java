@@ -13,9 +13,9 @@ import com.huybq.fund_management.domain.schedule.Schedule;
 import com.huybq.fund_management.domain.schedule.ScheduleRepository;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamRepository;
-import com.huybq.fund_management.domain.user.entity.Status;
-import com.huybq.fund_management.domain.user.entity.User;
-import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.Status;
+import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 
 @Configuration
 

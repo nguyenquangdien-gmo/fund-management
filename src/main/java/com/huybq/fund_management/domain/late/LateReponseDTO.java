@@ -1,8 +1,6 @@
 package com.huybq.fund_management.domain.late;
 
-import com.huybq.fund_management.domain.user.entity.User;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.huybq.fund_management.domain.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

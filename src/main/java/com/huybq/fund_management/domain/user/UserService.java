@@ -1,4 +1,4 @@
-package com.huybq.fund_management.domain.user.service;
+package com.huybq.fund_management.domain.user;
 
 import com.huybq.fund_management.domain.reminder.Reminder;
 import com.huybq.fund_management.domain.reminder.ReminderRepository;
@@ -11,14 +11,6 @@ import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
 import com.huybq.fund_management.domain.token.TokenRepository;
 import com.huybq.fund_management.domain.token.TokenType;
-import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
-import com.huybq.fund_management.domain.user.dto.UserDto;
-import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
-import com.huybq.fund_management.domain.user.entity.Status;
-import com.huybq.fund_management.domain.user.entity.User;
-import com.huybq.fund_management.domain.user.mapper.UserMapper;
-import com.huybq.fund_management.domain.user.repository.UserRepository;
-import com.huybq.fund_management.domain.user.response.AuthenticationResponse;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;

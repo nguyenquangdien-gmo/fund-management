@@ -1,9 +1,10 @@
-    package com.huybq.fund_management.domain.user.entity;
+    package com.huybq.fund_management.domain.user;
 
     import com.fasterxml.jackson.annotation.JsonIgnore;
     import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUser;
     import com.huybq.fund_management.domain.role.Role;
     import com.huybq.fund_management.domain.team.Team;
+    import com.huybq.fund_management.domain.work.Work;
     import jakarta.persistence.*;
     import lombok.AllArgsConstructor;
     import lombok.Builder;
@@ -13,6 +14,7 @@
     import org.springframework.security.core.GrantedAuthority;
     import org.springframework.security.core.authority.SimpleGrantedAuthority;
     import org.springframework.security.core.userdetails.UserDetails;
+
     import java.time.LocalDate;
     import java.time.LocalDateTime;
     import java.util.ArrayList;
@@ -61,6 +63,9 @@
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<ReminderUser> reminderUsers = new ArrayList<>();
 
+        @JsonIgnore
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<Work> work = new ArrayList<>();
 
         private String userIdChat;
         private boolean isDelete = false;

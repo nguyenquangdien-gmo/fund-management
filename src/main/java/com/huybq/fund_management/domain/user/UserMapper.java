@@ -1,7 +1,5 @@
-package com.huybq.fund_management.domain.user.mapper;
+package com.huybq.fund_management.domain.user;
 
-import com.huybq.fund_management.domain.user.dto.UserDto;
-import com.huybq.fund_management.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 
 @Service

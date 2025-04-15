@@ -1,6 +1,6 @@
 package com.huybq.fund_management.config;
 
-import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.UserRepository;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

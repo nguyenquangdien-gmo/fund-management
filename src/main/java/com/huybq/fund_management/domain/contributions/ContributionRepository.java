@@ -1,7 +1,6 @@
 package com.huybq.fund_management.domain.contributions;
 
-import com.huybq.fund_management.domain.period.Period;
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ContributionRepository extends JpaRepository<Contribution, Long> {

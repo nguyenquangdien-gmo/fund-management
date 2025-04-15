@@ -1,7 +1,6 @@
 package com.huybq.fund_management.domain.contributions;
 
-import com.huybq.fund_management.domain.user.dto.UserDto;
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.UserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

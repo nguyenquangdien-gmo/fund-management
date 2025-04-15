@@ -1,9 +1,8 @@
 package com.huybq.fund_management.domain.contributions;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.period.Period;
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

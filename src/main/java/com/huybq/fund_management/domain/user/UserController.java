@@ -1,11 +1,6 @@
-package com.huybq.fund_management.domain.user.controller;
+package com.huybq.fund_management.domain.user;
 
 import com.huybq.fund_management.domain.reminder.Reminder;
-import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
-import com.huybq.fund_management.domain.user.dto.UserDto;
-import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
-import com.huybq.fund_management.domain.user.entity.User;
-import com.huybq.fund_management.domain.user.service.UserService;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users")

@@ -1,12 +1,11 @@
 package com.huybq.fund_management.domain.invoice;
 
-import com.huybq.fund_management.domain.balance.Balance;
 import com.huybq.fund_management.domain.balance.BalanceService;
 import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
-import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

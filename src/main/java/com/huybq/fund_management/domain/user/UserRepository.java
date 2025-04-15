@@ -1,11 +1,5 @@
-package com.huybq.fund_management.domain.user.repository;
+package com.huybq.fund_management.domain.user;
 
-import com.huybq.fund_management.domain.reminder.Reminder;
-import com.huybq.fund_management.domain.team.Team;
-import com.huybq.fund_management.domain.user.dto.UserDebtDTO;
-import com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO;
-import com.huybq.fund_management.domain.user.entity.User;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

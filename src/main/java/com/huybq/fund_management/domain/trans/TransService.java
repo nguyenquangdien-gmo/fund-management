@@ -2,8 +2,8 @@ package com.huybq.fund_management.domain.trans;
 
 import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.period.PeriodRepository;
-import com.huybq.fund_management.domain.user.dto.UserDto;
-import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.UserDto;
+import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

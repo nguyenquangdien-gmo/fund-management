@@ -2,19 +2,16 @@ package com.huybq.fund_management.domain.event;
 
 import com.huybq.fund_management.domain.schedule.Schedule;
 import com.huybq.fund_management.domain.schedule.ScheduleRepository;
-import com.huybq.fund_management.domain.schedule.ScheduleService;
-import com.huybq.fund_management.domain.user.entity.User;
-import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import com.huybq.fund_management.utils.chatops.Notification;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;

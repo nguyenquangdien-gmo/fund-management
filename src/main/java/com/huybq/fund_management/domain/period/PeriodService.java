@@ -2,7 +2,7 @@ package com.huybq.fund_management.domain.period;
 
 import com.huybq.fund_management.domain.fund.Fund;
 import com.huybq.fund_management.domain.fund.FundRepository;
-import com.huybq.fund_management.domain.user.repository.UserRepository;
+import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;

@@ -1,6 +1,5 @@
-package com.huybq.fund_management.domain.user.response;
+package com.huybq.fund_management.domain.user;
 
-import com.huybq.fund_management.domain.user.dto.UserDto;
 import lombok.Builder;
 
 @Builder
