@@ -66,11 +66,12 @@ public class InvoiceController {
         return ResponseEntity.ok(service.getMonthlyInvoiceStats(year, type));
     }
 
-    @GetMapping("/yearly-stats")
-    public ResponseEntity<List<Map<String, Object>>> getYearlyInvoiceStats(
+    @GetMapping("{year}/stats")
+    public ResponseEntity<?> getYearlyInvoiceStats(
+            @PathVariable int year,
             @RequestParam String type
     ) {
-        return ResponseEntity.ok(service.getYearlyInvoiceStats(type));
+        return ResponseEntity.ok(service.getYearInvoiceStats(year,type));
     }
 
     @PostMapping

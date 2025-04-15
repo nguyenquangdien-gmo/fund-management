@@ -36,12 +36,13 @@ public interface PenBillRepository extends JpaRepository<PenBill, Long> {
     List<Object[]> getMonthlyPenaltyStatistics(@Param("year") int year);
 
     // Thống kê tổng tiền phạt theo từng năm
-    @Query("SELECT FUNCTION('YEAR', p.dueDate), COALESCE(SUM(p.totalAmount), 0) " +
+    @Query("SELECT new com.huybq.fund_management.domain.pen_bill.BillStatisticsDTO(" +
+            "YEAR( p.dueDate), COALESCE(SUM(p.totalAmount), 0) )" +
             "FROM PenBill p " +
-            "WHERE p.paymentStatus = 'PAID' " +
-            "GROUP BY FUNCTION('YEAR', p.dueDate) " +
-            "ORDER BY FUNCTION('YEAR', p.dueDate) DESC")
-    List<Object[]> getYearlyPenaltyStatistics();
+            "WHERE p.paymentStatus = 'PAID' AND YEAR( p.dueDate) = :year " +
+            "GROUP BY YEAR( p.dueDate) ")
+    BillStatisticsDTO getPenaltyStatisticsByYear(@Param("year") int year);
+
 
     // Tổng số tiền phạt đã thanh toán trong một năm
     @Query("SELECT COALESCE(SUM(p.totalAmount), 0) " +

@@ -27,10 +27,6 @@ public class ScheduleManager {
 
     private ScheduledFuture<?> eventTask;
     private ScheduledFuture<?> lateTask;
-    private ScheduledFuture<?> lateSummaryTask;
-    private ScheduledFuture<?> reminderTask;
-
-
 
 //    @PostConstruct
 //    public void init() {

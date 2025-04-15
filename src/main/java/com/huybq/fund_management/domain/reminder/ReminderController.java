@@ -3,10 +3,12 @@ package com.huybq.fund_management.domain.reminder;
 import com.huybq.fund_management.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -20,13 +22,25 @@ public class ReminderController {
         return ResponseEntity.ok(reminderService.getAllReminders());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ReminderResponseDTO> getReminderById(@PathVariable Long id) {
+        return ResponseEntity.ok(reminderService.getReminderById(id));
+    }
+
+    @GetMapping("/{reminderId}/user/completed")
+    public ResponseEntity<Boolean> hasUserCompletedSurvey(@PathVariable Long reminderId,
+                                                          @AuthenticationPrincipal User user) {
+        boolean completed = reminderService.hasUserCompletedSurvey(reminderId, user.getId());
+        return ResponseEntity.ok(completed);
+    }
+
     @GetMapping("/{reminderId}/users")
     public ResponseEntity<Set<User>> getUsersByReminderId(@PathVariable Long reminderId) {
         Set<User> users = reminderService.findUsersByReminderId(reminderId);
         return ResponseEntity.ok(users);
     }
 
-//    @GetMapping("/user/{userId}")
+    //    @GetMapping("/user/{userId}")
 //    public ResponseEntity<List<ReminderDTO>> getRemindersByUserId(@PathVariable Long userId) {
 //        return ResponseEntity.ok(reminderService.getRemindersByUser(userId));
 //    }
@@ -41,6 +55,22 @@ public class ReminderController {
         reminderService.updateReminder(id, reminderDTO);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("{reminderId}/survey/completed")
+    public ResponseEntity<?> completeSurvey(@PathVariable Long reminderId, @AuthenticationPrincipal User user) {
+        reminderService.completeSurvey(reminderId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{reminderId}/survey/status")
+    public ResponseEntity<List<SurveyStatusDTO>> getSurveyStatus(@PathVariable Long reminderId) {
+        return ResponseEntity.ok(reminderService.getSurveyResults(reminderId));
+    }
+//
+//    @GetMapping("/survey/users")
+//    public ResponseEntity<?> getUsersNotYetContributed(@RequestParam Long reminderId) {
+//        return ResponseEntity.ok(reminderService.getSurveyCompletionStats(reminderId));
+//    }
 
 //    @PostMapping("/create/monthly")
 //    public ResponseEntity<?> createMonthlyReminders(@RequestParam int month, @RequestParam int year) {

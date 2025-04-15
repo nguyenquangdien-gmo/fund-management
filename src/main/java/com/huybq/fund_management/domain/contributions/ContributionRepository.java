@@ -33,12 +33,12 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
             "ORDER BY c.period.month ASC")
     List<Object[]> getMonthlyContributionStatistics(@Param("year") int year);
 
-    @Query("SELECT FUNCTION('YEAR', c.updatedAt), COALESCE(SUM(c.totalAmount), 0) " +
-            "FROM Contribution c " +
-            "WHERE c.paymentStatus = 'PAID' " +
-            "GROUP BY FUNCTION('YEAR', c.updatedAt) " +
-            "ORDER BY FUNCTION('YEAR', c.updatedAt) DESC")
-    List<Object[]> getYearlyContributionStatistics();
+    @Query("SELECT new com.huybq.fund_management.domain.contributions.ContributionStatsDTO(" +
+       "YEAR(c.updatedAt), COALESCE(SUM(c.totalAmount), 0)) " +
+       "FROM Contribution c " +
+       "WHERE c.paymentStatus = 'PAID' AND YEAR(c.updatedAt) = :year " +
+       "GROUP BY YEAR(c.updatedAt) ")
+ContributionStatsDTO getYearContributionStatistics(@Param("year") int year);
 
     @Query("SELECT c.user, c.totalAmount,c.createdAt " +
             "FROM Contribution c WHERE c.isLate = true")

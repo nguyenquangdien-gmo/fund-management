@@ -177,14 +177,8 @@ public class PenBillService {
     }
 
     // 3. Thống kê tổng tiền phạt theo từng năm
-    public List<Map<String, Object>> getYearlyPenaltyStats() {
-        List<Object[]> results = penBillRepository.getYearlyPenaltyStatistics();
-        return results.stream()
-                .map(result -> Map.of(
-                        "year", result[0],
-                        "totalAmount", result[1]
-                ))
-                .collect(Collectors.toList());
+    public BillStatisticsDTO getPenaltyStatsByYear(int year) {
+        return penBillRepository.getPenaltyStatisticsByYear(year);
     }
 
 

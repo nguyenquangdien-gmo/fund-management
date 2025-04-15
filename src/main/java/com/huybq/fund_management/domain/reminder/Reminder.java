@@ -1,15 +1,14 @@
 package com.huybq.fund_management.domain.reminder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.huybq.fund_management.domain.user.entity.User;
+import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUser;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,13 +22,8 @@ public class Reminder {
     private Long id;
 
     @JsonIgnore
-    @ManyToMany
-    @JoinTable(
-            name = "reminder_user",
-            joinColumns = @JoinColumn(name = "reminder_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> users = new HashSet<>();
+    @OneToMany(mappedBy = "reminder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReminderUser> reminderUsers = new ArrayList<>();
 
     private String title;
     private String description;
@@ -50,12 +44,12 @@ public class Reminder {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+
     public enum ReminderType {
-        CONTRIBUTION, PENALTY, OTHER
+        CONTRIBUTION, PENALTY, OTHER, SURVEY
     }
 
     public enum Status {
-        UNSENT,SENT, READ
+        UNSENT,SENT, READ,FINISHED
     }
 }
-

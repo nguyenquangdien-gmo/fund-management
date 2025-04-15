@@ -81,20 +81,8 @@ public class InvoiceService {
         return response;
     }
 
-    public List<Map<String, Object>> getYearlyInvoiceStats(String type) {
-        List<Object[]> results = repository.getYearlyInvoiceStatistics(InvoiceType.valueOf(type.toUpperCase()));
-        List<Map<String, Object>> stats = new ArrayList<>();
-
-        for (Object[] row : results) {
-            if (row.length >= 2) {
-                Map<String, Object> stat = new HashMap<>();
-                stat.put("year", row[0]); // Năm (int)
-                stat.put("totalAmount", row[1]); // Tổng tiền (BigDecimal)
-                stats.add(stat);
-            }
-        }
-
-        return stats;
+    public InvoiceStatsDTO getYearInvoiceStats(int year,String type) {
+        return repository.getYearInvoiceStatistics(year, InvoiceType.valueOf(type.toUpperCase()));
     }
 
     @Transactional

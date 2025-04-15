@@ -1,9 +1,6 @@
 package com.huybq.fund_management.domain.reminder;
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -22,10 +19,15 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 //    // Lấy tất cả reminder active (không bị xóa) của một user
 //    @Query("SELECT r FROM Reminder r JOIN r.users u WHERE u.id = :userId AND u.isDelete = false")
 //    List<Reminder> findActiveRemindersByUserId(@Param("userId") Long userId);
-    @EntityGraph(attributePaths = "users")
+//    @EntityGraph(attributePaths = "users")
     List<Reminder> findByScheduledTimeBeforeAndStatus(LocalDateTime now, Reminder.Status status);
 
-    List<Reminder> findAllByStatus(Reminder.Status status);
+//    List<Reminder> findAllByStatus(Reminder.Status status);
+
+//    List<Reminder> findAllByStatusAndReminderType(Reminder.Status status, Reminder.ReminderType reminderType);
 
     List<Reminder> findAllByOrderByScheduledTimeDesc();
+
+    List<Reminder> findAllByReminderTypeOrderByScheduledTimeDesc(Reminder.ReminderType reminderType);
+
 }

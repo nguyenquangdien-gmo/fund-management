@@ -1,7 +1,7 @@
     package com.huybq.fund_management.domain.user.entity;
 
     import com.fasterxml.jackson.annotation.JsonIgnore;
-    import com.huybq.fund_management.domain.reminder.Reminder;
+    import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUser;
     import com.huybq.fund_management.domain.role.Role;
     import com.huybq.fund_management.domain.team.Team;
     import jakarta.persistence.*;
@@ -58,8 +58,9 @@
         private Team team;
 
         @JsonIgnore
-        @ManyToMany(mappedBy = "users")
-        private List<Reminder> reminders= new ArrayList<>();
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<ReminderUser> reminderUsers = new ArrayList<>();
+
 
         private String userIdChat;
         private boolean isDelete = false;

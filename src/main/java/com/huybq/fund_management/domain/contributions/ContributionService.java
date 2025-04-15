@@ -105,17 +105,8 @@ public class ContributionService {
     }
 
 
-    public List<Map<String, Object>> getYearlyContributionStats() {
-        List<Object[]> results = contributionRepository.getYearlyContributionStatistics();
-        List<Map<String, Object>> stats = new ArrayList<>();
-
-        for (Object[] row : results) {
-            Map<String, Object> stat = new HashMap<>();
-            stat.put("year", row[0]);
-            stat.put("totalAmount", row[1]);
-            stats.add(stat);
-        }
-        return stats;
+    public ContributionStatsDTO getYearContributionStats(int year) {
+        return contributionRepository.getYearContributionStatistics(year);
     }
 
     public List<UserDto> getUsersOwedContributed(int month, int year) {

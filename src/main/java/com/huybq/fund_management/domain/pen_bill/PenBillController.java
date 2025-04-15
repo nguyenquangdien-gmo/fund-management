@@ -77,9 +77,9 @@ public class PenBillController {
     }
 
     // Thống kê tổng tiền phạt theo từng năm
-    @GetMapping("/yearly-stats")
-    public ResponseEntity<List<Map<String, Object>>> getYearlyPenaltyStats() {
-        return ResponseEntity.ok(penBillService.getYearlyPenaltyStats());
+    @GetMapping("{year}/stats")
+    public ResponseEntity<BillStatisticsDTO> getYearlyPenaltyStats(@PathVariable int year) {
+        return ResponseEntity.ok(penBillService.getPenaltyStatsByYear(year));
     }
 
 }

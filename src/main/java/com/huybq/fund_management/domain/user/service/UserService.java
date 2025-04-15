@@ -2,6 +2,7 @@ package com.huybq.fund_management.domain.user.service;
 
 import com.huybq.fund_management.domain.reminder.Reminder;
 import com.huybq.fund_management.domain.reminder.ReminderRepository;
+import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUser;
 import com.huybq.fund_management.domain.role.Role;
 import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.Team;
@@ -57,7 +58,8 @@ public class UserService {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        return user.getReminders().stream()
+        return user.getReminderUsers().stream()
+                .map(ReminderUser::getReminder)
                 .sorted(Comparator.comparing(Reminder::getCreatedAt).reversed())
                 .limit(10)
                 .collect(Collectors.toList());

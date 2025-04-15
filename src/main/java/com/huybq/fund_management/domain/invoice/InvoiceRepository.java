@@ -33,14 +33,14 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             @Param("type") InvoiceType type
     );
 
-    @Query("SELECT FUNCTION('YEAR', i.createdAt), COALESCE(SUM(i.amount), 0) " +
+    @Query("SELECT new com.huybq.fund_management.domain.invoice.InvoiceStatsDTO(" +
+            "YEAR(i.createdAt), COALESCE(SUM(i.amount), 0)) " +
             "FROM Invoice i " +
             "WHERE i.status = com.huybq.fund_management.domain.invoice.InvoiceStatus.APPROVED " +
             "AND (:type IS NULL OR i.invoiceType = :type) " +
-            "GROUP BY FUNCTION('YEAR', i.createdAt) " +
-            "ORDER BY FUNCTION('YEAR', i.createdAt) DESC")
-    List<Object[]> getYearlyInvoiceStatistics(@Param("type") InvoiceType type);
-
+            "AND YEAR(i.createdAt) = :year " +
+            "GROUP BY YEAR(i.createdAt)")
+    InvoiceStatsDTO getYearInvoiceStatistics(@Param("year") int year, @Param("type") InvoiceType type);
 
     List<Invoice> findAllByInvoiceTypeAndStatus(InvoiceType invoiceType, InvoiceStatus status);
 

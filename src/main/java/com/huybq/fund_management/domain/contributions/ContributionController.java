@@ -88,9 +88,9 @@ public class ContributionController {
         return ResponseEntity.ok(contributionService.getMonthlyContributionStats(year));
     }
 
-    @GetMapping("/yearly-stats")
-    public ResponseEntity<List<Map<String, Object>>> getYearlyContributionStats() {
-        return ResponseEntity.ok(contributionService.getYearlyContributionStats());
+    @GetMapping("{year}/stats")
+    public ResponseEntity<?> getYearlyContributionStats(@PathVariable int year) {
+        return ResponseEntity.ok(contributionService.getYearContributionStats(year));
     }
 
     //approve when having request creation or update
