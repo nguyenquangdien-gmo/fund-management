@@ -14,19 +14,10 @@ public class PenBillMapper {
         return PenBillDTO.builder()
                 .id(penBill.getId())
                 .userId(penBill.getUser().getId())
-                .penaltyId(penBill.getPenalty().getId())
+                .penaltySlug(penBill.getPenalty().getSlug())
                 .dueDate(penBill.getDueDate())
                 .description(penBill.getDescription())
                 .amount(penBill.getTotalAmount())
-                .paymentStatus(String.valueOf(penBill.getPaymentStatus()))
-                .build();
-    }
-    public PenBill toEntity(PenBillDTO penBillDTO) {
-        return PenBill.builder()
-                .dueDate(penBillDTO.getDueDate())
-                .totalAmount(penBillDTO.getAmount())
-                .description(penBillDTO.getDescription())
-                .paymentStatus(PenBill.Status.valueOf(penBillDTO.getPaymentStatus()))
                 .build();
     }
 
