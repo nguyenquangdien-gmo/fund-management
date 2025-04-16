@@ -25,6 +25,7 @@ public class EventService {
     private final ScheduleRepository scheduleRepository;
     private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private final Notification notification;
+    private final EventMapper mapper;
 
     public Event createEvent(EventDTO eventDTO) {
         Event event = new Event();
@@ -135,17 +136,20 @@ public class EventService {
     }
 
 
-    public List<Event> getAllEvents() {
-        return eventRepository.findAllByEventTimeGreaterThanEqual(LocalDateTime.now());
+    public List<EventResponeseDTO> getAllEvents() {
+        return eventRepository.findAllByEventTimeGreaterThanEqual(LocalDateTime.now()).stream()
+                .map(mapper::toResponseDTO).toList();
     }
 
-    public Event getEventById(Long id) {
-        return eventRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+    public EventResponeseDTO getEventById(Long id) {
+        return mapper.toResponseDTO(eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found")));
+
     }
 
-    public Event updateEvent(Long id, EventDTO eventDTO) {
-        Event existingEvent = getEventById(id);
+    public EventResponeseDTO updateEvent(Long id, EventDTO eventDTO) {
+        Event existingEvent = eventRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("Event not found with id: " + id));
 
         existingEvent.setName(eventDTO.getName());
         existingEvent.setEventTime(eventDTO.getEventTime());
@@ -155,20 +159,23 @@ public class EventService {
         List<User> hosts = userRepository.findAllById(eventDTO.getHostIds());
         existingEvent.setHosts(hosts);
 
-        return eventRepository.save(existingEvent);
+        return mapper.toResponseDTO(eventRepository.save(existingEvent));
     }
 
     public void deleteEvent(Long id) {
-        Event event = getEventById(id);
-        eventRepository.delete(event);
+        Event existingEvent = eventRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("Event not found with id: " + id));
+        eventRepository.delete(existingEvent);
     }
 
     // Additional methods for specific queries
-    public List<Event> searchEventsByName(String name) {
-        return eventRepository.findByNameContaining(name);
+    public List<EventResponeseDTO> searchEventsByName(String name) {
+        return eventRepository.findByNameContaining(name).stream()
+                .map(mapper::toResponseDTO).toList();
     }
 
-    public List<Event> getEventsByDateRange(LocalDateTime start, LocalDateTime end) {
-        return eventRepository.findByEventTimeBetween(start, end);
+    public List<EventResponeseDTO> getEventsByDateRange(LocalDateTime start, LocalDateTime end) {
+        return eventRepository.findByEventTimeBetween(start, end).stream()
+                .map(mapper::toResponseDTO).toList();
     }
 }

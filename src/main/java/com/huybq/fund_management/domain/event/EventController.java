@@ -22,14 +22,14 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Event>> getAllEvents() {
-        List<Event> events = eventService.getAllEvents();
+    public ResponseEntity<List<EventResponeseDTO>> getAllEvents() {
+        List<EventResponeseDTO> events = eventService.getAllEvents();
         return ResponseEntity.ok(events);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable Long id) {
-        Event event = eventService.getEventById(id);
+    public ResponseEntity<EventResponeseDTO> getEventById(@PathVariable Long id) {
+        EventResponeseDTO event = eventService.getEventById(id);
         return ResponseEntity.ok(event);
     }
 
@@ -40,11 +40,11 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(
+    public ResponseEntity<EventResponeseDTO> updateEvent(
             @PathVariable Long id,
             @RequestBody EventDTO eventDTO
     ) {
-        Event updatedEvent = eventService.updateEvent(id, eventDTO);
+        EventResponeseDTO updatedEvent = eventService.updateEvent(id, eventDTO);
         return ResponseEntity.ok(updatedEvent);
     }
 
@@ -56,17 +56,17 @@ public class EventController {
 
     // Additional search endpoints
     @GetMapping("/search")
-    public ResponseEntity<List<Event>> searchEvents(@RequestParam String name) {
-        List<Event> events = eventService.searchEventsByName(name);
+    public ResponseEntity<List<EventResponeseDTO>> searchEvents(@RequestParam String name) {
+        List<EventResponeseDTO> events = eventService.searchEventsByName(name);
         return ResponseEntity.ok(events);
     }
 
     @GetMapping("/by-date")
-    public ResponseEntity<List<Event>> getEventsByDateRange(
+    public ResponseEntity<List<EventResponeseDTO>> getEventsByDateRange(
             @RequestParam LocalDateTime start,
             @RequestParam LocalDateTime end
     ) {
-        List<Event> events = eventService.getEventsByDateRange(start, end);
+        List<EventResponeseDTO> events = eventService.getEventsByDateRange(start, end);
         return ResponseEntity.ok(events);
     }
 }
