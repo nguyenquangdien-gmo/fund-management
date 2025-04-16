@@ -25,10 +25,11 @@ public class PenaltyService {
                 .orElseThrow(() -> new EntityNotFoundException("Penalty not found with ID: " + id));
         return mapper.toDTO(penalty);
     }
-    public PenaltyDTO getPenaltyBySlug(String slug) {
-        Penalty penalty = repository.findBySlug(slug)
+
+    public Penalty getPenaltyBySlug(String slug) {
+        return repository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Penalty not found with name: " + slug));
-        return mapper.toDTO(penalty);
+
     }
 
     public PenaltyDTO createPenalty(@Valid PenaltyDTO penaltyDTO) {

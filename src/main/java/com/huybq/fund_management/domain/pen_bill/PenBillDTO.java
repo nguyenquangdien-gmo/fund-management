@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -17,17 +18,16 @@ public class PenBillDTO {
     @NotNull(message = "User ID is required")
     private Long userId;
 
-    @NotNull(message = "Penalty ID is required")
-    private Long penaltyId;
+    @NotNull(message = "Penalty slug is required")
+    private String penaltySlug;
 
     private LocalDate dueDate;
 
     private BigDecimal amount;
 
-    @NotBlank(message = "Description cannot be empty")
     @Size(max = 255, message = "Description cannot exceed 255 characters")
     private String description;
 
-    private PenBill.Status paymentStatus;
+    List<Long> userIds;
 }
 

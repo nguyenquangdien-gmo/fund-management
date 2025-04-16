@@ -68,9 +68,10 @@ public class WorkController {
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
 
-        WorkResponseDTO response = service.approveWork(id, user.getId());
+        WorkResponseDTO response = service.rejectWork(id, user.getId());
         return ResponseEntity.ok(response);
     }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

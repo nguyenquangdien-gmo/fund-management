@@ -85,8 +85,8 @@ public class InvoiceController {
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<InvoiceResponseDTO> rejectInvoice(@PathVariable Long id) {
-        return ResponseEntity.ok(service.reject(id));
+    public ResponseEntity<InvoiceResponseDTO> rejectInvoice(@PathVariable Long id,@RequestBody Map<String,String> request) {
+        return ResponseEntity.ok(service.reject(id,request.get("reason")));
     }
 
     @PutMapping("/{id}/update")
@@ -99,6 +99,4 @@ public class InvoiceController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-
 }

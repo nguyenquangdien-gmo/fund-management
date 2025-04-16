@@ -28,14 +28,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
+    @ExceptionHandler({BusinessException.class, ResourceNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex, WebRequest request) {
         return buildErrorResponse(ex, HttpStatus.UNPROCESSABLE_ENTITY, request);
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
     }
 
     @ExceptionHandler(DueAlreadyPaidException.class)

@@ -18,9 +18,18 @@ public class PenBillMapper {
                 .dueDate(penBill.getDueDate())
                 .description(penBill.getDescription())
                 .amount(penBill.getTotalAmount())
-                .paymentStatus(penBill.getPaymentStatus())
+                .paymentStatus(String.valueOf(penBill.getPaymentStatus()))
                 .build();
     }
+    public PenBill toEntity(PenBillDTO penBillDTO) {
+        return PenBill.builder()
+                .dueDate(penBillDTO.getDueDate())
+                .totalAmount(penBillDTO.getAmount())
+                .description(penBillDTO.getDescription())
+                .paymentStatus(PenBill.Status.valueOf(penBillDTO.getPaymentStatus()))
+                .build();
+    }
+
     public PenBillResponse toPenBillResponse(PenBill penBill) {
         return PenBillResponse.builder()
                 .id(penBill.getId())

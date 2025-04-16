@@ -2,6 +2,7 @@ package com.huybq.fund_management.domain.pen_bill;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +41,8 @@ public class PenBillController {
 
     @PostMapping
     public ResponseEntity<Void> createPenBill(@Valid @RequestBody PenBillDTO penBillDTO) {
-        penBillService.createPenBill(penBillDTO);
-        return ResponseEntity.noContent().build();
+        penBillService.createBill(penBillDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
@@ -54,6 +55,7 @@ public class PenBillController {
         penBillService.deletePenBill(id);
         return ResponseEntity.noContent().build();
     }
+
 
     @PostMapping("/{id}/approve")
     public ResponseEntity<Void> approvePenBill(@PathVariable Long id) {

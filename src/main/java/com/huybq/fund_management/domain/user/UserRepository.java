@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "AND c.paymentStatus = 'PAID')")
     List<User> findUsersOwedContributed(@Param("month") int month, @Param("year") int year);
 
-    @Query("SELECT new com.huybq.fund_management.domain.user.dto.UserDebtDTO(" +
+    @Query("SELECT new com.huybq.fund_management.domain.user.UserDebtDTO(" +
             "u,CAST(p.totalAmount AS BigDecimal)) " +
             "FROM User u " +
             "LEFT JOIN Contribution c ON c.user = u AND c.period.month = :month AND c.period.year = :year " +
@@ -27,7 +27,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE c.id IS NULL")
     List<UserDebtDTO> findUsersWithNoContribution(@Param("month") int month, @Param("year") int year);
 
-    @Query("SELECT new com.huybq.fund_management.domain.user.dto.UserLatePaymentDTO(" +
+    @Query("SELECT new com.huybq.fund_management.domain.user.UserLatePaymentDTO(" +
             "u, c.totalAmount, c.createdAt) " +
             "FROM User u " +
             "JOIN Contribution c ON c.user = u " +

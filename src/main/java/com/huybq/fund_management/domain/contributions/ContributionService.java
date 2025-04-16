@@ -257,12 +257,15 @@ public class ContributionService {
 //    }
 
     @Transactional
-    public void rejectContribution(Long contributionId) {
+    public void rejectContribution(Long contributionId, String reason) {
         var contribution = contributionRepository.findById(contributionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
 
         if (contribution.getPaymentStatus() == Contribution.PaymentStatus.PENDING) {
             contribution.setPaymentStatus(Contribution.PaymentStatus.CANCELED);
+            if (reason != null) {
+                contribution.setNote(contribution.getNote()+": Bị hủy vì "+reason);
+            }
             contributionRepository.save(contribution);
             return;
         }

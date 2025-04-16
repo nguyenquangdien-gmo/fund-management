@@ -38,7 +38,7 @@ public class PenBill {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status paymentStatus = Status.PENDING;
+    private Status paymentStatus = Status.UNPAID;
 
     @Column(length = 255)
     private String description;

@@ -152,7 +152,7 @@ public class InvoiceService {
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found with ID: " + idInvoice));
     }
 
-    public InvoiceResponseDTO reject(Long idInvoice) {
+    public InvoiceResponseDTO reject(Long idInvoice,String reason) {
         return repository.findById(idInvoice)
                 .map(invoice -> {
                     if (invoice.getStatus() == InvoiceStatus.APPROVED) {
@@ -168,6 +168,9 @@ public class InvoiceService {
                             .build();
 
                     transService.createTransaction(transDTO);
+                    if (reason != null) {
+                        invoice.setDescription(invoice.getDescription()+"Bị hủy vì: "+reason);
+                    }
                     invoice.setStatus(InvoiceStatus.CANCELLED);
                     return mapper.toDTO(repository.save(invoice));
                 })
