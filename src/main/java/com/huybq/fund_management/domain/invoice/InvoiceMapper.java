@@ -12,7 +12,6 @@ public class InvoiceMapper {
     public InvoiceResponseDTO toDTO(Invoice invoice) {
         return InvoiceResponseDTO.builder()
                 .id(invoice.getId())
-                .name(invoice.getName())
                 .invoiceType(String.valueOf(invoice.getInvoiceType()))
                 .fundType(String.valueOf(invoice.getFundType()))
                 .description(invoice.getDescription())
@@ -24,7 +23,6 @@ public class InvoiceMapper {
     }
     public Invoice toEntity(InvoiceDTO dto) {
         return Invoice.builder()
-                .name(dto.name())
 //                .fundType(FundType.valueOf(dto.fundType()))
                 .invoiceType(InvoiceType.valueOf(dto.invoiceType()))
                 .description(dto.description())

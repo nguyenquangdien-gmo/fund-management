@@ -28,6 +28,8 @@ public class PenBillDTO {
     @Size(max = 255, message = "Description cannot exceed 255 characters")
     private String description;
 
+    private String paymentStatus;
+
     List<Long> userIds;
 }
 

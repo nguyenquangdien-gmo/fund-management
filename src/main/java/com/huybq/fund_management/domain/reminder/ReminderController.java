@@ -1,8 +1,13 @@
 package com.huybq.fund_management.domain.reminder;
 
+import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUser;
+import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUserResponseDTO;
+import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUserService;
 import com.huybq.fund_management.domain.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,10 +19,30 @@ import java.util.Set;
 @RequestMapping("/api/${server.version}/reminders")
 public class ReminderController {
     private final ReminderService reminderService;
+    private final ReminderUserService reminderUserService;
 
     @GetMapping()
     public ResponseEntity<List<ReminderResponseDTO>> getAllReminders() {
         return ResponseEntity.ok(reminderService.getAllReminders());
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/user")
+    public ResponseEntity<List<ReminderUserResponseDTO>> getRemindersWithUserNotRead(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(reminderUserService.getAllReminderWithUserId(user.getId()));
+    }
+
+    @PutMapping("/user/{reminderId}/read")
+    public ResponseEntity<?> readReminder(@PathVariable Long reminderId) {
+        reminderUserService.readReminder(reminderId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/user/read/all")
+    public ResponseEntity<?> readAllReminder(@AuthenticationPrincipal User user) {
+        reminderUserService.readAllReminder(user.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")

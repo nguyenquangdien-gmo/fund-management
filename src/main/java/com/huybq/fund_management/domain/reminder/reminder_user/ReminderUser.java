@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -35,6 +36,9 @@ public class ReminderUser {
     private boolean completed = false;
 
     private LocalDateTime finishedAt;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     public ReminderUser(Reminder reminder, User user) {
         this.reminder = reminder;

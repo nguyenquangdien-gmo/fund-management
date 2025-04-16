@@ -46,6 +46,8 @@ public class ReminderService {
                 .toList();
     }
 
+
+
     public List<ReminderResponseDTO> getAllRemindersByType() {
         return reminderRepository.findAllByReminderTypeOrderByScheduledTimeDesc(Reminder.ReminderType.SURVEY).stream()
                 .map(reminder -> ReminderResponseDTO.builder()

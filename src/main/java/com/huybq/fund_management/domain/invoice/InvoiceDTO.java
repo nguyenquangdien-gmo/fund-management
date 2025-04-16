@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 
 @Builder
 public record InvoiceDTO(
-        String name,
         String fundType,
         String invoiceType,
         String description,

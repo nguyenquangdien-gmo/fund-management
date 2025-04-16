@@ -137,7 +137,7 @@ public class LateService {
             penBill.setPenalty(penalty);
             penBill.setDueDate(now.plusDays(7)); // Hạn nộp phạt sau 7 ngày
             penBill.setPaymentStatus(PenBill.Status.UNPAID);
-            penBill.setDescription("Phiếu phạt do đi trễ quá số lần quy định trong tháng " + month + "/" + year);
+            penBill.setDescription("Phạt do đi trễ quá số lần quy định trong tháng " + month + "/" + year);
 
             penBillRepository.save(penBill);
         }
@@ -212,6 +212,7 @@ public class LateService {
         List<Late> lateData = parseLateRecords(message);
 
         repository.deleteByDate(lateData.get(0).getDate());
+        repository.flush();
         repository.saveAll(lateData);
         processLatePenalties();
         System.out.println("saving successfully.");

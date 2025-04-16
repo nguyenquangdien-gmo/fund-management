@@ -1,11 +1,13 @@
 package com.huybq.fund_management.domain.pen_bill;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
+import com.huybq.fund_management.domain.invoice.InvoiceType;
 import com.huybq.fund_management.domain.penalty.Penalty;
 import com.huybq.fund_management.domain.penalty.PenaltyDTO;
 import com.huybq.fund_management.domain.penalty.PenaltyRepository;
 import com.huybq.fund_management.domain.penalty.PenaltyService;
 import com.huybq.fund_management.domain.trans.Trans;
+import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransRepository;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
@@ -100,17 +102,11 @@ public class PenBillService {
         balanceService.depositBalance("common", penBill.getTotalAmount());
 
         // Ghi log giao dịch vào bảng Trans
-        Trans transaction = new Trans();
-        transaction.setCreatedBy(penBill.getUser());
-        transaction.setAmount(penBill.getTotalAmount());
-        transaction.setDescription("Thành viên: " + penBill.getUser().getFullName() + ", đóng phạt " + penBill.getPenalty().getName());
-        transaction.setTransactionType(Trans.TransactionType.INCOME_PENALTY);
-
-        transRepository.save(transaction);
+        createTrans(penBill,"Thành viên "+penBill.getUser().getFullName()+" đã thanh toán khoản phạt "+penBill.getPenalty().getName());
     }
 
 
-    public void rejectPenBill(Long id) {
+    public void rejectPenBill(Long id,String reason) {
         PenBill penBill = penBillRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("PenBill not found with ID: " + id));
 
@@ -118,7 +114,23 @@ public class PenBillService {
             throw new IllegalStateException("PenBill is already cancelled.");
         }
         penBill.setPaymentStatus(PenBill.Status.CANCELED);
+        if(!reason.isEmpty()){
+            String currentNote = penBill.getDescription() != null ? penBill.getDescription() : "";
+            penBill.setDescription(currentNote + (currentNote.isBlank() ? "" : " ") + "Bị hủy vì " + reason);
+        }
         penBillRepository.save(penBill);
+
+        createTrans(penBill,"Hủy hóa đơn phạt "+penBill.getPenalty().getName()+" của "+penBill.getUser().getFullName()+" vì " + reason);
+    }
+
+    private void createTrans(PenBill penBill,String description) {
+        Trans transaction = new Trans();
+        transaction.setCreatedBy(penBill.getUser());
+        transaction.setAmount(penBill.getTotalAmount());
+        transaction.setDescription(description);
+        transaction.setTransactionType(Trans.TransactionType.INCOME_PENALTY);
+
+        transRepository.save(transaction);
     }
 
 

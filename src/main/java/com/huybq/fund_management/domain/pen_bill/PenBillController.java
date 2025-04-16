@@ -63,8 +63,8 @@ public class PenBillController {
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/{id}/reject")
-    public ResponseEntity<Void> rejectPenBill(@PathVariable Long id) {
-        penBillService.rejectPenBill(id);
+    public ResponseEntity<Void> rejectPenBill(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        penBillService.rejectPenBill(id,request.get("reason"));
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/monthly-stats")

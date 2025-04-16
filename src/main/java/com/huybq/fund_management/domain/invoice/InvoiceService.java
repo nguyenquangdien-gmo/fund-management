@@ -106,9 +106,6 @@ public class InvoiceService {
                         throw new EntityNotFoundException("Balance not found with title: " + fundType);
                     }
                     if (invoice.getInvoiceType() == InvoiceType.EXPENSE) {
-//                        if (balance.getTotalAmount().compareTo(invoice.getAmount()) < 0) {
-//                            throw new IllegalStateException("Insufficient balance to approve the invoice.");
-//                        }
                         balanceService.withdrawBalance(fundType.toLowerCase(), invoice.getAmount());
                     } else {
                         balanceService.depositBalance(fundType.toLowerCase(), invoice.getAmount());
@@ -116,7 +113,7 @@ public class InvoiceService {
 
                     TransDTO transDTO = TransDTO.builder()
                             .amount(invoice.getAmount())
-                            .description("Phê duyệt phiếu: " + invoice.getName()+ " - "+invoice.getUser().getFullName())
+                            .description("Phê duyệt phiếu: " + invoice.getDescription()+ " - "+invoice.getUser().getFullName())
                             .transactionType(invoice.getInvoiceType() == InvoiceType.EXPENSE
                                     ? Trans.TransactionType.EXPENSE
                                     : Trans.TransactionType.INCOME_FUND)
@@ -142,7 +139,6 @@ public class InvoiceService {
                             .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + dto.userId()));
 
                     invoice.setUser(user);
-                    invoice.setName(dto.name());
                     invoice.setAmount(dto.amount());
                     invoice.setDescription(dto.description());
                     invoice.setInvoiceType(InvoiceType.valueOf(dto.invoiceType()));
@@ -160,7 +156,7 @@ public class InvoiceService {
                     }
                     TransDTO transDTO = TransDTO.builder()
                             .amount(invoice.getAmount())
-                            .description("Hủy phiếu: " + invoice.getName()+ " - "+invoice.getUser().getFullName())
+                            .description("Hủy phiếu: " + " - "+invoice.getUser().getFullName()+invoice.getDescription()+" - \nlý do: "+reason)
                             .transactionType(invoice.getInvoiceType() == InvoiceType.EXPENSE
                                     ? Trans.TransactionType.EXPENSE
                                     : Trans.TransactionType.INCOME_FUND)
@@ -168,8 +164,9 @@ public class InvoiceService {
                             .build();
 
                     transService.createTransaction(transDTO);
-                    if (reason != null) {
-                        invoice.setDescription(invoice.getDescription()+"Bị hủy vì: "+reason);
+                    if(!reason.isEmpty()){
+                        String currentNote = invoice.getDescription() != null ? invoice.getDescription() : "";
+                        invoice.setDescription(currentNote + (currentNote.isBlank() ? "" : " ") + "Bị hủy vì " + reason);
                     }
                     invoice.setStatus(InvoiceStatus.CANCELLED);
                     return mapper.toDTO(repository.save(invoice));

@@ -102,6 +102,7 @@ public class ContributionController {
     //reject when wrong result
     @PostMapping("/{id}/reject")
     public ResponseEntity<String> rejectContribution(@PathVariable Long id,@RequestBody Map<String,String>request) {
+//        System.out.println("request: "+request);
         contributionService.rejectContribution(id, request.get("reason"));
         return ResponseEntity.ok("Contribution rejected or update canceled successfully");
     }

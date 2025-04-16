@@ -18,6 +18,7 @@ public class PenBillMapper {
                 .dueDate(penBill.getDueDate())
                 .description(penBill.getDescription())
                 .amount(penBill.getTotalAmount())
+                .paymentStatus(penBill.getPaymentStatus().name())
                 .build();
     }
 
