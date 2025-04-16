@@ -2,7 +2,7 @@ package com.huybq.fund_management.domain.trans;
 
 import com.huybq.fund_management.domain.period.Period;
 import com.huybq.fund_management.domain.period.PeriodRepository;
-import com.huybq.fund_management.domain.user.UserDto;
+import com.huybq.fund_management.domain.user.UserDTO;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class TransService {
     private TransReponseDTO mapToResponseDTO(Trans transaction) {
 
         var user = transaction.getCreatedBy();
-        var userDto = UserDto.builder()
+        var userDto = UserDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())

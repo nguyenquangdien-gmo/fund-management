@@ -26,11 +26,11 @@ public class LateController {
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<List<LateReponseDTO>> getLateRecordsByUserId(
+    public ResponseEntity<List<LateResponseDTO>> getLateRecordsByUserId(
             @PathVariable Long userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
-        List<LateReponseDTO> lateRecords = service.getLateByUserIdWithDateRange(userId, fromDate, toDate);
+        List<LateResponseDTO> lateRecords = service.getLateByUserIdWithDateRange(userId, fromDate, toDate);
         return ResponseEntity.ok(lateRecords);
     }
 
@@ -56,9 +56,9 @@ public class LateController {
         return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth());
     }
 
-    @GetMapping("/users/monthly")
-    public List<?> getLatesFromPrevious28thToCurrent28th() {
-        return service.getLatesFromPrevious1stToCurrent1st();
-    }
+//    @GetMapping("/users/monthly")
+//    public List<?> getLatesFromPrevious28thToCurrent28th() {
+//        return service.getLatesFromPrevious1stToCurrent1st();
+//    }
 
 }

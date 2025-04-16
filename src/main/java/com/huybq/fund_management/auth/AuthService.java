@@ -8,11 +8,7 @@ import com.huybq.fund_management.domain.token.JwtService;
 import com.huybq.fund_management.domain.token.Token;
 import com.huybq.fund_management.domain.token.TokenRepository;
 import com.huybq.fund_management.domain.token.TokenType;
-import com.huybq.fund_management.domain.user.UserDto;
-import com.huybq.fund_management.domain.user.Status;
-import com.huybq.fund_management.domain.user.User;
-import com.huybq.fund_management.domain.user.UserRepository;
-import com.huybq.fund_management.domain.user.AuthenticationResponse;
+import com.huybq.fund_management.domain.user.*;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,6 +45,7 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final Notification notification;
     private final ChatopsService chatopsService;
+    private final UserMapper mapper;
 
 
     public AuthenticationResponse register(RegisterDto request,String emailAdmin) {
@@ -87,7 +84,6 @@ public class AuthService {
 
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
 
         notification.sendNotificationForMember(
@@ -96,7 +92,7 @@ public class AuthService {
                 "\nAccount: "+user.getEmail()+"\nPassword: " +
                 generatedPassword,emailAdmin,userIdChat);
 
-        var userDto = UserDto.builder()
+        var userDto = UserDTO.builder()
                 .email(user.getEmail())
                 .fullName(user.getFullName().toUpperCase())
                 .role(String.valueOf(user.getRole()))
@@ -109,9 +105,7 @@ public class AuthService {
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .user(userDto)
-                .password(generatedPassword)
+                .user(mapper.toResponseDTO(user))
                 .build();
     }
 
@@ -165,7 +159,7 @@ public class AuthService {
         revokeAllUserTokens(user);
         saveUserToken(user, jwtToken);
 
-        var userDto = UserDto.builder()
+        var userDto = UserDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName().toUpperCase())
@@ -179,8 +173,7 @@ public class AuthService {
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .user(userDto)
+                .user(mapper.toResponseDTO(user))
                 .build();
     }
     private void saveUserToken(User user, String jwtToken) {
@@ -222,7 +215,6 @@ public class AuthService {
                 saveUserToken(user, accessToken);
                 var authResponse = AuthenticationResponse.builder()
                         .accessToken(accessToken)
-                        .refreshToken(refreshToken)
                         .build();
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }

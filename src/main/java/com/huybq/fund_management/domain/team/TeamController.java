@@ -22,20 +22,20 @@ public class TeamController {
     private final TeamMapper mapper;
 
     @GetMapping
-    public ResponseEntity<List<TeamDTO>> getAllTeams() {
-        List<TeamDTO> teams = teamService.getTeams();
+    public ResponseEntity<List<TeamResponseDTO>> getAllTeams() {
+        List<TeamResponseDTO> teams = teamService.getTeams();
         return ResponseEntity.ok(teams);
     }
 
     @GetMapping("/{slug}")
-    public ResponseEntity<TeamDTO> getTeamBySlug(@PathVariable String slug) {
+    public ResponseEntity<TeamResponseDTO> getTeamBySlug(@PathVariable String slug) {
         Team team = teamService.getTeamBySlug(slug);
-        return ResponseEntity.ok(mapper.toDTO(team));
+        return ResponseEntity.ok(mapper.toResponseDTO(team));
     }
 
     @GetMapping("/members/{name}")
-    public ResponseEntity<List<TeamDTO>> getTeamMembers(@PathVariable String name) {
-        List<TeamDTO> members = teamService.getMembers(name);
+    public ResponseEntity<List<TeamResponseDTO>> getTeamMembers(@PathVariable String name) {
+        List<TeamResponseDTO> members = teamService.getMembers(name);
         return ResponseEntity.ok(members);
     }
 
@@ -44,7 +44,7 @@ public class TeamController {
             @RequestPart("team") TeamDTO teamDTO,
             @RequestPart(value = "qrCode", required = false) MultipartFile qrCode) {
         try {
-            TeamDTO createdTeam = teamService.createTeam(teamDTO, qrCode);
+            TeamResponseDTO createdTeam = teamService.createTeam(teamDTO, qrCode);
             return new ResponseEntity<>(createdTeam, HttpStatus.CREATED);
         } catch (IOException e) {
             return ResponseEntity

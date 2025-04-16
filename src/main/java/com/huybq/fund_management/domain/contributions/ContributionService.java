@@ -6,7 +6,7 @@ import com.huybq.fund_management.domain.period.PeriodRepository;
 import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
-import com.huybq.fund_management.domain.user.UserDto;
+import com.huybq.fund_management.domain.user.UserDTO;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
@@ -54,9 +54,9 @@ public class ContributionService {
         return contributions.stream().map(mapper::mapToResponseDTO).toList();
     }
 
-    public List<UserDto> getUsersContributedInPeriod(Long periodId) {
+    public List<UserDTO> getUsersContributedInPeriod(Long periodId) {
         return contributionRepository.findUsersByPeriodId(periodId).stream()
-                .map(user -> UserDto.builder()
+                .map(user -> UserDTO.builder()
                         .email(user.getEmail())
                         .fullName(user.getFullName())
                         .role(user.getRole().getName())
@@ -107,9 +107,9 @@ public class ContributionService {
         return contributionRepository.getYearContributionStatistics(year);
     }
 
-    public List<UserDto> getUsersOwedContributed(int month, int year) {
+    public List<UserDTO> getUsersOwedContributed(int month, int year) {
         return userRepository.findUsersOwedContributed(month, year).stream()
-                .map(user -> UserDto.builder()
+                .map(user -> UserDTO.builder()
                         .id(user.getId())
                         .email(user.getEmail())
                         .fullName(user.getFullName())

@@ -18,19 +18,19 @@ public class TeamService {
     private final TeamMapper mapper;
     private final UserRepository userRepository;
 
-    public List<TeamDTO> getTeams() {
+    public List<TeamResponseDTO> getTeams() {
         return repository.findAll().stream()
-                .map(mapper::toDTO)
+                .map(mapper::toResponseDTO)
                 .toList();
     }
 
-    public List<TeamDTO> getMembers(String name) {
+    public List<TeamResponseDTO> getMembers(String name) {
         return repository.findUsersByName(name).stream()
-                .map(mapper::toDTO)
+                .map(mapper::toResponseDTO)
                 .toList();
     }
 
-    public TeamDTO createTeam(TeamDTO teamCreateDTO, MultipartFile qrCode) throws IOException {
+    public TeamResponseDTO createTeam(TeamDTO teamCreateDTO, MultipartFile qrCode) throws IOException {
         Team team = mapper.toEntity(teamCreateDTO);
 
         // Handle QR code upload
@@ -39,12 +39,17 @@ public class TeamService {
         }
 
         repository.save(team);
-        return mapper.toDTO(team);
+        return mapper.toResponseDTO(team);
     }
 
     public TeamDTO updateTeam(String slug, TeamDTO teamUpdateDTO, MultipartFile qrCode) throws IOException {
         Team team = repository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
+        //if not have token and channel id than set to old value
+        if (teamUpdateDTO.getToken().isEmpty() && teamUpdateDTO.getChannelId().isEmpty()) {
+            teamUpdateDTO.setToken(team.getToken());
+            teamUpdateDTO.setChannelId(team.getChannelId());
+        }
 
         mapper.updateEntityFromDTO(teamUpdateDTO, team);
 

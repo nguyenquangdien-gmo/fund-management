@@ -12,7 +12,23 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class UserLatePaymentDTO {
-    private User user;
+    private UserResponseDTO user;
     private BigDecimal totalAmount;
     private LocalDateTime paymentDate;
+
+    public UserLatePaymentDTO(User user, BigDecimal totalAmount, LocalDateTime paymentDate) {
+        this.user = new UserResponseDTO(
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole().getName(),
+                user.getPhone(),
+                user.getPosition(),
+                user.getTeam().getName(),
+                user.getDob().toString(),
+                user.getJoinDate().toString()
+        );
+        this.totalAmount = totalAmount;
+        this.paymentDate = paymentDate;
+    }
 }

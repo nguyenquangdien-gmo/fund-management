@@ -9,6 +9,7 @@ import com.huybq.fund_management.domain.schedule.ScheduleRepository;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamService;
 import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserMapper;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import com.huybq.fund_management.utils.chatops.Notification;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -39,25 +41,21 @@ public class LateService {
     private final UserRepository userRepository;
     private final PenaltyRepository penaltyRepository;
     private final PenBillRepository penBillRepository;
-    private final LateMapper mapper;
     private final Notification notification;
     private final TeamService teamService;
     private final ScheduleRepository scheduleRepository;
-    //    private static final String API_URL = "https://chat.runsystem.vn/mqi9zi75fbdyxrowjirgz4h78r/posts?since=";
-    //    private static final String TOKEN = "xxxxxxxxxxxxxxxx";
+    private final LateMapper mapper;
+    private final UserMapper userMapper;
 
-
-    public List<LateReponseDTO> getLateByUserIdWithDateRange(Long userId, LocalDate fromDate, LocalDate toDate) {
-        return repository.findLatesByUser_IdAndDateRange(fromDate, toDate, userId).stream().map(mapper::toDTO).toList();
+    public List<LateResponseDTO> getLateByUserIdWithDateRange(Long userId, LocalDate fromDate, LocalDate toDate) {
+        return repository.findLatesByUser_IdAndDateRange(fromDate, toDate, userId).stream().map(mapper::toReponseDTO).toList();
     }
 
-    public void fetchLateCheckins(LocalTime time,String channelId) {
+    public void fetchLateCheckins(LocalTime time, String channelId) {
         Team team = teamService.getTeamBySlug("java");
 
-        if (channelId==null){
-            Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("late_notification".toUpperCase()))
-                    .orElseThrow(()->new ResourceNotFoundException("Schedule late_notification not found"));
-            channelId = schedule.getChannelId();
+        if (channelId == null) {
+            throw new IllegalArgumentException("Channel ID is null");
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -67,7 +65,7 @@ public class LateService {
                 .withHour(time.getHour()).withMinute(time.getMinute()).withSecond(time.getSecond())
                 .toEpochSecond() * 1000;
 
-        String url = "https://chat.runsystem.vn/api/v4/channels/" + channelId+ "/posts?since=" + timestamp;
+        String url = "https://chat.runsystem.vn/api/v4/channels/" + channelId + "/posts?since=" + timestamp;
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -101,15 +99,16 @@ public class LateService {
     }
 
     //len lich goi tu dong tu 10h05 t2- t6
-//        @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
-//        @Scheduled(cron = "30 4 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
-//        public void scheduledCheckinLate() {
-//            DayOfWeek today = LocalDateTime.now().getDayOfWeek();
-//            if (today != DayOfWeek.SATURDAY && today != DayOfWeek.SUNDAY) {
-//                System.out.println("calling api check in late at 10:05...");
-//                fetchLateCheckins();
-//            }
-//        }
+    @Scheduled(cron = "0 0 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
+    public void scheduledCheckinLate() {
+        try {
+            Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"))
+                    .orElseThrow(() -> new ResourceNotFoundException("Schedule 'late-check-in' not found"));
+            fetchLateCheckins(null, schedule.getChannelId());
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching schedule", e);
+        }
+    }
 
     @Transactional
     public List<LateDTO> getUsersWithMultipleLatesInMonth() {
@@ -130,7 +129,7 @@ public class LateService {
             User user = (User) result[0];
             int lateCount = ((Number) result[1]).intValue();
 
-            lateUsers.add(new LateDTO(user, lateCount));
+            lateUsers.add(new LateDTO(userMapper.toResponseDTO(user), lateCount));
 
             PenBill penBill = new PenBill();
             penBill.setUser(user);
@@ -145,16 +144,13 @@ public class LateService {
         return lateUsers;
     }
 
-//    @Scheduled(cron = "0 0 0 1 * ?", zone = "Asia/Ho_Chi_Minh")
+    //    @Scheduled(cron = "0 0 0 1 * ?", zone = "Asia/Ho_Chi_Minh")
 //        @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
     public void processLatePenalties() {
         List<LateDTO> lateUsers = getUsersWithMultipleLatesInMonth();
         System.out.println("Đã xử lý phiếu phạt cho " + lateUsers.size() + " nhân sự đi trễ.");
     }
 
-    /**
-     * Trích xuất danh sách đi trễ từ message
-     */
     public List<Late> parseLateRecords(String message) {
         List<Late> lateRecords = new ArrayList<>();
 
@@ -203,9 +199,6 @@ public class LateService {
 
         return lateRecords;
     }
-    /*
-     * save records into db after parsing from message
-     * */
 
     @Transactional
     public void saveLateRecords(String message) {
@@ -237,50 +230,50 @@ public class LateService {
         }
     }
 
-    public List<Object[]> getLatesFromPrevious1stToCurrent1st() {
-        LocalDate today = LocalDate.now();
-        LocalDate startDate = today.minusMonths(1).withDayOfMonth(28); // 28 tháng trước
-        LocalDate endDate = today.withDayOfMonth(28); // 28 tháng này
-        return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
-    }
+//    public List<Object[]> getLatesFromPrevious1stToCurrent1st() {
+//        LocalDate today = LocalDate.now();
+//        LocalDate startDate = today.minusMonths(1).withDayOfMonth(28); // 28 tháng trước
+//        LocalDate endDate = today.withDayOfMonth(28); // 28 tháng này
+//        return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
+//    }
 
     //            @Scheduled(cron = "0 0 8 1 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 1 mỗi tháng
     //    @Scheduled(cron = "0 12 14 26 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 28 mỗi tháng
     //@Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
-    public void sendLateReminder() {
-        LocalDate today = LocalDate.now();
-
-        List<Object[]> lateRecords = getLatesFromPrevious1stToCurrent1st();
-        int previousMonth = today.getMonthValue() - 1;
-        int currentMonth = today.getMonthValue();
-
-        if (lateRecords.isEmpty()) {
-            notification.sendNotification("@all\n🎉 **Tháng này không ai đi trễ!** 🎉", "java");
-            return;
-        }
-
-        StringBuilder message = new StringBuilder();
-        message.append("@all\n 🚨 **Danh sách đi trễ tháng ").append(previousMonth).append(" ** 🚨\n\n");
-        message.append("| STT | TÊN | SỐ LẦN ĐI TRỄ |\n");
-        message.append("|---|---|---|\n");
-
-        int index = 1;
-        for (Object[] record : lateRecords) {
-            User user = (User) record[0];
-            Long lateCount = (Long) record[1];
-
-            message.append("| ").append(index++).append(" | ")
-                    .append(user.getFullName()).append(" | ")
-                    .append(lateCount).append(" |\n");
-
-        }
-
-        message.append("\nRất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
-                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
-                .append("Trân trọng! \n\n")
-                .append(" #checkin-statistic ");
-
-        // Gửi thông báo lên ChatOps
-        notification.sendNotification(message.toString(), "java");
-    }
+//    public void sendLateReminder() {
+//        LocalDate today = LocalDate.now();
+//
+//        List<Object[]> lateRecords = getLatesFromPrevious1stToCurrent1st();
+//        int previousMonth = today.getMonthValue() - 1;
+//        int currentMonth = today.getMonthValue();
+//
+//        if (lateRecords.isEmpty()) {
+//            notification.sendNotification("@all\n🎉 **Tháng này không ai đi trễ!** 🎉", "java");
+//            return;
+//        }
+//
+//        StringBuilder message = new StringBuilder();
+//        message.append("@all\n 🚨 **Danh sách đi trễ tháng ").append(previousMonth).append(" ** 🚨\n\n");
+//        message.append("| STT | TÊN | SỐ LẦN ĐI TRỄ |\n");
+//        message.append("|---|---|---|\n");
+//
+//        int index = 1;
+//        for (Object[] record : lateRecords) {
+//            User user = (User) record[0];
+//            Long lateCount = (Long) record[1];
+//
+//            message.append("| ").append(index++).append(" | ")
+//                    .append(user.getFullName()).append(" | ")
+//                    .append(lateCount).append(" |\n");
+//
+//        }
+//
+//        message.append("\nRất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
+//                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
+//                .append("Trân trọng! \n\n")
+//                .append(" #checkin-statistic ");
+//
+//        // Gửi thông báo lên ChatOps
+//        notification.sendNotification(message.toString(), "java");
+//    }
 }

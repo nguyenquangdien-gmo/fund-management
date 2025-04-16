@@ -1,6 +1,6 @@
 package com.huybq.fund_management.domain.late;
 
-import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,9 +13,9 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class LateReponseDTO {
+public class LateResponseDTO {
     private Long id;
-    private User user;
+    private UserResponseDTO user;
     private LocalDate date;
     private LocalTime checkinAt;
     private String note;

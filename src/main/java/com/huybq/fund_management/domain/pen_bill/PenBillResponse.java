@@ -1,7 +1,8 @@
 package com.huybq.fund_management.domain.pen_bill;
 
 import com.huybq.fund_management.domain.penalty.PenaltyDTO;
-import com.huybq.fund_management.domain.user.UserDto;
+import com.huybq.fund_management.domain.user.UserDTO;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 public class PenBillResponse {
     private Long id;
 
-    private UserDto userDto;
+    private UserResponseDTO user;
 
     private PenaltyDTO penalty;
 

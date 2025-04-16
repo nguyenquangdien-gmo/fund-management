@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserMapper {
-    public UserDto toDto(User user) {
-        return UserDto.builder()
+    public UserDTO toDto(User user) {
+        return UserDTO.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
@@ -16,6 +16,20 @@ public class UserMapper {
                 .dob(user.getDob().toString())
                 .joinDate(user.getJoinDate().toString())
                 .userIdChat(user.getUserIdChat())
+                .build();
+    }
+
+    public UserResponseDTO toResponseDTO(User user) {
+        return UserResponseDTO.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole().getName())
+                .position(user.getPosition())
+                .team(user.getTeam().getName())
+                .phoneNumber(user.getPhone())
+                .dob(user.getDob().toString())
+                .joinDate(user.getJoinDate().toString())
                 .build();
     }
 }

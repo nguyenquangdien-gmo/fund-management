@@ -34,36 +34,39 @@ public class UserService {
     private final TeamRepository teamRepository;
     private final ReminderRepository reminderRepository;
 
-    public List<User> getUsers() {
-        return repository.findAllByIsDeleteIsFalse();
+    public List<UserResponseDTO> getUsers() {
+        return repository.findAllByIsDeleteIsFalse().stream()
+                .map(mapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public List<User> getUsersExcludeCurrent() {
+    public List<UserResponseDTO> getUsersExcludeCurrent() {
         // Lấy username từ security context
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // Lấy toàn bộ user ngoại trừ user đã bị xóa và user hiện tại
-        return repository.findAllByIsDeleteIsFalseAndEmailNot(currentUsername);
+        return repository.findAllByIsDeleteIsFalseAndEmailNot(currentUsername).stream()
+                .map(mapper::toResponseDTO).toList();
     }
 
-    public List<Reminder> findRemindersByUserId(Long userId) {
-        User user = repository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-        return user.getReminderUsers().stream()
-                .map(ReminderUser::getReminder)
-                .sorted(Comparator.comparing(Reminder::getCreatedAt).reversed())
-                .limit(10)
-                .collect(Collectors.toList());
-    }
+//    public List<Reminder> findRemindersByUserId(Long userId) {
+//        User user = repository.findById(userId)
+//                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+//
+//        return user.getReminderUsers().stream()
+//                .map(ReminderUser::getReminder)
+//                .sorted(Comparator.comparing(Reminder::getCreatedAt).reversed())
+//                .limit(10)
+//                .collect(Collectors.toList());
+//    }
 
 
     public List<UserDebtDTO> getUsersWithNoContribution(int month, int year) {
         return repository.findUsersWithNoContribution(month, year);
     }
-    public UserDto getUserByEmail(String email) {
+    public UserResponseDTO getUserByEmail(String email) {
         Optional<User> user = repository.findByEmail(email);
-        return mapper.toDto(user.get());
+        return mapper.toResponseDTO(user.get());
     }
     @Transactional
     public boolean deleteUserById(Long id) {
@@ -78,17 +81,7 @@ public class UserService {
             return false;
         }
     }
-    public Optional<User> getUserById(Long id) {
-        return repository.findById(id);
-    }
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            return (User) authentication.getPrincipal();
-        }
-        return null;
-    }
-    public AuthenticationResponse updateUserById(Long id, UserDto u) {
+    public AuthenticationResponse updateUserById(Long id, UserDTO u) {
         User user = repository.findById(id)
     .orElseThrow(() -> new EntityNotFoundException("User not found with id " + id));
 
@@ -113,8 +106,7 @@ public class UserService {
             repository.save(user);
             return AuthenticationResponse.builder()
                     .accessToken(jwtToken)
-                    .refreshToken(refreshToken)
-                    .user(mapper.toDto(user))
+                    .user(mapper.toResponseDTO(user))
                     .build();
         }
         return null;

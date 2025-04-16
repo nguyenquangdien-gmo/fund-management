@@ -16,25 +16,19 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getUsers() {
+    public ResponseEntity<List<UserResponseDTO>> getUsers() {
         return ResponseEntity.ok(userService.getUsers());
     }
 
     @GetMapping("/exclude-current")
-    public ResponseEntity<List<User>> getUsersExcludeCurrent() {
+    public ResponseEntity<List<UserResponseDTO>> getUsersExcludeCurrent() {
         return ResponseEntity.ok(userService.getUsersExcludeCurrent());
     }
 
-
-    @GetMapping("/{userId}/reminders")
-    public ResponseEntity<List<Reminder>> getRemindersByUserId(@PathVariable Long userId) {
-        List<Reminder> reminders = userService.findRemindersByUserId(userId);
-        return ResponseEntity.ok(reminders);
-    }
     @PostMapping("/get-user")
-    public ResponseEntity<UserDto> getUserByEmail(@RequestBody Map<String, String> request) {
+    public ResponseEntity<UserResponseDTO> getUserByEmail(@RequestBody Map<String, String> request) {
         String email = request.get("email"); // Lấy email từ body request
-        UserDto user = userService.getUserByEmail(email);
+        UserResponseDTO user = userService.getUserByEmail(email);
         if (user == null) {
             throw new ResourceNotFoundException("User not found");
         }
@@ -49,7 +43,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @RequestBody UserDto userDto) {
+    public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @RequestBody UserDTO userDto) {
         return ResponseEntity.ok(userService.updateUserById(userId, userDto));
     }
 

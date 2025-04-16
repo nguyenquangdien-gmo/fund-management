@@ -1,6 +1,6 @@
 package com.huybq.fund_management.auth;
 
-import com.huybq.fund_management.domain.user.UserDto;
+import com.huybq.fund_management.domain.user.UserDTO;
 import com.huybq.fund_management.domain.user.AuthenticationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,11 +39,11 @@ public class AuthController {
         return ResponseEntity.ok(service.authenticate(request));
     }
     @GetMapping("/current-user")
-    public ResponseEntity<UserDto> getCurrentUser() {
+    public ResponseEntity<UserDTO> getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {
             User user = (User) principal;
-            UserDto userDto = UserDto.builder()
+            UserDTO userDto = UserDTO.builder()
                     .email(user.getUsername())
                     .fullName(user.getUsername())
                     .role(user.getAuthorities().stream().findFirst().get().getAuthority())

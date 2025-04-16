@@ -1,19 +1,19 @@
 package com.huybq.fund_management.domain.user;
 
 import lombok.Builder;
+import lombok.Data;
 
 @Builder
-public record UserDto (
+public record UserResponseDTO(
         Long id,
         String fullName,
         String email,
-        String password,
         String role,
         String phoneNumber,
         String position,
-        String slugTeam,
+        String team,
         String dob,
-        String joinDate,
-        String userIdChat
-){
+        String joinDate
+) {
+
 }

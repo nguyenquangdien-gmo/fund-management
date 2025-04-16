@@ -25,7 +25,7 @@ public class PenBillMapper {
     public PenBillResponse toPenBillResponse(PenBill penBill) {
         return PenBillResponse.builder()
                 .id(penBill.getId())
-                .userDto(userMapper.toDto(penBill.getUser()))
+                .user(userMapper.toResponseDTO(penBill.getUser()))
                 .penalty(penaltyMapper.toDTO(penBill.getPenalty()))
                 .dueDate(penBill.getDueDate())
                 .description(penBill.getDescription())
