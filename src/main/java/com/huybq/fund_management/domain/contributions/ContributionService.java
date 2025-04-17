@@ -7,7 +7,9 @@ import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
 import com.huybq.fund_management.domain.user.UserDTO;
+import com.huybq.fund_management.domain.user.UserMapper;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class ContributionService {
     private final TransService transService;
     private final ContributionMapper mapper;
     private final BalanceService balanceService;
+    private final UserMapper userMapper;
 
     public List<ContributionResponseDTO> getAllContributions() {
         List<Contribution> contributions = contributionRepository.findAll();
@@ -44,8 +47,8 @@ public class ContributionService {
                 .toList();
     }
 
-    public Contribution findById(Long id) {
-        return contributionRepository.findById(id)
+    public ContributionResponseDTO findById(Long id) {
+        return contributionRepository.findById(id).map(mapper::mapToResponseDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
     }
 
@@ -54,14 +57,9 @@ public class ContributionService {
         return contributions.stream().map(mapper::mapToResponseDTO).toList();
     }
 
-    public List<UserDTO> getUsersContributedInPeriod(Long periodId) {
+    public List<UserResponseDTO> getUsersContributedInPeriod(Long periodId) {
         return contributionRepository.findUsersByPeriodId(periodId).stream()
-                .map(user -> UserDTO.builder()
-                        .email(user.getEmail())
-                        .fullName(user.getFullName())
-                        .role(user.getRole().getName())
-                        .build()
-                )
+                .map(userMapper::toResponseDTO)
                 .toList();
     }
 
@@ -107,15 +105,10 @@ public class ContributionService {
         return contributionRepository.getYearContributionStatistics(year);
     }
 
-    public List<UserDTO> getUsersOwedContributed(int month, int year) {
+    public List<UserResponseDTO> getUsersOwedContributed(int month, int year) {
         return userRepository.findUsersOwedContributed(month, year).stream()
-                .map(user -> UserDTO.builder()
-                        .id(user.getId())
-                        .email(user.getEmail())
-                        .fullName(user.getFullName())
-                        .role(user.getRole().getName())
-                        .build()
-                ).toList();
+                .map(userMapper::toResponseDTO)
+                .toList();
     }
 
     public List<Map<String, Object>> getLateContributors() {

@@ -26,7 +26,7 @@ public interface ContributionRepository extends JpaRepository<Contribution, Long
 
     @Query("SELECT c.period.month, COALESCE(SUM(c.totalAmount), 0) " +
             "FROM Contribution c " +
-            "WHERE c.period.year = :year " +
+            "WHERE c.period.year = :year and c.paymentStatus = 'PAID' " +
             "GROUP BY c.period.month " +
             "ORDER BY c.period.month ASC")
     List<Object[]> getMonthlyContributionStatistics(@Param("year") int year);

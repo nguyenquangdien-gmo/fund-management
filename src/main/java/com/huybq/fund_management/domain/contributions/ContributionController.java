@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.contributions;
 
 import com.huybq.fund_management.domain.user.UserDTO;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,11 @@ public class ContributionController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Contribution> getContributionById(@PathVariable Long id) {
+    public ResponseEntity<ContributionResponseDTO> getContributionById(@PathVariable Long id) {
         return ResponseEntity.ok(contributionService.findById(id));
     }
     @GetMapping("/owed/users")
-    public ResponseEntity<List<UserDTO>> getUsersNotContributed(@RequestParam int month, @RequestParam int year) {
+    public ResponseEntity<List<UserResponseDTO>> getUsersNotContributed(@RequestParam int month, @RequestParam int year) {
         return ResponseEntity.ok(contributionService.getUsersOwedContributed(month, year));
     }
 
@@ -47,7 +48,7 @@ public class ContributionController {
     }
 
     @GetMapping("/periods/{periodId}/users")
-    public ResponseEntity<List<UserDTO>> getUsersByPeriod(@PathVariable Long periodId) {
+    public ResponseEntity<List<UserResponseDTO>> getUsersByPeriod(@PathVariable Long periodId) {
         return ResponseEntity.ok(contributionService.getUsersContributedInPeriod(periodId));
     }
 
