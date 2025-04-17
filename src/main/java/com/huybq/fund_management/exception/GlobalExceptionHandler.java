@@ -28,30 +28,35 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-    @ExceptionHandler({BusinessException.class, ResourceNotFoundException.class})
+    @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex, WebRequest request) {
         return buildErrorResponse(ex, HttpStatus.UNPROCESSABLE_ENTITY, request);
     }
 
-    @ExceptionHandler(DueAlreadyPaidException.class)
-    public ResponseEntity<ErrorResponse> handleDueAlreadyPaidException(DueAlreadyPaidException ex, WebRequest request) {
-        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, request);
-    }
-
-    @ExceptionHandler(DueNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleDueNotFoundException(DueNotFoundException ex, WebRequest request) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(BusinessException ex, WebRequest request) {
         return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
     }
 
-    @ExceptionHandler(FundException.class)
-    public ResponseEntity<ErrorResponse> handleFundException(FundException ex, WebRequest request) {
-        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, request);
-    }
-
-    @ExceptionHandler(FundNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleFundNotFoundException(FundNotFoundException ex, WebRequest request) {
-        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
-    }
+//    @ExceptionHandler(DueAlreadyPaidException.class)
+//    public ResponseEntity<ErrorResponse> handleDueAlreadyPaidException(DueAlreadyPaidException ex, WebRequest request) {
+//        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, request);
+//    }
+//
+//    @ExceptionHandler(DueNotFoundException.class)
+//    public ResponseEntity<ErrorResponse> handleDueNotFoundException(DueNotFoundException ex, WebRequest request) {
+//        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
+//    }
+//
+//    @ExceptionHandler(FundException.class)
+//    public ResponseEntity<ErrorResponse> handleFundException(FundException ex, WebRequest request) {
+//        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, request);
+//    }
+//
+//    @ExceptionHandler(FundNotFoundException.class)
+//    public ResponseEntity<ErrorResponse> handleFundNotFoundException(FundNotFoundException ex, WebRequest request) {
+//        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
+//    }
 
     @ExceptionHandler(InvalidAmountException.class)
     public ResponseEntity<ErrorResponse> handleInvalidAmountException(InvalidAmountException ex, WebRequest request) {

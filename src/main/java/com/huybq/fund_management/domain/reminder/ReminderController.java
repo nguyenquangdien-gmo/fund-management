@@ -4,6 +4,7 @@ import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUser;
 import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUserResponseDTO;
 import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUserService;
 import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +33,10 @@ public class ReminderController {
         return ResponseEntity.ok(reminderUserService.getAllReminderWithUserId(user.getId()));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/user/{reminderId}/read")
-    public ResponseEntity<?> readReminder(@PathVariable Long reminderId) {
-        reminderUserService.readReminder(reminderId);
+    public ResponseEntity<?> readReminder(@PathVariable Long reminderId,@AuthenticationPrincipal User user) {
+        reminderUserService.readReminder(reminderId,user.getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -58,8 +60,8 @@ public class ReminderController {
     }
 
     @GetMapping("/{reminderId}/users")
-    public ResponseEntity<Set<User>> getUsersByReminderId(@PathVariable Long reminderId) {
-        Set<User> users = reminderService.findUsersByReminderId(reminderId);
+    public ResponseEntity<Set<UserResponseDTO>> getUsersByReminderId(@PathVariable Long reminderId) {
+        Set<UserResponseDTO> users = reminderService.findUsersByReminderId(reminderId);
         return ResponseEntity.ok(users);
     }
 

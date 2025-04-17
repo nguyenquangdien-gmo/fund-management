@@ -2,6 +2,8 @@ package com.huybq.fund_management.domain.schedule;
 
 import com.huybq.fund_management.domain.event.EventService;
 import com.huybq.fund_management.domain.late.LateService;
+import com.huybq.fund_management.domain.team.Team;
+import com.huybq.fund_management.domain.team.TeamRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.util.concurrent.ScheduledFuture;
 @RequiredArgsConstructor
 public class ScheduleManager {
     private final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
     private final TaskScheduler taskScheduler;
 
     private final ScheduleRepository scheduleRepository;
@@ -24,6 +27,8 @@ public class ScheduleManager {
     private final EventService eventService;
 
     private final LateService lateService;
+
+    private final TeamRepository teamRepository;
 
     private ScheduledFuture<?> eventTask;
     private ScheduledFuture<?> lateTask;
@@ -87,7 +92,7 @@ public class ScheduleManager {
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
 
         LocalTime sendTime = schedule.getSendTime();
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
 
         // Tính thời gian chạy đầu tiên trong ngày
         ZonedDateTime firstRun = now.withHour(sendTime.getHour())

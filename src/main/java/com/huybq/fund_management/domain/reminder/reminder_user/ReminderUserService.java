@@ -26,8 +26,8 @@ public class ReminderUserService {
                         .build()).collect(Collectors.toList());
     }
 
-    public void readReminder(Long reminderId) {
-        ReminderUser reminderUser = reminderUserRepository.findReminderUserByReminder_Id(reminderId)
+    public void readReminder(Long reminderId,Long userId) {
+        ReminderUser reminderUser = reminderUserRepository.findReminderUserByReminder_IdAndUser_Id(reminderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found with ID: " + reminderId));
         reminderUser.setStatus(Reminder.Status.READ);
         reminderUserRepository.save(reminderUser);

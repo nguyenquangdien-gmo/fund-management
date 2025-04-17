@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.reminder;
 
 import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,6 @@ public record ReminderResponseDTO(
         String createdAt,
         LocalDateTime scheduledTime,
         boolean isSendChatGroup,
-        List<User> users
+        List<UserResponseDTO> users
 ) {
 }

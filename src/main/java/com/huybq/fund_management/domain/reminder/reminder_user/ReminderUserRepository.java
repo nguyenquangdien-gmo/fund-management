@@ -13,5 +13,5 @@ public interface ReminderUserRepository extends JpaRepository<ReminderUser, Remi
 
     List<ReminderUser> findByUserIdOrderByReminderCreatedAtDesc(Long userId);
 
-    Optional<ReminderUser> findReminderUserByReminder_Id(Long reminderId);
+    Optional<ReminderUser> findReminderUserByReminder_IdAndUser_Id(Long reminderId, Long userId);
 }

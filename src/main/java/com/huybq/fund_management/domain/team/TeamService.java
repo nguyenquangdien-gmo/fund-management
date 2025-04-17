@@ -1,5 +1,7 @@
 package com.huybq.fund_management.domain.team;
 
+import com.huybq.fund_management.domain.schedule.Schedule;
+import com.huybq.fund_management.domain.schedule.ScheduleRepository;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
@@ -17,6 +19,7 @@ public class TeamService {
     private final TeamRepository repository;
     private final TeamMapper mapper;
     private final UserRepository userRepository;
+    private final ScheduleRepository scheduleRepository;
 
     public List<TeamResponseDTO> getTeams() {
         return repository.findAll().stream()
@@ -46,7 +49,8 @@ public class TeamService {
         Team team = repository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
         //if not have token and channel id than set to old value
-        if (teamUpdateDTO.getToken().isEmpty() && teamUpdateDTO.getChannelId().isEmpty()) {
+        System.out.println(teamUpdateDTO.toString());
+        if (teamUpdateDTO.getToken()==null || teamUpdateDTO.getChannelId()==null) {
             teamUpdateDTO.setToken(team.getToken());
             teamUpdateDTO.setChannelId(team.getChannelId());
         }
