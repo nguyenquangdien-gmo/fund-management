@@ -17,7 +17,7 @@ public class PenBillController {
     private final PenBillService penBillService;
 
     @GetMapping
-    public ResponseEntity<List<PenBillDTO>> getAllPenBills() {
+    public ResponseEntity<List<PenBillResponse>> getAllPenBills() {
         return ResponseEntity.ok(penBillService.getAllPenBills());
     }
     @GetMapping("/pending")

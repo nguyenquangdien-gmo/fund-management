@@ -59,9 +59,9 @@ public class PenBillService {
                 .collect(Collectors.toList());
     }
 
-    public List<PenBillDTO> getAllPenBills() {
+    public List<PenBillResponse> getAllPenBills() {
         return penBillRepository.findByPaymentStatusInOrderByCreatedAtDesc(List.of(PenBill.Status.PENDING, PenBill.Status.UNPAID, PenBill.Status.CANCELED)).stream()
-                .map(mapper::toDTO)
+                .map(mapper::toPenBillResponse)
                 .collect(Collectors.toList());
     }
 
