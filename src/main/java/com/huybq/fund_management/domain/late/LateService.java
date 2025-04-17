@@ -11,6 +11,7 @@ import com.huybq.fund_management.domain.team.TeamService;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserMapper;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import com.huybq.fund_management.utils.chatops.Notification;
 import lombok.RequiredArgsConstructor;
@@ -230,22 +231,59 @@ public class LateService {
         }
     }
 
-//    public List<Object[]> getLatesFromPrevious1stToCurrent1st() {
-//        LocalDate today = LocalDate.now();
-//        LocalDate startDate = today.minusMonths(1).withDayOfMonth(28); // 28 tháng trước
-//        LocalDate endDate = today.withDayOfMonth(28); // 28 tháng này
-//        return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
+    public static String formatLocalDate(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return date.format(formatter);
+    }
+
+    public List<UserResponseDTO> getUsersWithLateDate() {
+        LocalDate today = LocalDate.now();
+        return repository.findUsersWithLateInDate(today).stream()
+                .map(userMapper::toResponseDTO).toList();
+    }
+
+//    public void sendLateReminder() {
+//
+//        List<UserResponseDTO> lateRecords = getUsersWithLateDate();
+//
+//        if (lateRecords.isEmpty()) {
+//            notification.sendNotification("@all\n🎉 **Thật tuyệt vời, hôm nay không ai đi trễ!** 🎉", "java");
+//            return;
+//        }
+//
+//        StringBuilder message = new StringBuilder();
+//        message.append("🚨 **Danh sách đi trễ quá số lần cho phép nhưng chưa đóng phạt ").append(" ** 🚨\n\n");
+//        message.append("| STT | Tên | Số tiền nợ  |\n");
+//        message.append("|---|---|---|\n");
+//
+//        int index = 1;
+//        for (UserResponseDTO record : lateRecords) {
+//            message.append("| ").append(index++).append(" | @")
+//                    .append(record.email().replace("@", "-")).append(" |\n");
+//        }
+//
+//        message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng phạt nếu có.\n")
+//                .append("Rất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
+//                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
+//                .append("Trân trọng! \n\n")
+//                .append(" #checkin-statistic ");
+//
+//        // Gửi thông báo lên ChatOps
+//        notification.sendNotification(message.toString(), "java");
 //    }
 
-    //            @Scheduled(cron = "0 0 8 1 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 1 mỗi tháng
-    //    @Scheduled(cron = "0 12 14 26 * ?",zone = "Asia/Ho_Chi_Minh")// Chạy vào 08:00 ngày 28 mỗi tháng
-    //@Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
-//    public void sendLateReminder() {
+//send statstic late in month
+//    public List<Object[]> getLatesFromPrevious1stToCurrent1st() {
+//        LocalDate today = LocalDate.now();
+//        LocalDate startDate = today.minusMonths(1).withDayOfMonth(1); // 1 tháng trước
+//        LocalDate endDate = today.withDayOfMonth(1); // 1 tháng này
+//        return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
+//    }
+//    public void sendLateInMonth() {
 //        LocalDate today = LocalDate.now();
 //
-//        List<Object[]> lateRecords = getLatesFromPrevious1stToCurrent1st();
+//        List<Object[]> lateRecords = getLatesFromPrevious1stToCurrent1st();;
 //        int previousMonth = today.getMonthValue() - 1;
-//        int currentMonth = today.getMonthValue();
 //
 //        if (lateRecords.isEmpty()) {
 //            notification.sendNotification("@all\n🎉 **Tháng này không ai đi trễ!** 🎉", "java");
@@ -276,4 +314,8 @@ public class LateService {
 //        // Gửi thông báo lên ChatOps
 //        notification.sendNotification(message.toString(), "java");
 //    }
+
+    public static void main(String[] args) {
+        System.out.println(formatLocalDate(LocalDate.now()));
+    }
 }

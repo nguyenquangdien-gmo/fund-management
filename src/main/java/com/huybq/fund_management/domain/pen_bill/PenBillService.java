@@ -10,7 +10,9 @@ import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransRepository;
 import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserMapper;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -19,8 +21,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,6 +40,7 @@ public class PenBillService {
     private final PenaltyService penaltyService;
     private final PenBillMapper mapper;
     private final Notification notification;
+    private final UserMapper userMapper;
 
     public List<PenBillDTO> getAllBillsUnPaidByUserId(Long userId) {
         List<PenBill> penBills = penBillRepository.findByUserIdAndPaymentStatus(userId, PenBill.Status.UNPAID);
@@ -102,11 +107,11 @@ public class PenBillService {
         balanceService.depositBalance("common", penBill.getTotalAmount());
 
         // Ghi log giao dịch vào bảng Trans
-        createTrans(penBill,"Thành viên "+penBill.getUser().getFullName()+" đã thanh toán khoản phạt "+penBill.getPenalty().getName());
+        createTrans(penBill, "Thành viên " + penBill.getUser().getFullName() + " đã thanh toán khoản phạt " + penBill.getPenalty().getName());
     }
 
 
-    public void rejectPenBill(Long id,String reason) {
+    public void rejectPenBill(Long id, String reason) {
         PenBill penBill = penBillRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("PenBill not found with ID: " + id));
 
@@ -114,16 +119,16 @@ public class PenBillService {
             throw new IllegalStateException("PenBill is already cancelled.");
         }
         penBill.setPaymentStatus(PenBill.Status.CANCELED);
-        if(!reason.isEmpty()){
+        if (!reason.isEmpty()) {
             String currentNote = penBill.getDescription() != null ? penBill.getDescription() : "";
             penBill.setDescription(currentNote + (currentNote.isBlank() ? "" : " ") + "Bị hủy vì " + reason);
         }
         penBillRepository.save(penBill);
 
-        createTrans(penBill,"Hủy hóa đơn phạt "+penBill.getPenalty().getName()+" của "+penBill.getUser().getFullName()+" vì " + reason);
+        createTrans(penBill, "Hủy hóa đơn phạt " + penBill.getPenalty().getName() + " của " + penBill.getUser().getFullName() + " vì " + reason);
     }
 
-    private void createTrans(PenBill penBill,String description) {
+    private void createTrans(PenBill penBill, String description) {
         Trans transaction = new Trans();
         transaction.setCreatedBy(penBill.getUser());
         transaction.setAmount(penBill.getTotalAmount());
@@ -201,4 +206,35 @@ public class PenBillService {
         }
     }
 
+    public void sendUnpaidCheckinBillNotification() {
+        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+        List<PenBillResponse> lateRecords = penBillRepository.findBillsAndTotalUnpaidAmountInDate(LocalDate.now())
+                .stream().map(mapper::toPenBillResponse).toList();
+
+        if (lateRecords.isEmpty()) {
+            notification.sendNotification("@all\n🎉 **Thật tuyệt vời, hôm nay không ai đi trễ!** 🎉", "java");
+            return;
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("🚨 **Danh sách đi trễ quá số lần cho phép nhưng chưa đóng phạt ").append(" ** 🚨\n\n");
+        message.append("| STT | Tên | Số tiền nợ  |\n");
+        message.append("|---|---|---|\n");
+
+        int index = 1;
+        for (PenBillResponse record : lateRecords) {
+            message.append("| ").append(index++).append(" | @")
+                    .append(record.getUser().email().replace("@", "-")).append(" |")
+                    .append(formatter.format(record.getAmount())).append(" VNĐ").append(" |\n");
+        }
+
+        message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng phạt nếu có.\n")
+                .append("Rất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
+                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
+                .append("Trân trọng! \n\n")
+                .append(" #checkin-statistic ");
+
+        // Gửi thông báo lên ChatOps
+        notification.sendNotification(message.toString(), "java");
+    }
 }

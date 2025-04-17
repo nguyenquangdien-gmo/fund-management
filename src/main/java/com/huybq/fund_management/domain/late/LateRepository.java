@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.late;
 
+import com.huybq.fund_management.domain.user.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,6 +25,11 @@ public interface LateRepository extends JpaRepository<Late, Long> {
     List<Object[]> findUsersWithLateCountInMonth(@Param("month") int month,
                                                  @Param("year") int year,
                                                  @Param("minLateCount") int minLateCount);
+
+    @Query("SELECT l.user FROM Late l " +
+            "WHERE l.date = :date " +
+            "GROUP BY l.user " )
+    List<User> findUsersWithLateInDate(@Param("date") LocalDate date);
 
     @Query("""
     SELECT COUNT(l) > 0
