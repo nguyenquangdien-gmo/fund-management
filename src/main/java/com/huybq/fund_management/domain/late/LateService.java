@@ -53,51 +53,57 @@ public class LateService {
     }
 
     public void fetchLateCheckins(LocalTime time, String channelId) {
-        Team team = teamService.getTeamBySlug("java");
-
         if (channelId == null) {
             throw new IllegalArgumentException("Channel ID is null");
         }
 
+        Team team = teamService.getTeamBySlug("java");
+        if (team == null || team.getToken() == null) {
+            throw new IllegalStateException("Team or team token is null");
+        }
+
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
         LocalDateTime now = LocalDateTime.now();
         String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
-        long timestamp = now.atZone(vietnamZone)
-                .withHour(time.getHour()).withMinute(time.getMinute()).withSecond(time.getSecond())
+
+        LocalTime targetTime = Optional.ofNullable(time).orElse(LocalTime.of(10, 5));
+        long timestamp = now.toLocalDate()
+                .atTime(targetTime)
+                .atZone(vietnamZone)
                 .toEpochSecond() * 1000;
 
-        String url = "https://chat.runsystem.vn/api/v4/channels/" + channelId + "/posts?since=" + timestamp;
+        String url = String.format("https://chat.runsystem.vn/api/v4/channels/%s/posts?since=%d", channelId, timestamp);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(team.getToken());
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + team.getToken());
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
 
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            Map<String, Object> responseBody = response.getBody();
-            Map<String, Object> posts = (Map<String, Object>) responseBody.get("posts");
-
-            if (posts != null && !posts.isEmpty()) {
-                // Lọc thông báo của ngày hiện tại
-                List<String> matchedMessages = posts.values().stream()
-                        .map(post -> (String) ((Map<String, Object>) post).get("message"))
-                        .filter(message -> message != null && message.contains("THÔNG BÁO DANH SÁCH ĐI LÀM MUỘN " + todayString))
-                        .collect(Collectors.toList());
-
-                if (!matchedMessages.isEmpty()) {
-                    matchedMessages.forEach(this::saveLateRecords);
-                } else {
-                    System.out.println("Không có message đi trễ nào trong dữ liệu API.");
-                }
-            } else {
-                System.out.println("Không có bài viết nào trong dữ liệu API.");
-            }
-        } else {
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new RuntimeException("Lỗi khi gọi API: " + response.getStatusCode());
         }
+
+        Map<String, Object> posts = (Map<String, Object>) response.getBody().get("posts");
+        if (posts == null || posts.isEmpty()) {
+            System.out.println("Không có bài viết nào trong dữ liệu API.");
+            return;
+        }
+
+        List<String> matchedMessages = posts.values().stream()
+                .map(post -> (String) ((Map<String, Object>) post).get("message"))
+                .filter(message -> message != null && message.contains("THÔNG BÁO DANH SÁCH ĐI LÀM MUỘN " + todayString))
+                .collect(Collectors.toList());
+
+        if (matchedMessages.isEmpty()) {
+            System.out.println("Không có message đi trễ nào trong dữ liệu API.");
+            return;
+        }
+
+        matchedMessages.forEach(this::saveLateRecords);
     }
+
 
     //len lich goi tu dong tu 10h05 t2- t6
     @Scheduled(cron = "0 0 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
@@ -107,7 +113,7 @@ public class LateService {
                     .orElseThrow(() -> new ResourceNotFoundException("Schedule 'late-check-in' not found"));
             fetchLateCheckins(null, schedule.getChannelId());
         } catch (Exception e) {
-            throw new RuntimeException("Error fetching schedule", e);
+            throw new RuntimeException("Error fetching schedule late", e);
         }
     }
 
@@ -315,7 +321,5 @@ public class LateService {
 //        notification.sendNotification(message.toString(), "java");
 //    }
 
-    public static void main(String[] args) {
-        System.out.println(formatLocalDate(LocalDate.now()));
-    }
+
 }
