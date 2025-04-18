@@ -225,7 +225,7 @@ public class PenBillService {
         for (PenBillResponse record : lateRecords) {
             message.append("| ").append(index++).append(" | @")
                     .append(record.getUser().email().replace("@", "-")).append(" |")
-                    .append(formatter.format(record.getAmount())).append(" VNĐ").append(" |\n");
+                    .append(formatter.format(record.getAmount())).append(" VN").append(" |\n");
         }
 
         message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng phạt nếu có.\n")

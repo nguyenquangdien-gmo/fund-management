@@ -108,54 +108,35 @@ public class LateService {
     //len lich goi tu dong tu 10h05 t2- t6
     @Scheduled(cron = "0 5 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
     public void scheduledCheckinLate() {
-        try {
-            Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"))
-                    .orElseThrow(() -> new ResourceNotFoundException("Schedule 'late-check-in' not found"));
-            fetchLateCheckins(null, schedule.getChannelId());
-        } catch (Exception e) {
-            throw new RuntimeException("Error fetching schedule late", e);
-        }
+        Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"))
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule 'late-check-in' not found"));
+        fetchLateCheckins(null, schedule.getChannelId());
     }
 
     @Transactional
-    public List<LateDTO> getUsersWithMultipleLatesInMonth() {
-        LocalDate now = LocalDate.now();
-        int month = now.getMonthValue();
-        int year = now.getYear();
-
-        // Lấy danh sách user có số lần đi trễ > minLateCount
-        List<Object[]> results = repository.findUsersWithLateCountInMonth(month, year, 1);
+    public int processUserWithMultipleLatesInDate() {
+        LocalDate today = LocalDate.now();
+        int year = today.getYear();
+        int month = today.getMonthValue();
+        List<User> lateUsers = repository.findUserLateInDate(today);
 
         // Lấy thông tin Penalty cho việc đi trễ
         Penalty penalty = penaltyRepository.findBySlug("late-check-in")
                 .orElseThrow(() -> new ResourceNotFoundException("Penalty 'late-check-in' not found"));
 
-        List<LateDTO> lateUsers = new ArrayList<>();
-
-        for (Object[] result : results) {
-            User user = (User) result[0];
-            int lateCount = ((Number) result[1]).intValue();
-
-            lateUsers.add(new LateDTO(userMapper.toResponseDTO(user), lateCount));
+        for (User user : lateUsers) {
 
             PenBill penBill = new PenBill();
             penBill.setUser(user);
             penBill.setPenalty(penalty);
-            penBill.setDueDate(now.plusDays(7)); // Hạn nộp phạt sau 7 ngày
+            penBill.setDueDate(today.plusDays(7)); // Hạn nộp phạt sau 7 ngày
             penBill.setPaymentStatus(PenBill.Status.UNPAID);
-            penBill.setDescription("Phạt do đi trễ quá số lần quy định trong tháng " + month + "/" + year);
+            penBill.setDescription("Phạt do đi trễ quá số lần quy định trong tháng " + month+ "/" + year);
 
             penBillRepository.save(penBill);
         }
 
-        return lateUsers;
-    }
-
-    //    @Scheduled(cron = "0 0 0 1 * ?", zone = "Asia/Ho_Chi_Minh")
-//        @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
-    public void processLatePenalties() {
-        List<LateDTO> lateUsers = getUsersWithMultipleLatesInMonth();
-        System.out.println("Đã xử lý phiếu phạt cho " + lateUsers.size() + " nhân sự đi trễ.");
+        return lateUsers.size();
     }
 
     public List<Late> parseLateRecords(String message) {
@@ -210,11 +191,12 @@ public class LateService {
     @Transactional
     public void saveLateRecords(String message) {
         List<Late> lateData = parseLateRecords(message);
-
         repository.deleteByDate(lateData.get(0).getDate());
         repository.flush();
         repository.saveAll(lateData);
-        processLatePenalties();
+
+        int size = processUserWithMultipleLatesInDate();
+        System.out.println("Đã xử lý phiếu phạt cho " + size + " nhân sự đi trễ.");
         System.out.println("saving successfully.");
     }
 
