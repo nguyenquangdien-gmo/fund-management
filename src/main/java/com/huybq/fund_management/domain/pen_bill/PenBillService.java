@@ -156,6 +156,7 @@ public class PenBillService {
                             .totalAmount(penalty.getAmount())
                             .description(penBillDTO.getDescription())
                             .paymentStatus(PenBill.Status.UNPAID)
+                            .dueDate(penBillDTO.getDueDate())
                             .build();
                     penBillRepository.save(penBill);
                 });
