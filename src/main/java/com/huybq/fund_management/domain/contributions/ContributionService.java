@@ -2,21 +2,23 @@ package com.huybq.fund_management.domain.contributions;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
 import com.huybq.fund_management.domain.fund.FundType;
+import com.huybq.fund_management.domain.pen_bill.PenBillResponse;
 import com.huybq.fund_management.domain.period.PeriodRepository;
 import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
-import com.huybq.fund_management.domain.user.UserDTO;
-import com.huybq.fund_management.domain.user.UserMapper;
-import com.huybq.fund_management.domain.user.UserRepository;
-import com.huybq.fund_management.domain.user.UserResponseDTO;
+import com.huybq.fund_management.domain.user.*;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
+import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,6 +34,7 @@ public class ContributionService {
     private final ContributionMapper mapper;
     private final BalanceService balanceService;
     private final UserMapper userMapper;
+    private final Notification notification;
 
     public List<ContributionResponseDTO> getAllContributions() {
         List<Contribution> contributions = contributionRepository.findAll();
@@ -263,6 +266,66 @@ public class ContributionService {
             return;
         }
         throw new IllegalArgumentException("Invalid state for rejection or cancellation");
+    }
+
+    //    @Scheduled(cron = "0 21 8 * * * ", zone = "Asia/Ho_Chi_Minh")
+//    @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
+    public void processSendingContributions() {
+        sendUnpaidCheckinBillNotification();
+    }
+
+    public void sendUnpaidCheckinBillNotification() {
+        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+        LocalDate today = LocalDate.now();
+
+        List<ContributionDeptDTO> lateRecords = contributionRepository
+                .findUnpaidContributionsBefore(today.getMonthValue(), today.getYear())
+                .stream()
+                .map(row -> {
+                    UserResponseDTO user = new UserResponseDTO(
+                            (Long) row[0],
+                            (String) row[1],
+                            (String) row[2],
+                            (String) row[3],
+                            (String) row[4],
+                            (String) row[5],
+                            (String) row[6],
+                            row[7] != null ? row[7].toString() : null,
+                            row[8] != null ? row[8].toString() : null
+                    );
+                    int month = (Integer) row[9];
+                    int year = (Integer) row[10];
+                    BigDecimal amount = (BigDecimal) row[11];
+                    return new ContributionDeptDTO(user, month, year, amount);
+                })
+                .toList();
+
+        if (lateRecords.isEmpty()) {
+            return;
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("🚨 **Danh sách chưa đóng quỹ các tháng trước ").append(today.getMonthValue())
+                .append("/").append(today.getYear()).append(" ** 🚨\n\n");
+        message.append("| STT | Tên | Tháng/Năm | Số tiền nợ  |\n");
+        message.append("|---|---|---|---|\n");
+
+        int index = 1;
+        for (ContributionDeptDTO record : lateRecords) {
+            message.append("| ").append(index++).append(" | @")
+                    .append(record.getUser().email().replace("@", "-")).append(" | ")
+                    .append(record.getMonth()).append("/").append(record.getYear()).append(" | ")
+                    .append(formatter.format(record.getAmountToPay())).append(" VNĐ").append(" |\n");
+        }
+
+        message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng quỹ nếu có.\n")
+                .append("Rất mong mọi người sẽ tuân thủ quy định và đóng đúng hạn!\n")
+                .append("Cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
+                .append("Trân trọng! \n\n")
+                .append(" #contribution-statistic ");
+
+        // Gửi thông báo lên ChatOps
+        notification.sendNotification(message.toString(), "java");
     }
 
 
