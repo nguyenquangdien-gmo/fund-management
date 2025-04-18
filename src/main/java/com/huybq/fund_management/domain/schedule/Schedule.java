@@ -31,6 +31,6 @@ public class Schedule {
 
 
     public enum NotificationType {
-        LATE_NOTIFICATION, EVENT_NOTIFICATION, CHECK_IN
+        LATE_NOTIFICATION, EVENT_NOTIFICATION, LATE_CONTRIBUTED_NOTIFICATION
     }
 }
