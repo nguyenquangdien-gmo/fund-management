@@ -128,7 +128,6 @@ public class ContributionService {
         return lateContributors;
     }
 
-
     @Transactional
     public ContributionResponseDTO createContribution(ContributionDTO contributionDTO) {
         var user = userRepository.findById(contributionDTO.getUserId())
@@ -240,18 +239,6 @@ public class ContributionService {
         contributionRepository.save(contribution);
     }
 
-//    @Transactional
-//    public void rejectNewContribution(Long contributionId) {
-//        var contribution = contributionRepository.findById(contributionId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Contribution not found"));
-//
-//        if (contribution.getPaymentStatus() != Contribution.PaymentStatus.PENDING) {
-//            throw new IllegalArgumentException("Only pending contributions can be rejected");
-//        }
-//
-//        contributionRepository.deleteById(contributionId);
-//    }
-
     @Transactional
     public void rejectContribution(Long contributionId, String reason) {
         var contribution = contributionRepository.findById(contributionId)
@@ -268,10 +255,88 @@ public class ContributionService {
         throw new IllegalArgumentException("Invalid state for rejection or cancellation");
     }
 
-    //    @Scheduled(cron = "0 21 8 * * * ", zone = "Asia/Ho_Chi_Minh")
-//    @Scheduled(cron = "*/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
-    public void processSendingContributions() {
-        sendUnpaidCheckinBillNotification();
+    @Transactional
+    public void confirmContributionWithDeptContribution(ContributionDTO contributionDTO) {
+        if (contributionDTO.getUserIds() == null || contributionDTO.getUserIds().isEmpty()) {
+            throw new IllegalArgumentException("List user is empty");
+        }
+
+        if (contributionDTO.getPeriodId() == null) {
+            throw new IllegalArgumentException("Must have info about period");
+        }
+
+        if (contributionDTO.getTotalAmount() == null || contributionDTO.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than 0");
+        }
+
+        var period = periodRepository.findById(contributionDTO.getPeriodId())
+                .orElseThrow(() -> new ResourceNotFoundException("not found period with id: " + contributionDTO.getPeriodId()));
+
+        List<ContributionResponseDTO> results = new ArrayList<>();
+
+        // process each user in list
+        for (Long userId : contributionDTO.getUserIds()) {
+            try {
+                // create dto for each user
+                ContributionDTO singleContributionDTO = new ContributionDTO();
+                singleContributionDTO.setUserId(userId);
+                singleContributionDTO.setPeriodId(contributionDTO.getPeriodId());
+                singleContributionDTO.setTotalAmount(contributionDTO.getTotalAmount());
+                singleContributionDTO.setNote(contributionDTO.getNote());
+                singleContributionDTO.setFundType(contributionDTO.getFundType());
+
+                // check exist contribution
+                var existingContributions = contributionRepository.findByUserIdAndPeriodId(userId, contributionDTO.getPeriodId());
+
+                Long contributionId;
+
+                // check invalid of contribution
+                Optional<Contribution> validContribution = existingContributions.stream()
+                        .filter(c -> c.getPaymentStatus() != Contribution.PaymentStatus.CANCELED)
+                        .findFirst();
+
+                if (validContribution.isPresent()) {
+                    // if exist but not paid will be updated
+                    Contribution existing = validContribution.get();
+                    if (existing.getPaymentStatus() == Contribution.PaymentStatus.PENDING) {
+                        // Cập nhật thông tin nếu cần
+                        existing.setTotalAmount(contributionDTO.getTotalAmount());
+                        if (contributionDTO.getFundType() != null && !contributionDTO.getFundType().isEmpty()) {
+                            existing.setFundType(FundType.valueOf(contributionDTO.getFundType()));
+                        }
+                        if (contributionDTO.getNote() != null && !contributionDTO.getNote().isEmpty()) {
+                            existing.setNote(contributionDTO.getNote());
+                        }
+                        contributionRepository.save(existing);
+                        contributionId = existing.getId();
+                    } else if (existing.getPaymentStatus() == Contribution.PaymentStatus.PAID) {
+                        // if already paid, skip
+                        log.info("User {} đã đóng quỹ cho kỳ {}/{}. Bỏ qua.", userId, period.getMonth(), period.getYear());
+                        continue;
+                    } else {
+                        contributionId = existing.getId();
+                    }
+                } else {
+                    // if not exist or canceled, create new contribution
+                    ContributionResponseDTO createdContribution = createContribution(singleContributionDTO);
+                    contributionId = createdContribution.getId();
+                }
+
+                // approve
+                approveContribution(contributionId);
+
+                // get contribution info
+                ContributionResponseDTO approvedContribution = findById(contributionId);
+                results.add(approvedContribution);
+
+                log.info("Đã tạo và duyệt đóng quỹ thành công cho user {} kỳ {}/{}",
+                        userId, period.getMonth(), period.getYear());
+
+            } catch (Exception e) {
+                log.error("Lỗi khi xử lý đóng quỹ cho user {}: {}", userId, e.getMessage());
+                throw new RuntimeException("Error runtime: " + e.getMessage(), e);
+            }
+        }
     }
 
     public void sendUnpaidCheckinBillNotification() {
