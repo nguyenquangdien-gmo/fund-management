@@ -7,13 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContributionDTO {
 
-    @NotNull(message = "userId is required")
     private Long userId;
 
     @NotNull(message = "periodId is required")
@@ -24,4 +24,6 @@ public class ContributionDTO {
     private BigDecimal totalAmount;
     private String note;
     private String fundType;
+
+    private Set<Long> userIds;
 }
