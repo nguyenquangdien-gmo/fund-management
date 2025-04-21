@@ -27,7 +27,7 @@ public class PenBillController {
 
     @PostMapping("/notification")
     public ResponseEntity<Void> createPenBillNotification() {
-        penBillService.sendNotificationPenBill();
+        penBillService.sendNotificationPenBillNew();
         return ResponseEntity.noContent().build();
     }
 
