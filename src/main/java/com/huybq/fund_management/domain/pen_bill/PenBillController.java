@@ -25,6 +25,12 @@ public class PenBillController {
         return ResponseEntity.ok(penBillService.getPenBillsPending());
     }
 
+    @PostMapping("/notification")
+    public ResponseEntity<Void> createPenBillNotification() {
+        penBillService.sendNotificationPenBill();
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/user/{userId}/unpaid")
     public ResponseEntity<List<PenBillDTO>> getBillsUnPaidByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(penBillService.getAllBillsUnPaidByUserId(userId));
@@ -83,5 +89,7 @@ public class PenBillController {
     public ResponseEntity<BillStatisticsDTO> getYearlyPenaltyStats(@PathVariable int year) {
         return ResponseEntity.ok(penBillService.getPenaltyStatsByYear(year));
     }
+
+
 
 }
