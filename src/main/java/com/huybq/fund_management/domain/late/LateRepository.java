@@ -52,5 +52,7 @@ public interface LateRepository extends JpaRepository<Late, Long> {
 
     @Query("SELECT l FROM Late l WHERE l.user.id= :userId AND l.date BETWEEN :fromDate AND :toDate")
     List<Late> findLatesByUser_IdAndDateRange(@Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate, @Param("userId") Long userId);
+
+
 }
 

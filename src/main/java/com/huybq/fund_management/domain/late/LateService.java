@@ -274,6 +274,18 @@ public class LateService {
         return result;  // Trả về danh sách LateWithPenBillDTO
     }
 
+    @Transactional
+    public void deleteLateRecord(Long lateId, Long penBillId) {
+        // Xóa bản ghi PenBill nếu có
+        if (penBillId != null) {
+            penBillRepository.deleteById(penBillId);
+        }
+
+        // Xóa bản ghi đi muộn
+        repository.deleteById(lateId);
+    }
+
+
 
 
 //    public void sendLateReminder() {

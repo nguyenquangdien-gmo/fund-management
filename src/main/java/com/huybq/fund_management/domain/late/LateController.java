@@ -56,6 +56,18 @@ public class LateController {
         return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth());
     }
 
+    @DeleteMapping("users/{lateId}")
+    public ResponseEntity<?> deleteLateRecord(
+            @PathVariable Long lateId,
+            @RequestParam(required = false) Long penBillId
+    ) {
+        System.out.println("Received lateId: " + lateId);
+        service.deleteLateRecord(lateId, penBillId);
+        return ResponseEntity.noContent().build();
+    }
+
+
+
 //    @GetMapping("/users/monthly")
 //    public List<?> getLatesFromPrevious28thToCurrent28th() {
 //        return service.getLatesFromPrevious1stToCurrent1st();
