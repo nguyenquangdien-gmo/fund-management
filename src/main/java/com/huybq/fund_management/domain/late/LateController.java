@@ -18,10 +18,10 @@ public class LateController {
     private final LateService service;
 
     @GetMapping("/users")
-    public ResponseEntity<List<Late>> getLateRecords(
+    public ResponseEntity<List<LateWithPenBillDTO>> getLateRecords(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
-        List<Late> lateRecords = service.getLateRecordsByDateRange(fromDate, toDate);
+        List<LateWithPenBillDTO> lateRecords = service.getLateRecordsWithPenBill(fromDate, toDate);
         return ResponseEntity.ok(lateRecords);
     }
 

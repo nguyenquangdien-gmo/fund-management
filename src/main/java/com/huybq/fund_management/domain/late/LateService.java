@@ -1,7 +1,9 @@
 package com.huybq.fund_management.domain.late;
 
 import com.huybq.fund_management.domain.pen_bill.PenBill;
+import com.huybq.fund_management.domain.pen_bill.PenBillDTO;
 import com.huybq.fund_management.domain.pen_bill.PenBillRepository;
+import com.huybq.fund_management.domain.pen_bill.PenBillService;
 import com.huybq.fund_management.domain.penalty.Penalty;
 import com.huybq.fund_management.domain.penalty.PenaltyRepository;
 import com.huybq.fund_management.domain.schedule.Schedule;
@@ -44,6 +46,7 @@ public class LateService {
     private final PenBillRepository penBillRepository;
     private final Notification notification;
     private final TeamService teamService;
+    private final PenBillService penBillService;
     private final ScheduleRepository scheduleRepository;
     private final LateMapper mapper;
     private final UserMapper userMapper;
@@ -241,6 +244,37 @@ public class LateService {
         return repository.findUsersWithLateInDate(today).stream()
                 .map(userMapper::toResponseDTO).toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<LateWithPenBillDTO> getLateRecordsWithPenBill(LocalDate fromDate, LocalDate toDate) {
+        // Lấy tất cả các bản ghi Late trong khoảng thời gian từ fromDate đến toDate
+        List<Late> lates = repository.findByDateRange(fromDate, toDate);
+        List<LateWithPenBillDTO> result = new ArrayList<>();
+
+        // Lặp qua tất cả các bản ghi Late
+        for (Late late : lates) {
+            // Tìm PenBillDTO từ PenBillService
+            Optional<PenBillDTO> penBillOpt = penBillService.findByUserAndPenaltyAndDate(
+                    late.getUser(), 1L, late.getDate()); // Giả sử penaltyID là 1L
+
+            // Tạo LateWithPenBillDTO từ đối tượng Late và PenBillDTO
+            LateWithPenBillDTO lateWithPenBillDTO = new LateWithPenBillDTO(
+                    late.getId(),                     // ID của Late
+                    late.getUser(),                   // User của Late
+                    late.getDate(),                   // Ngày đi muộn
+                    late.getCheckinAt(),              // Thời gian check-in
+                    late.getNote(),                   // Ghi chú
+                    penBillOpt.orElse(null)           // PenBillDTO, nếu không có thì null
+            );
+
+            // Thêm LateWithPenBillDTO vào danh sách kết quả
+            result.add(lateWithPenBillDTO);
+        }
+
+        return result;  // Trả về danh sách LateWithPenBillDTO
+    }
+
+
 
 //    public void sendLateReminder() {
 //

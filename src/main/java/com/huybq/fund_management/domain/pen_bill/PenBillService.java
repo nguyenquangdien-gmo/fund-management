@@ -23,10 +23,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -237,5 +234,11 @@ public class PenBillService {
 
         // Gửi thông báo lên ChatOps
         notification.sendNotification(message.toString(), "java");
+    }
+
+    public Optional<PenBillDTO> findByUserAndPenaltyAndDate(User user, Long penaltyID, LocalDate date) {
+        return penBillRepository
+                .findByUserAndPenaltyAndCreatedDate(user.getId(), penaltyID, date)
+                .map(penBill -> mapper.toDTO(penBill));
     }
 }
