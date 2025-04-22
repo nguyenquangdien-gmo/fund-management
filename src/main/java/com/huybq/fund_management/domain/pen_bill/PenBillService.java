@@ -181,40 +181,52 @@ public class PenBillService {
         return penBillRepository.getPenaltyStatisticsByYear(year);
     }
 
-    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh")
-    public void sendNotificationPenBill() {
-        LocalDate now = LocalDate.now();
-        int month = now.getMonthValue();
-        int year = now.getYear();
-
-        List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
-
-        for (Object[] row : unpaidInfoList) {
-            User user = (User) row[0];
-            BigDecimal totalUnpaid = (BigDecimal) row[1];
-
-            String mention = "@" + user.getEmail().replace("@", "-");
-
-            String message = mention +
-                    "\n💸 Bạn có hóa đơn phạt chưa thanh toán!" +
-                    "\n🗓 Vào ngày: " + month + "/" + year +
-                    "\n💰 Số tiền: " + totalUnpaid + " VNĐ";
-
-            notification.sendNotification(message, "java");
-        }
+    //    public void sendNotificationPenBill() {
+//        LocalDate now = LocalDate.now();
+//        int month = now.getMonthValue();
+//        int year = now.getYear();
+//
+//        List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
+//
+//        for (Object[] row : unpaidInfoList) {
+//            User user = (User) row[0];
+//            BigDecimal totalUnpaid = (BigDecimal) row[1];
+//
+//            String mention = "@" + user.getEmail().replace("@", "-");
+//
+//            String message = mention +
+//                    "\n💸 Bạn có hóa đơn phạt chưa thanh toán!" +
+//                    "\n🗓 Vào ngày: " + month + "/" + year +
+//                    "\n💰 Số tiền: " + totalUnpaid + " VNĐ";
+//
+//            notification.sendNotification(message, "java");
+//        }
+//    }
+    private String formatCurrency(BigDecimal amount) {
+        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+        return formatter.format(amount);
     }
+
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh")
 
     public void sendNotificationPenBillNew() {
         LocalDate now = LocalDate.now();
         int month = now.getMonthValue();
         int year = now.getYear();
 
-        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
         List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
 
         if (unpaidInfoList.isEmpty()) {
             notification.sendNotification("@all\n🎉 **Tuyệt vời! Không ai còn hóa đơn phạt chưa thanh toán trong tháng này!** 🎉", "java");
             return;
+        }
+
+        Map<User, BigDecimal> userToUnpaidMap = new LinkedHashMap<>();
+        for (Object[] row : unpaidInfoList) {
+            User user = (User) row[0];
+            BigDecimal amount = (BigDecimal) row[1];
+
+            userToUnpaidMap.merge(user, amount, BigDecimal::add);
         }
 
         StringBuilder message = new StringBuilder();
@@ -224,13 +236,13 @@ public class PenBillService {
         message.append("|---|---|---|\n");
 
         int index = 1;
-        for (Object[] row : unpaidInfoList) {
-            User user = (User) row[0];
-            BigDecimal totalUnpaid = (BigDecimal) row[1];
-
+        for (Map.Entry<User, BigDecimal> entry : userToUnpaidMap.entrySet()) {
+            User user = entry.getKey();
+            BigDecimal totalUnpaid = entry.getValue();
             String mention = "@" + user.getEmail().replace("@", "-");
+
             message.append("| ").append(index++).append(" | ").append(mention).append(" | ")
-                    .append(formatter.format(totalUnpaid)).append(" VNĐ |\n");
+                    .append(formatCurrency(totalUnpaid)).append(" VNĐ |\n");
         }
 
         message.append("\nVui lòng vào [đây](https://fund-manager-client-e1977.web.app/bills) để kiểm tra và thanh toán.")
@@ -240,8 +252,8 @@ public class PenBillService {
 
         notification.sendNotification(message.toString(), "java");
     }
+
     public void sendUnpaidCheckinBillNotification() {
-        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
         List<PenBillResponse> lateRecords = penBillRepository.findBillsAndTotalUnpaidAmountInDate(LocalDate.now())
                 .stream().map(mapper::toPenBillResponse).toList();
 
@@ -250,16 +262,26 @@ public class PenBillService {
             return;
         }
 
+        Map<UserResponseDTO,BigDecimal> userToUnpaid = new LinkedHashMap<>();
+        for (PenBillResponse record : lateRecords) {
+            UserResponseDTO user = record.getUser();
+            BigDecimal amount = record.getAmount();
+            userToUnpaid.merge(user, amount, BigDecimal::add);
+        }
+
         StringBuilder message = new StringBuilder();
         message.append("🚨 **Danh sách đi trễ quá số lần cho phép nhưng chưa đóng phạt ").append(" ** 🚨\n\n");
         message.append("| STT | Tên | Số tiền nợ  |\n");
         message.append("|---|---|---|\n");
 
         int index = 1;
-        for (PenBillResponse record : lateRecords) {
+        for (Map.Entry<UserResponseDTO, BigDecimal> unpaidUser : userToUnpaid.entrySet()) {
+            UserResponseDTO user = unpaidUser.getKey();
+            BigDecimal amount = unpaidUser.getValue();
+
             message.append("| ").append(index++).append(" | @")
-                    .append(record.getUser().email().replace("@", "-")).append(" |")
-                    .append(formatter.format(record.getAmount())).append(" VN").append(" |\n");
+                    .append(user.email().replace("@", "-")).append(" |")
+                    .append(formatCurrency(amount)).append(" VN").append(" |\n");
         }
 
         message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng phạt nếu có.\n")

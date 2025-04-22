@@ -203,10 +203,10 @@ public class LateService {
         System.out.println("saving successfully.");
     }
 
-    @Transactional(readOnly = true)
-    public List<Late> getLateRecordsByDateRange(LocalDate fromDate, LocalDate toDate) {
-        return repository.findByDateRange(fromDate, toDate);
-    }
+//    @Transactional(readOnly = true)
+//    public List<Late> getLateRecordsByDateRange(LocalDate fromDate, LocalDate toDate) {
+//        return repository.findByDateRange(fromDate, toDate);
+//    }
 
     /**
      * Parse thời gian từ string
@@ -222,16 +222,16 @@ public class LateService {
         }
     }
 
-    public static String formatLocalDate(LocalDate date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        return date.format(formatter);
-    }
-
-    public List<UserResponseDTO> getUsersWithLateDate() {
-        LocalDate today = LocalDate.now();
-        return repository.findUsersWithLateInDate(today).stream()
-                .map(userMapper::toResponseDTO).toList();
-    }
+//    public static String formatLocalDate(LocalDate date) {
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+//        return date.format(formatter);
+//    }
+//
+//    public List<UserResponseDTO> getUsersWithLateDate() {
+//        LocalDate today = LocalDate.now();
+//        return repository.findUsersWithLateInDate(today).stream()
+//                .map(userMapper::toResponseDTO).toList();
+//    }
 
     @Transactional(readOnly = true)
     public List<LateWithPenBillDTO> getLateRecordsWithPenBill(LocalDate fromDate, LocalDate toDate) {
