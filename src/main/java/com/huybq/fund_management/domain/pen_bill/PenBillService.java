@@ -108,7 +108,6 @@ public class PenBillService {
         createTrans(penBill, "Thành viên " + penBill.getUser().getFullName() + " đã thanh toán khoản phạt " + penBill.getPenalty().getName());
     }
 
-
     public void rejectPenBill(Long id, String reason) {
         PenBill penBill = penBillRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("PenBill not found with ID: " + id));
@@ -135,7 +134,6 @@ public class PenBillService {
 
         transRepository.save(transaction);
     }
-
 
     public void deletePenBill(Long id) {
         if (!penBillRepository.existsById(id)) {
@@ -166,8 +164,6 @@ public class PenBillService {
                     }
                 });
     }
-
-
 
     // 1. Thống kê tổng tiền phạt theo từng tháng trong năm
     public List<Map<String, Object>> getMonthlyPenaltyStats(int year) {
