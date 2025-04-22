@@ -15,7 +15,6 @@ import java.util.List;
 public class PenBillDTO {
     private Long id;
 
-    @NotNull(message = "User ID is required")
     private Long userId;
 
     @NotNull(message = "Penalty slug is required")
