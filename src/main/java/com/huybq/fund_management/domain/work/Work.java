@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Work {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -35,6 +36,7 @@ public class Work {
 
     private String reason;
 
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     @ManyToOne

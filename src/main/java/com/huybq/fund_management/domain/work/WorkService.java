@@ -38,14 +38,15 @@ public class WorkService {
                 });
 
         // Create and save work status
-        Work Work = new Work();
-        Work.setUser(user);
-        Work.setDate(request.getDate());
-        Work.setType(request.getType());
-        Work.setTimePeriod(TimePeriod.valueOf(request.getTimePeriod()));
-        Work.setReason(request.getReason());
+        Work work = new Work();
+        work.setUser(user);
+        work.setStatus(Work.Status.PENDING);
+        work.setDate(request.getDate());
+        work.setType(request.getType());
+        work.setTimePeriod(TimePeriod.valueOf(request.getTimePeriod()));
+        work.setReason(request.getReason());
 
-        Work savedStatus = workRepository.save(Work);
+        Work savedStatus = workRepository.save(work);
 
         return mapper.toWorkResponseDTO(savedStatus);
     }

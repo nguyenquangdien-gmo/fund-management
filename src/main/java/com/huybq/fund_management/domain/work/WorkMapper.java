@@ -18,7 +18,7 @@ public class WorkMapper {
                 .timePeriod(work.getTimePeriod())
                 .reason(work.getReason())
                 .status(work.getStatus().name())
-                .approvedByName(work.getApprovedBy().getFullName())
+                .approvedByName(work.getApprovedBy()==null?null:work.getApprovedBy().getFullName())
                 .createdAt(work.getCreatedAt())
                 .build();
     }
