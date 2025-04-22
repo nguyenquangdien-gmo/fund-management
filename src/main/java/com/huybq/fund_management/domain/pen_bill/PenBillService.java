@@ -146,19 +146,27 @@ public class PenBillService {
 
     public void createBill(PenBillDTO penBillDTO) {
         Penalty penalty = penaltyService.getPenaltyBySlug(penBillDTO.getPenaltySlug());
+
         userRepository.findAllById(penBillDTO.userIds)
                 .forEach(user -> {
-                    PenBill penBill = PenBill.builder()
-                            .user(user)
-                            .penalty(penalty)
-                            .totalAmount(penalty.getAmount())
-                            .description(penBillDTO.getDescription())
-                            .paymentStatus(PenBill.Status.UNPAID)
-                            .dueDate(penBillDTO.getDueDate())
-                            .build();
-                    penBillRepository.save(penBill);
+                    boolean alreadyExists = penBillRepository
+                            .findByUserAndPenaltyAndCreatedDate(user.getId(), penalty.getId(), LocalDate.now())
+                            .isPresent();
+
+                    if (!alreadyExists) {
+                        PenBill penBill = PenBill.builder()
+                                .user(user)
+                                .penalty(penalty)
+                                .totalAmount(penalty.getAmount())
+                                .description(penBillDTO.getDescription())
+                                .paymentStatus(PenBill.Status.UNPAID)
+                                .dueDate(penBillDTO.getDueDate())
+                                .build();
+                        penBillRepository.save(penBill);
+                    }
                 });
     }
+
 
 
     // 1. Thống kê tổng tiền phạt theo từng tháng trong năm
