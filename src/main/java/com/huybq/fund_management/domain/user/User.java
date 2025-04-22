@@ -51,6 +51,9 @@
 
         private String phone;
 
+        @Lob
+        private byte[] avatar;
+
         private String position;
         private LocalDate dob;
         private LocalDate joinDate;
