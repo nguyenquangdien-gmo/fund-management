@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface PenBillRepository extends JpaRepository<PenBill, Long> {
@@ -77,5 +78,18 @@ public interface PenBillRepository extends JpaRepository<PenBill, Long> {
                   AND p.paymentStatus = 'UNPAID'
             """)
     List<PenBill> findBillsAndTotalUnpaidAmountInDate(@Param("date") LocalDate date);
+
+
+    @Query("""
+        SELECT p FROM PenBill p 
+        WHERE p.user.id = :userId 
+          AND p.penalty.id = :penaltyId 
+          AND DATE(p.createdAt) = :createdDate
+    """)
+    Optional<PenBill> findByUserAndPenaltyAndCreatedDate(
+            @Param("userId") Long userId,
+            @Param("penaltyId") Long penaltyId,
+            @Param("createdDate") LocalDate createdDate
+    );
 
 }

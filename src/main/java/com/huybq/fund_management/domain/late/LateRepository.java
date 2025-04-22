@@ -68,6 +68,5 @@ public interface LateRepository extends JpaRepository<Late, Long> {
 """)
     List<User> findUserLateInDate(@Param("today") LocalDate today);
 
-
 }
 
