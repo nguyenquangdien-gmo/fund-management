@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.contributions;
 
 import com.huybq.fund_management.domain.user.User;
+import com.huybq.fund_management.domain.user.UserDebtDTO;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -60,5 +61,14 @@ ContributionStatsDTO getYearContributionStatistics(@Param("year") int year);
             "ELSE 4 END, c.createdAt ASC")
     List<Contribution> findAllOrderByPaymentStatusPriority();
 
-
+    @Query("""
+    SELECT u.id, u.fullName, u.email, u.role.name, u.phone, u.position,
+           u.team.name, u.dob, u.joinDate,
+           p.month, p.year, p.totalAmount
+    FROM User u
+    JOIN Period p ON (p.year < :year OR (p.year = :year AND p.month <= :month))
+    LEFT JOIN Contribution c ON c.user = u AND c.period = p
+    WHERE c.id IS NULL
+""")
+    List<Object[]> findUnpaidContributionsBefore(@Param("month") int month, @Param("year") int year);
 }

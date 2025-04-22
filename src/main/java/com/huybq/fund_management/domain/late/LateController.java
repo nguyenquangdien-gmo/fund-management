@@ -51,10 +51,10 @@ public class LateController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/users/date")
-    public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate() {
-        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth());
-    }
+//    @GetMapping("/users/date")
+//    public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate() {
+//        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth());
+//    }
 
     @DeleteMapping("users/{lateId}")
     public ResponseEntity<?> deleteLateRecord(

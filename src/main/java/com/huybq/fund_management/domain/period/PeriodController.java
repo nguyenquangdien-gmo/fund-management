@@ -20,6 +20,11 @@ public class PeriodController {
         return ResponseEntity.ok(periodService.getAllPeriods());
     }
 
+    @GetMapping("/get-by-month")
+    public ResponseEntity<Period> getPeriodsByMonth(@RequestParam int month, @RequestParam int year) {
+        return ResponseEntity.ok(periodService.getPeriodByMonthAndYear(month,year));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PeriodDTO> getPeriodById(@PathVariable Long id) {
         return ResponseEntity.ok(periodService.getPeriodById(id));
