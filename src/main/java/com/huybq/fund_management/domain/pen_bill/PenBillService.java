@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.pen_bill;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
+import com.huybq.fund_management.domain.contributions.Contribution;
 import com.huybq.fund_management.domain.invoice.InvoiceType;
 import com.huybq.fund_management.domain.penalty.Penalty;
 import com.huybq.fund_management.domain.penalty.PenaltyDTO;
@@ -115,6 +116,14 @@ public class PenBillService {
         if (penBill.getPaymentStatus() == PenBill.Status.CANCELED) {
             throw new IllegalStateException("PenBill is already cancelled.");
         }
+        PenBill newPenBill = PenBill.builder()
+                .user(penBill.getUser())
+                .penalty(penBill.getPenalty())
+                .totalAmount(penBill.getTotalAmount())
+                .description(penBill.getDescription())
+                .paymentStatus(PenBill.Status.UNPAID)
+                .dueDate(penBill.getDueDate())
+                .build();
         penBill.setPaymentStatus(PenBill.Status.CANCELED);
         if (!reason.isEmpty()) {
             String currentNote = penBill.getDescription() != null ? penBill.getDescription() : "";
@@ -122,6 +131,7 @@ public class PenBillService {
         }
         penBillRepository.save(penBill);
 
+        penBillRepository.save(newPenBill);
         createTrans(penBill, "Hủy hóa đơn phạt " + penBill.getPenalty().getName() + " của " + penBill.getUser().getFullName() + " vì " + reason);
     }
 

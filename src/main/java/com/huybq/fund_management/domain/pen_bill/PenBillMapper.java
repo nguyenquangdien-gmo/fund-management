@@ -32,6 +32,7 @@ public class PenBillMapper {
                 .description(penBill.getDescription())
                 .amount(penBill.getTotalAmount())
                 .paymentStatus(penBill.getPaymentStatus())
+                .createdAt(penBill.getCreatedAt())
                 .build();
     }
 }
