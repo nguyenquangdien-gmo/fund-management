@@ -13,6 +13,7 @@ import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserMapper;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.domain.user.UserResponseDTO;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -294,9 +295,11 @@ public class PenBillService {
         notification.sendNotification(message.toString(), "java");
     }
 
-    public Optional<PenBillDTO> findByUserAndPenaltyAndDate(User user, Long penaltyID, LocalDate date) {
+    public Optional<PenBillDTO> findByUserAndPenaltyAndDate(User user, String penSlug, LocalDate date) {
+        var penalty = penaltyRepository.findBySlug(penSlug).orElseThrow(()-> new ResourceNotFoundException("Penalty not found with slug: "+penSlug));
+
         return penBillRepository
-                .findByUserAndPenaltyAndCreatedDate(user.getId(), penaltyID, date)
-                .map(penBill -> mapper.toDTO(penBill));
+                .findByUserAndPenaltyAndCreatedDate(user.getId(), penalty.getId(), date)
+                .map(mapper::toDTO);
     }
 }

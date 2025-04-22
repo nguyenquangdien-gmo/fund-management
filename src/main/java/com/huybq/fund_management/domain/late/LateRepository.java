@@ -16,6 +16,7 @@ public interface LateRepository extends JpaRepository<Late, Long> {
     @Modifying
     @Transactional
     void deleteByDate(LocalDate date);
+
     @Query("SELECT l FROM Late l WHERE l.date BETWEEN :fromDate AND :toDate")
     List<Late> findByDateRange(@Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
 //    @Query("SELECT l.user, COUNT(l) FROM Late l " +

@@ -239,27 +239,24 @@ public class LateService {
         List<Late> lates = repository.findByDateRange(fromDate, toDate);
         List<LateWithPenBillDTO> result = new ArrayList<>();
 
-        // Lặp qua tất cả các bản ghi Late
         for (Late late : lates) {
-            // Tìm PenBillDTO từ PenBillService
             Optional<PenBillDTO> penBillOpt = penBillService.findByUserAndPenaltyAndDate(
-                    late.getUser(), 1L, late.getDate()); // Giả sử penaltyID là 1L
+                    late.getUser(), "late-check-in", late.getDate()); // Giả sử penaltyID là 1L
 
-            // Tạo LateWithPenBillDTO từ đối tượng Late và PenBillDTO
             LateWithPenBillDTO lateWithPenBillDTO = new LateWithPenBillDTO(
-                    late.getId(),                     // ID của Late
-                    late.getUser(),                   // User của Late
-                    late.getDate(),                   // Ngày đi muộn
-                    late.getCheckinAt(),              // Thời gian check-in
-                    late.getNote(),                   // Ghi chú
-                    penBillOpt.orElse(null)           // PenBillDTO, nếu không có thì null
+                    late.getId(),
+                    late.getUser(),
+                    late.getDate(),
+                    late.getCheckinAt(),
+                    late.getNote(),
+                    penBillOpt.orElse(null)
             );
 
             // Thêm LateWithPenBillDTO vào danh sách kết quả
             result.add(lateWithPenBillDTO);
         }
 
-        return result;  // Trả về danh sách LateWithPenBillDTO
+        return result;
     }
 
     @Transactional
