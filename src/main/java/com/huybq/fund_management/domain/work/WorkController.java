@@ -19,11 +19,31 @@ import java.util.List;
 public class WorkController {
     private final WorkService service;
 
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<WorkResponseDTO>> getAllWorks() {
+        List<WorkResponseDTO> works = service.getAllWorks();
+        return ResponseEntity.ok(works);
+    }
+
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<WorkResponseDTO> createWorkStatus(@RequestBody WorkDTO request) {
         WorkResponseDTO response = service.createWork(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<WorkResponseDTO>> getWorksWithStatus(@PathVariable("status") String status) {
+        List<WorkResponseDTO> pendingWorks = service.getWorksWithStatus(status.toUpperCase());
+        return ResponseEntity.ok(pendingWorks);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateWork(@PathVariable Long id, @RequestBody WorkDTO request) {
+        service.updateWork(id, request);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/user/{userId}")
@@ -72,7 +92,6 @@ public class WorkController {
         return ResponseEntity.ok(response);
     }
 
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteWorkStatus(@PathVariable Long id) {
@@ -89,5 +108,23 @@ public class WorkController {
         Long count = service.countWorkDaysInMonthWithType(userId, type.toUpperCase(), month.getYear(), month.getMonthValue());
         return ResponseEntity.ok(count);
     }
+
+    @GetMapping("/work-summary")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<WorkSummaryResponse>> getWorkSummaryByMonth(
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return ResponseEntity.ok(service.getWorkSummaryByMonth(year, month));
+    }
+
+    @GetMapping("/work-by-date")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserWorkResponse>> getWorkByDate(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        return ResponseEntity.ok(service.getWorkByDate(date));
+    }
+
 
 }

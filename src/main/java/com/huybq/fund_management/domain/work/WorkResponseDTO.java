@@ -15,7 +15,8 @@ public class WorkResponseDTO {
     private Long id;
     private Long userId;
     private String fullName;
-    private LocalDate date;
+    private LocalDate fromDate;
+    private LocalDate toDate;
     private StatusType type;
     private TimePeriod timePeriod;
     private String reason;

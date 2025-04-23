@@ -11,7 +11,8 @@ import java.time.LocalDate;
 @Builder
 public class WorkDTO {
     private Long userId;
-    private LocalDate date;
+    private LocalDate fromDate;
+    private LocalDate toDate;
     private StatusType type;
     private String timePeriod;
     private String reason;

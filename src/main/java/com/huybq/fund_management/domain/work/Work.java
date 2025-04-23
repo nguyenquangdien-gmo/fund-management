@@ -16,38 +16,41 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Work {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public class Work {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+        @ManyToOne
+        @JoinColumn(name = "user_id")
+        private User user;
 
-    @Column(nullable = false)
-    private LocalDate date;
+        @Column(nullable = false)
+        private LocalDate fromDate;
 
-    @Enumerated(EnumType.STRING)
-    private StatusType type; // WFH, LEAVE
+        @Column(nullable = false)
+        private LocalDate toDate;
 
-    @Enumerated(EnumType.STRING)
-    private TimePeriod timePeriod; // AM, PM, FULL
+        @Enumerated(EnumType.STRING)
+        private StatusType type; // WFH, LEAVE
 
-    private String reason;
+        @Enumerated(EnumType.STRING)
+        private TimePeriod timePeriod; // AM, PM, FULL
 
-    @Enumerated(EnumType.STRING)
-    private Status status;
+        private String reason;
 
-    @ManyToOne
-    @JoinColumn(name = "approved_by")
-    private User approvedBy;
+        @Enumerated(EnumType.STRING)
+        private Status status;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+        @ManyToOne
+        @JoinColumn(name = "approved_by")
+        private User approvedBy;
 
-    public enum Status {
-        PENDING, APPROVED, REJECTED
+        @CreationTimestamp
+        private LocalDateTime createdAt;
+
+        public enum Status {
+            PENDING, APPROVED, REJECTED
+        }
     }
-}
 

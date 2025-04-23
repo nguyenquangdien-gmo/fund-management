@@ -20,6 +20,7 @@ spring:
     multipart:
       enabled: true
       resolve-lazily: false
+      max-file-size: 2MB
 application:
   security:
     jwt:
