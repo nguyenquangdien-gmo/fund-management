@@ -48,10 +48,13 @@ public class TeamService {
     public TeamDTO updateTeam(String slug, TeamDTO teamUpdateDTO, MultipartFile qrCode) throws IOException {
         Team team = repository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
+        System.out.println(teamUpdateDTO.toString());
         //if not have token and channel id than set to old value
         System.out.println(teamUpdateDTO.toString());
-        if (teamUpdateDTO.getToken()==null || teamUpdateDTO.getChannelId()==null) {
+        if (teamUpdateDTO.getToken()==null) {
             teamUpdateDTO.setToken(team.getToken());
+        }
+        if (teamUpdateDTO.getChannelId()==null) {
             teamUpdateDTO.setChannelId(team.getChannelId());
         }
 
