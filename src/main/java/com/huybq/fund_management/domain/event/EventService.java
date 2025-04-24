@@ -95,13 +95,13 @@ public class EventService {
                     eventTime.toLocalDate().equals(now.toLocalDate().plusDays(2))) {
 
                 String hosts = event.getHosts().stream()
-                        .map(User::getFullName)
-                        .collect(Collectors.joining(", "));
+                        .map(user -> "\n @" + user.getEmail().replace("@", "-"))
+                        .collect(Collectors.joining("\n"));
 
                 notification.sendNotification("\uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
                         "\nSẽ diễn ra vào " + eventTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
                         "\nTại " + event.getLocation() +
-                        "\nChủ sự là: " + hosts, "java");
+                        "\nChủ sự là: \n" + hosts, "java");
             }
         }
     }
@@ -112,8 +112,8 @@ public class EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
 
         String hosts = event.getHosts().stream()
-                .map(User::getFullName)
-                .collect(Collectors.joining(", "));
+                .map(user -> "\n @" + user.getEmail().replace("@", "-"))
+                .collect(Collectors.joining("\n"));
         notification.sendNotification("@all\n \uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
                 "\nSẽ diễn ra vào: " + event.getEventTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
                 "\nTại: " + event.getLocation() + "\nChủ sự là: " + hosts, "java");

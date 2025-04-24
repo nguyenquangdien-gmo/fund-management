@@ -30,7 +30,6 @@ public class ScheduleManager {
 
     private final ContributionService contributionService;
 
-    private final TeamRepository teamRepository;
     private final PenBillService penBillService;
 
     private ScheduledFuture<?> eventTask;
