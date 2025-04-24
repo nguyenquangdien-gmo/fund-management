@@ -11,41 +11,21 @@ import java.util.Optional;
 
 @Repository
 public interface WorkRepository extends JpaRepository<Work, Long> {
-    @Query("""
-    SELECT w FROM Work w
-    WHERE w.user.id = :userId
-    AND w.timePeriod = :timePeriod
-    AND (w.fromDate <= :toDate AND w.toDate >= :fromDate)
-""")
-    List<Work> findOverlappingWorks(@Param("userId") Long userId,
-                                    @Param("fromDate") LocalDate fromDate,
-                                    @Param("toDate") LocalDate toDate,
-                                    @Param("timePeriod") TimePeriod timePeriod);
-
-    @Query("""
-    SELECT w FROM Work w
-    WHERE w.user.id = :userId
-    AND (w.fromDate <= :end AND w.toDate >= :start)
-""")
-    List<Work> findByUserIdAndDateRange(@Param("userId") Long userId,
-                                        @Param("start") LocalDate start,
-                                        @Param("end") LocalDate end);
-
-    @Query("""
-    SELECT w FROM Work w
-    WHERE :date BETWEEN w.fromDate AND w.toDate
-""")
-    List<Work> findByDateRange(@Param("date") LocalDate date);
-
     List<Work> findByUserId(Long userId);
 
-    List<Work> findByUserIdAndType(Long userId, StatusType type);
+    @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND MONTH(w.date) = :month AND YEAR(w.date) = :year")
+    List<Work> findByUserIdAndMonthAndYear(Long userId, int month, int year);
 
-    @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND MONTH(w.fromDate) = :month AND YEAR(w.fromDate) = :year")
-    List<Work> findByUserAndMonthAndYear(@Param("userId") Long userId, @Param("month") int month, @Param("year") int year);
+    @Query("SELECT w FROM Work w WHERE w.date = :date")
+    List<Work> findByDate(LocalDate date);
 
-    @Query("SELECT w FROM Work w WHERE :date BETWEEN w.fromDate AND w.toDate")
-    List<Work> findByDateInRange(@Param("date") LocalDate date);
+    @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND w.type = :type AND MONTH(w.date) = :month AND YEAR(w.date) = :year")
+    List<Work> findWFHByUserAndMonth(Long userId, int month, int year, StatusType type);
 
-    List<Work> findByStatus(Work.Status status);
+    @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND MONTH(w.date) = :month AND YEAR(w.date) = :year")
+    List<Work> findWorksByUserAndMonth(@Param("userId") Long userId, @Param("year") int year, @Param("month") int month);
+
+    @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND w.date = :date")
+    Optional<Work> findWorkByUserAndDate(Long userId, LocalDate date);
+
 }

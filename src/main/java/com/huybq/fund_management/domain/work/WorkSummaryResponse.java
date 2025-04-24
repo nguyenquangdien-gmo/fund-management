@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class WorkSummaryResponse {
-    private Long memberId;
+    private Long userId;
     private String memberName;
     private long wfhDays;
     private long leaveDays;

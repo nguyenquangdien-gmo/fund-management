@@ -3,7 +3,6 @@ package com.huybq.fund_management.domain.work;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @AllArgsConstructor
@@ -11,13 +10,13 @@ import java.time.LocalTime;
 @Setter
 @Getter
 @Builder
-public class WorkDTO {
+public class WorkUpdateDTO {
     private Long userId;
-    private LocalDate fromDate;
-    private LocalDate toDate;
+    private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
     private StatusType type;
     private String timePeriod;
     private String reason;
 }
+
