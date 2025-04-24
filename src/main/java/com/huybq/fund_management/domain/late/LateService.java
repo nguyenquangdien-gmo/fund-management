@@ -99,6 +99,60 @@ public class LateService {
         }
     }
 
+    public void fetchLateCheckinsForCheckNow(LocalTime time, String channelId) {
+        Team team = teamService.getTeamBySlug("java");
+
+        // Kiểm tra sự tồn tại của schedule trước khi lấy channelId
+        Optional<Schedule> scheduleOpt = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"));
+
+        if (scheduleOpt.isPresent()) {
+            // Lấy channelId từ schedule nếu có
+            channelId = scheduleOpt.get().getChannelId().toString();
+        } else if (channelId == null) {
+            // Nếu không có schedule và channelId vẫn null, ném lỗi
+            throw new ResourceNotFoundException("Schedule 'late-check-in' not found or channelId is null");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        long timestamp = now.atZone(vietnamZone)
+                .withHour(time.getHour()).withMinute(time.getMinute()).withSecond(time.getSecond())
+                .toEpochSecond() * 1000;
+
+        String url = "https://chat.runsystem.vn/api/v4/channels/" + channelId + "/posts?since=" + timestamp;
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + team.getToken());
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            Map<String, Object> responseBody = response.getBody();
+            Map<String, Object> posts = (Map<String, Object>) responseBody.get("posts");
+
+            if (posts != null && !posts.isEmpty()) {
+                // Lọc thông báo của ngày hiện tại
+                List<String> matchedMessages = posts.values().stream()
+                        .map(post -> (String) ((Map<String, Object>) post).get("message"))
+                        .filter(message -> message != null && message.contains("THÔNG BÁO DANH SÁCH ĐI LÀM MUỘN " + todayString))
+                        .collect(Collectors.toList());
+
+                if (!matchedMessages.isEmpty()) {
+                    matchedMessages.forEach(this::saveLateRecords);
+                } else {
+                    System.out.println("Không có message đi trễ nào trong dữ liệu API.");
+                }
+            } else {
+                System.out.println("Không có bài viết nào trong dữ liệu API.");
+            }
+        } else {
+            throw new RuntimeException("Lỗi khi gọi API: " + response.getStatusCode());
+        }
+    }
+
     //len lich goi tu dong tu 10h05 t2- t6
     @Scheduled(cron = "0 0 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
     public void scheduledCheckinLate() {
