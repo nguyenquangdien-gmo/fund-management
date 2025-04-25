@@ -13,8 +13,9 @@ public class RestaurantResponseDTO {
     private Long id;
     private String name;
     private String link;
-    private boolean isBlacklisted;
     private int orderCount;
     private int totalVotes;
     private int totalStars;
+    private Restaurant.RestaurantType type; // thêm type
+
 }

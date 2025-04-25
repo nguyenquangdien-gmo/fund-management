@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     List<Restaurant> findAllByIsBlacklistedFalse();
+    boolean existsByLink(String link);
 }

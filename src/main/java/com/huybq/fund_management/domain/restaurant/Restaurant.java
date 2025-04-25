@@ -26,6 +26,11 @@ public class Restaurant {
 
     private String link;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private RestaurantType type;
+
+
     @Column(name = "is_blacklisted", nullable = false)
     private boolean isBlacklisted = false;
 
@@ -42,6 +47,12 @@ public class Restaurant {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+
+    public enum RestaurantType {
+        DRINK,
+        FOOD,
+        BOTH
+    }
 }
 
 

@@ -10,4 +10,5 @@ import lombok.*;
 public class RestaurantRequestDTO {
     private String name;
     private String link;
+    private Restaurant.RestaurantType type; // thêm type
 }

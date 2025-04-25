@@ -6,6 +6,7 @@ public class RestaurantMapper {
         return Restaurant.builder()
                 .name(dto.getName())
                 .link(dto.getLink())
+                .type(dto.getType()) // map type
                 .build();
     }
 
@@ -14,10 +15,10 @@ public class RestaurantMapper {
                 .id(restaurant.getId())
                 .name(restaurant.getName())
                 .link(restaurant.getLink())
-                .isBlacklisted(restaurant.isBlacklisted())
                 .orderCount(restaurant.getOrderCount())
                 .totalVotes(restaurant.getTotalVotes())
                 .totalStars(restaurant.getTotalStars())
+                .type(restaurant.getType())
                 .build();
     }
 }
