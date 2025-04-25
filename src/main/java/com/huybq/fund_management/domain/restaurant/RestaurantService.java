@@ -13,14 +13,14 @@ public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
 
-    public RestaurantResponseDTO createRestaurant(RestaurantRequestDTO dto) {
-        Restaurant restaurant = RestaurantMapper.toEntity(dto);
+    public RestaurantResponseDTO createRestaurant(RestaurantRequestDTO restaurantRequest) {
+        Restaurant restaurant = RestaurantMapper.toEntity(restaurantRequest);
         restaurant = restaurantRepository.save(restaurant);
         return RestaurantMapper.toResponseDTO(restaurant);
     }
 
     public List<RestaurantResponseDTO> getAllRestaurants() {
-        List<Restaurant> restaurants = restaurantRepository.findAll();
+        List<Restaurant> restaurants = restaurantRepository.findAllByIsBlacklistedFalse();
         return restaurants.stream()
                 .map(RestaurantMapper::toResponseDTO)
                 .collect(Collectors.toList());
@@ -31,11 +31,11 @@ public class RestaurantService {
                 .map(RestaurantMapper::toResponseDTO);
     }
 
-    public Optional<RestaurantResponseDTO> updateRestaurant(Long id, RestaurantRequestDTO dto) {
+    public Optional<RestaurantResponseDTO> updateRestaurant(Long id, RestaurantRequestDTO restaurantRequest) {
         return restaurantRepository.findById(id)
                 .map(existing -> {
-                    existing.setName(dto.getName());
-                    existing.setLink(dto.getLink());
+                    existing.setName(restaurantRequest.getName());
+                    existing.setLink(restaurantRequest.getLink());
                     Restaurant updated = restaurantRepository.save(existing);
                     return RestaurantMapper.toResponseDTO(updated);
                 });
