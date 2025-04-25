@@ -20,4 +20,6 @@ public class WorkDTO {
     private StatusType type;
     private String timePeriod;
     private String reason;
+    private String idCreate;
+
 }
