@@ -158,7 +158,7 @@ public class ReminderService {
     @Scheduled(fixedRate = 60000)
     public void processScheduledReminders() {
         LocalDateTime now = LocalDateTime.now();
-        List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.UNSENT);
+        List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.SENT);
         reminders.forEach(reminder -> {
             if (reminder.isSendChatGroup()) {
                 sendNotification(reminder);

@@ -15,13 +15,15 @@ public class WorkMapper {
                 .fullName(work.getUser().getFullName())
                 .startTime(work.getStartTime())
                 .endTime(work.getEndTime())
-                .date(work.getDate())
+                .fromDate(work.getFromDate())
+                .endDate(work.getEndDate())
                 .type(work.getType())
                 .timePeriod(work.getTimePeriod())
                 .reason(work.getReason())
                 .approvedByName(work.getApprovedBy() == null ? null : work.getApprovedBy().getFullName())
                 .approvedById(work.getApprovedBy() == null ? null : work.getApprovedBy().getId())
                 .createdAt(work.getCreatedAt())
+                .idCreate(work.getIdCreate())
                 .build();
     }
 }

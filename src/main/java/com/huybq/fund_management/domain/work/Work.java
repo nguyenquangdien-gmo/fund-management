@@ -28,7 +28,10 @@ public class Work {
     private User user;
 
     @Column(nullable = false)
-    private LocalDate date;
+    private LocalDate fromDate;
+
+    @Column(nullable = false)
+    private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
     private StatusType type; // WFH, LEAVE

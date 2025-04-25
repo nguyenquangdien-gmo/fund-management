@@ -45,39 +45,41 @@ public class WorkService {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        LocalDate fromDate = dto.getFromDate(); // assume fromDate, toDate in DTO
-        LocalDate toDate = dto.getToDate();
-
-        List<Work> works = new ArrayList<>();
-
-        for (LocalDate date = fromDate; !date.isAfter(toDate); date = date.plusDays(1)) {
-            LocalTime start = dto.getStartTime() != null
-                    ? dto.getStartTime()
-                    : LocalTime.of(8, 0);
-
-            LocalTime end = dto.getEndTime() != null
-                    ? dto.getEndTime()
-                    : LocalTime.of(17, 0);
-
-            TimePeriod period = resolveTimePeriod(start, end);
-
-            Work work = new Work();
-            work.setUser(user);
-            work.setDate(date);
-            work.setStartTime(start);
-            work.setEndTime(end);
-            work.setType(dto.getType());
-            work.setTimePeriod(period);
-            work.setReason(dto.getReason());
-
-            works.add(work);
+        // Không cho tạo nếu là tháng trước
+        LocalDate now = LocalDate.now();
+        if (dto.getFromDate().getMonthValue() < now.getMonthValue() || dto.getEndDate().getMonthValue() < now.getMonthValue()) {
+            throw new BusinessException("Cannot create work in the previous month");
         }
 
-        List<Work> saved = workRepository.saveAll(works);
-        return saved.stream()
-                .map(mapper::toWorkResponseDTO)
-                .collect(Collectors.toList());
+        // Kiểm tra xem đã tồn tại Work giao thời gian chưa
+        boolean exists = workRepository.existsByUserIdAndDateRangeOverlap(
+                dto.getUserId(), dto.getFromDate(), dto.getEndDate()
+        );
+        if (exists) {
+            throw new BusinessException("This user already has work during the selected time period");
+        }
+
+        // Xử lý thời gian bắt đầu - kết thúc
+        LocalTime start = dto.getStartTime() != null ? dto.getStartTime() : LocalTime.of(8, 0);
+        LocalTime end = dto.getEndTime() != null ? dto.getEndTime() : LocalTime.of(17, 0);
+        TimePeriod period = resolveTimePeriod(start, end);
+
+        // Tạo và lưu Work
+        Work work = new Work();
+        work.setUser(user);
+        work.setFromDate(dto.getFromDate());
+        work.setEndDate(dto.getEndDate());
+        work.setStartTime(start);
+        work.setEndTime(end);
+        work.setType(dto.getType());
+        work.setTimePeriod(period);
+        work.setReason(dto.getReason());
+        work.setIdCreate(dto.getIdCreate());
+
+        Work saved = workRepository.save(work);
+        return List.of(mapper.toWorkResponseDTO(saved));
     }
+
 
 
     private TimePeriod resolveTimePeriod(LocalTime start, LocalTime end) {
@@ -106,8 +108,8 @@ public class WorkService {
     }
 
     public Long countDaysInMonthWithType(Long userId, int year, int month, String type) {
-        return workRepository.findWFHByUserAndMonth(userId, month, year, StatusType.valueOf(type))
-                .stream().count(); // Mỗi work đại diện 1 ngày
+        return (long) workRepository.findWorksByUserAndMonthWithType(userId, month, year, StatusType.valueOf(type))
+                .size(); // Mỗi work đại diện 1 ngày
     }
 
     public List<WorkSummaryResponse> getWorkSummaryByMonth(int year, int month) {
@@ -118,14 +120,20 @@ public class WorkService {
 
             long wfhDays = works.stream()
                     .filter(w -> w.getType() == StatusType.WFH)
-                    .count();
+                    .mapToLong(w -> daysBetween(w.getFromDate(), w.getEndDate()))
+                    .sum();
 
             long leaveDays = works.stream()
                     .filter(w -> w.getType() == StatusType.LEAVE)
-                    .count();
+                    .mapToLong(w -> daysBetween(w.getFromDate(), w.getEndDate()))
+                    .sum();
 
             return new WorkSummaryResponse(user.getId(), user.getFullName(), wfhDays, leaveDays);
         }).collect(Collectors.toList());
+    }
+
+    private long daysBetween(LocalDate from, LocalDate to) {
+        return ChronoUnit.DAYS.between(from, to) + 1;
     }
 
     public List<WorkResponseDTO> getUserWorkDetails(Long userId, int year, int month) {
@@ -135,42 +143,27 @@ public class WorkService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void updateWork(Long id, WorkUpdateDTO dto) {
-        Work work = workRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Work not found with id: " + id));
-
-        if (dto.getDate() != null) {
-            work.setDate(dto.getDate());
-        }
-
-        if (dto.getStartTime() != null) {
-            work.setStartTime(dto.getStartTime());
-        }
-
-        if (dto.getEndTime() != null) {
-            work.setEndTime(dto.getEndTime());
-        }
-
-        if (dto.getType() != null) {
-            work.setType(dto.getType());
-        }
-
-        if (dto.getReason() != null) {
-            work.setReason(dto.getReason());
-        }
-
-        // Tính lại TimePeriod nếu thời gian thay đổi
-        if (dto.getStartTime() != null || dto.getEndTime() != null) {
-            TimePeriod period = resolveTimePeriod(
-                    work.getStartTime(),
-                    work.getEndTime()
-            );
-            work.setTimePeriod(period);
-        }
-
-        workRepository.save(work);
+    public List<UserWorkResponse> getWorkByDate(LocalDate date) {
+        List<Work> works = workRepository.findByDate(date);
+        return works.stream()
+                .map(w -> UserWorkResponse.builder()
+                        .userId(w.getUser().getId())
+                        .fullName(w.getUser().getFullName())
+                        .fromDate(w.getFromDate())
+                        .toDate(w.getEndDate())
+                        .startTime(w.getStartTime())
+                        .endTime(w.getEndTime())
+                        .type(w.getType().name())
+                        .build())
+                .collect(Collectors.toList());
     }
+
+//    public List<WorkResponseDTO> getWorksByDate(LocalDate date) {
+//        List<Work> works = workRepository.findByDateRange(date);
+//        return works.stream()
+//                .map(mapper::toWorkResponseDTO)
+//                .collect(Collectors.toList());
+//    }
 
     @Transactional
     public void deleteWork(Long id) {

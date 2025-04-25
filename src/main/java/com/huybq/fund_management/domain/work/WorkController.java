@@ -38,13 +38,6 @@ public class WorkController {
         return new ResponseEntity<>(createdWorks, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updateWork(@PathVariable Long id, @RequestBody WorkUpdateDTO request) {
-        workService.updateWork(id, request);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{date}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<UserWorkResponse>> getWorksByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {

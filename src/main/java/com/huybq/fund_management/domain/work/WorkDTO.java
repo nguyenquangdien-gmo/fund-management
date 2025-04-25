@@ -14,12 +14,11 @@ import java.time.LocalTime;
 public class WorkDTO {
     private Long userId;
     private LocalDate fromDate;
-    private LocalDate toDate;
+    private LocalDate endDate;
     private LocalTime startTime;
     private LocalTime endTime;
     private StatusType type;
     private String timePeriod;
     private String reason;
     private String idCreate;
-
 }

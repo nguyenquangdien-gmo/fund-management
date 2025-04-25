@@ -28,8 +28,11 @@ application:
       expiration: 604800000  # 1 hour 3600000
       refresh-token:
         expiration: 604800000 # a week
-
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
 server:
   domain:
     url-v1: http://localhost:3000
