@@ -8,9 +8,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +79,6 @@ public class WorkService {
     }
 
 
-
     private TimePeriod resolveTimePeriod(LocalTime start, LocalTime end) {
         if (start.equals(LocalTime.of(8, 0)) && end.equals(LocalTime.of(12, 0))) {
             return TimePeriod.AM;
@@ -107,9 +104,18 @@ public class WorkService {
                 .collect(Collectors.toList());
     }
 
-    public Long countDaysInMonthWithType(Long userId, int year, int month, String type) {
-        return (long) workRepository.findWorksByUserAndMonthWithType(userId, month, year, StatusType.valueOf(type))
-                .size(); // Mỗi work đại diện 1 ngày
+    public int countDaysInMonthWithType(Long userId, int year, int month, String type) {
+        List<Work> works = workRepository.findWorksByUserAndMonthWithType(userId, year, month, StatusType.valueOf(type));
+
+        int totalDays = 0;
+        for (Work work : works) {
+            // For each work record, calculate days between fromDate and endDate (inclusive)
+            // Adding 1 because both start and end dates should be counted
+            long days = ChronoUnit.DAYS.between(work.getFromDate(), work.getEndDate()) + 1;
+            totalDays += days;
+        }
+
+        return totalDays;
     }
 
     public List<WorkSummaryResponse> getWorkSummaryByMonth(int year, int month) {
@@ -118,17 +124,7 @@ public class WorkService {
         return users.stream().map(user -> {
             List<Work> works = workRepository.findWorksByUserAndMonth(user.getId(), year, month);
 
-            long wfhDays = works.stream()
-                    .filter(w -> w.getType() == StatusType.WFH)
-                    .mapToLong(w -> daysBetween(w.getFromDate(), w.getEndDate()))
-                    .sum();
-
-            long leaveDays = works.stream()
-                    .filter(w -> w.getType() == StatusType.LEAVE)
-                    .mapToLong(w -> daysBetween(w.getFromDate(), w.getEndDate()))
-                    .sum();
-
-            return new WorkSummaryResponse(user.getId(), user.getFullName(), wfhDays, leaveDays);
+            return new WorkSummaryResponse(user.getId(), user.getFullName(), works.stream().map(mapper::toWorkStatsResponse).toList());
         }).collect(Collectors.toList());
     }
 
@@ -137,7 +133,7 @@ public class WorkService {
     }
 
     public List<WorkResponseDTO> getUserWorkDetails(Long userId, int year, int month) {
-        return workRepository.findByUserIdAndMonthAndYear(userId, month, year)
+        return workRepository.findWorksByUserAndMonth(userId, year, month)
                 .stream()
                 .map(mapper::toWorkResponseDTO)
                 .collect(Collectors.toList());

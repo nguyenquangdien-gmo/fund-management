@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -12,6 +14,5 @@ import lombok.NoArgsConstructor;
 public class WorkSummaryResponse {
     private Long userId;
     private String memberName;
-    private long wfhDays;
-    private long leaveDays;
+    private List<WorkStatsResponse> work;
 }

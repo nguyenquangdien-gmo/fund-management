@@ -11,9 +11,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,22 +89,48 @@ public class EventService {
 
         // Dùng phương thức có @EntityGraph
         List<Event> events = eventRepository.findByEventTimeBetween(schedule.getFromDate(), schedule.getToDate());
+        if (events.isEmpty()) {
+            return;
+        }
+
+        StringBuilder notificationMessage = new StringBuilder();
+        LocalDate today = now.toLocalDate();
+        List<String> todayEvents = new ArrayList<>();
+        List<String> upcomingEvents = new ArrayList<>();
 
         for (Event event : events) {
             LocalDateTime eventTime = event.getEventTime();
+            String hosts = event.getHosts().stream()
+                    .map(user -> "@" + user.getEmail().replace("@", "-"))
+                    .collect(Collectors.joining(", "));
 
-            if (eventTime.toLocalDate().equals(now.toLocalDate().plusDays(1)) ||
-                    eventTime.toLocalDate().equals(now.toLocalDate().plusDays(2))) {
+            String eventInfo = "- " + event.getName() +
+                    " vào " + eventTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
+                    " tại " + event.getLocation() +
+                    " (Chủ sự: " + hosts + ")";
 
-                String hosts = event.getHosts().stream()
-                        .map(user -> "\n @" + user.getEmail().replace("@", "-"))
-                        .collect(Collectors.joining("\n"));
-
-                notification.sendNotification("\uD83D\uDCE2 Nhắc lịch: Sự kiện " + event.getName() +
-                        "\nSẽ diễn ra vào " + eventTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
-                        "\nTại " + event.getLocation() +
-                        "\nChủ sự là: \n" + hosts, "java");
+            if (eventTime.toLocalDate().equals(today)) {
+                todayEvents.add(eventInfo);
+            } else {
+                upcomingEvents.add(eventInfo);
             }
+        }
+
+        if (!todayEvents.isEmpty()) {
+            notificationMessage.append("📢 Các sự kiện diễn ra vào ngày hôm nay:\n");
+            todayEvents.forEach(info -> notificationMessage.append(info).append("\n"));
+        }
+
+        if (!upcomingEvents.isEmpty()) {
+            if (!todayEvents.isEmpty()) {
+                notificationMessage.append("\n"); // Nếu có cả hôm nay và sắp tới thì cách dòng
+            }
+            notificationMessage.append("📢 Các sự kiện sắp diễn ra:\n");
+            upcomingEvents.forEach(info -> notificationMessage.append(info).append("\n"));
+        }
+
+        if (!notificationMessage.isEmpty()) {
+            notification.sendNotification(notificationMessage.toString(), "java");
         }
     }
 
@@ -149,7 +177,7 @@ public class EventService {
 
     public EventResponeseDTO updateEvent(Long id, EventDTO eventDTO) {
         Event existingEvent = eventRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Event not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
 
         existingEvent.setName(eventDTO.getName());
         existingEvent.setEventTime(eventDTO.getEventTime());
@@ -164,7 +192,7 @@ public class EventService {
 
     public void deleteEvent(Long id) {
         Event existingEvent = eventRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Event not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
         eventRepository.delete(existingEvent);
     }
 

@@ -26,4 +26,15 @@ public class WorkMapper {
                 .idCreate(work.getIdCreate())
                 .build();
     }
+
+    public WorkStatsResponse toWorkStatsResponse(Work work) {
+        return WorkStatsResponse.builder()
+                .fromDate(work.getFromDate())
+                .endDate(work.getEndDate())
+                .startTime(work.getStartTime())
+                .endTime(work.getEndTime())
+                .type(work.getType())
+                .createdAt(work.getCreatedAt())
+                .build();
+    }
 }

@@ -47,12 +47,12 @@ public class WorkController {
 
     @GetMapping("/user/{userId}/count")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Long> countWorkDaysInMonth(
+    public ResponseEntity<?> countWorkDaysInMonth(
             @PathVariable Long userId,
             @RequestParam int year,
             @RequestParam int month,
             @RequestParam String type) {
-        Long count = workService.countDaysInMonthWithType(userId, year, month,type.toUpperCase());
+        int count = workService.countDaysInMonthWithType(userId, year, month,type.toUpperCase());
         return ResponseEntity.ok(count);
     }
 

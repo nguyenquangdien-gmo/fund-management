@@ -22,7 +22,7 @@ public class Reminder {
     private Long id;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "reminder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "reminder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ReminderUser> reminderUsers = new ArrayList<>();
 
     private String title;

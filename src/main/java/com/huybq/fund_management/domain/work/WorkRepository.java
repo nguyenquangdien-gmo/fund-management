@@ -16,15 +16,18 @@ public interface WorkRepository extends JpaRepository<Work, Long> {
     @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND " +
             "((MONTH(w.fromDate) = :month AND YEAR(w.fromDate) = :year) OR " +
             "(MONTH(w.endDate) = :month AND YEAR(w.endDate) = :year))")
-    List<Work> findByUserIdAndMonthAndYear(Long userId, int month, int year);
+    List<Work> findByUserIdAndMonthAndYear(@Param("userId") Long userId, @Param("year") int year, @Param("month") int month);
 
     @Query("SELECT w FROM Work w WHERE :date BETWEEN w.fromDate AND w.endDate")
     List<Work> findByDate(LocalDate date);
 
-    @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND w.type = :type AND " +
-            "((MONTH(w.fromDate) = :month AND YEAR(w.fromDate) = :year) OR " +
+    @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND w.type = :type AND (" +
+            "(MONTH(w.fromDate) = :month AND YEAR(w.fromDate) = :year) OR " +
             "(MONTH(w.endDate) = :month AND YEAR(w.endDate) = :year))")
-    List<Work> findWorksByUserAndMonthWithType(@Param("userId") Long userId, @Param("year") int year, @Param("month") int month,@Param("type") StatusType type);
+    List<Work> findWorksByUserAndMonthWithType(@Param("userId") Long userId,
+                                               @Param("year") int year,
+                                               @Param("month") int month,
+                                               @Param("type") StatusType type);
 
     @Query("SELECT w FROM Work w WHERE w.user.id = :userId AND " +
             "((MONTH(w.fromDate) = :month AND YEAR(w.fromDate) = :year) OR " +
