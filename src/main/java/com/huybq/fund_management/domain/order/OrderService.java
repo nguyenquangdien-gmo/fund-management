@@ -28,6 +28,9 @@ public class OrderService {
     @Autowired
     private Notification notification;
 
+    @Autowired
+    private OrderMapper orderMapper;
+
 
     @Transactional
     public OrderResponseDto createOrder(Long userId, OrderRequestDto request) {
@@ -54,7 +57,7 @@ public class OrderService {
         sendNotificationNewOrder(request, order);
 
         // Trả về OrderResponseDto sau khi đã tạo xong đơn hàng
-        return OrderMapper.toDto(order);
+        return orderMapper.toDto(order);
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +67,7 @@ public class OrderService {
 
         // Map các đơn hàng thành OrderResponseDto và trả về
         return orders.stream()
-                .map(OrderMapper::toDto)
+                .map(orderMapper::toDto)
                 .collect(Collectors.toList());
     }
 

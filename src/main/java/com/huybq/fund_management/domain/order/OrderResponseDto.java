@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.order;
 
+import com.huybq.fund_management.domain.user.UserResponseDTO;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -12,6 +13,6 @@ public class OrderResponseDto {
     private String status;
     private Long restaurantId;
     private String restaurantName;
-    private Long createdBy;
+    private UserResponseDTO createdBy;
     private LocalDateTime createdAt;
 }
