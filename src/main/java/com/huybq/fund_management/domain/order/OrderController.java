@@ -1,5 +1,7 @@
 package com.huybq.fund_management.domain.order;
 
+import com.huybq.fund_management.domain.order_item.OrderItemResponseDTO;
+import com.huybq.fund_management.domain.order_item.OrderItemService;
 import com.huybq.fund_management.domain.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,6 +20,9 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private OrderItemService orderItemService;
+
     // Tạo đơn hàng mới
     @PostMapping
     public ResponseEntity<OrderResponseDto> createOrder(
@@ -31,13 +36,6 @@ public class OrderController {
         return new ResponseEntity<>(orderResponseDto, HttpStatus.CREATED);
     }
 
-    // Lấy danh sách đơn hàng
-//    @GetMapping
-//    public ResponseEntity<List<OrderResponseDto>> getAllOrders() {
-//        List<OrderResponseDto> orders = orderService.getAllOrders();
-//        return new ResponseEntity<>(orders, HttpStatus.OK);
-//    }
-
     @GetMapping
     public ResponseEntity<List<OrderResponseDto>> getOrders(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
@@ -48,6 +46,11 @@ public class OrderController {
 
         // Trả về response
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<List<OrderItemResponseDTO>> getItemsByOrder(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderItemService.getItemsByOrder(orderId));
     }
 }
 

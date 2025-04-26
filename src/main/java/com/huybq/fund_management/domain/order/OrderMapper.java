@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class OrderMapper {
 
-    private final UserMapper mapper;
+    private final UserMapper userMapper;
 
     public OrderResponseDto toDto(Order order) {
         OrderResponseDto dto = new OrderResponseDto();
@@ -20,7 +20,7 @@ public class OrderMapper {
         dto.setStatus(order.getStatus().name());
         dto.setRestaurantId(order.getRestaurant().getId());
         dto.setRestaurantName(order.getRestaurant().getName());
-        dto.setCreatedBy(mapper.toResponseDTO(order.getCreatedBy()));
+        dto.setCreatedBy(userMapper.toResponseDTO(order.getCreatedBy()));
         dto.setCreatedAt(order.getCreatedAt());
 
         return dto;
