@@ -55,6 +55,18 @@ public class LateService {
         return repository.findLatesByUser_IdAndDateRange(fromDate, toDate, userId).stream().map(mapper::toReponseDTO).toList();
     }
 
+    public List<UserLateCountDTO> getAllUserLateCountsInMonth(int month,int year) {
+        List<Object[]> results = repository.countLatesByUserInMonthAndYear(month, year);
+
+        return results.stream()
+                .map(row -> new UserLateCountDTO(
+                        (Long) row[0],
+                        (String) row[1],
+                        ((Number) row[2]).intValue()
+                ))
+                .collect(Collectors.toList());
+    }
+
     public void fetchLateCheckins(LocalTime time, String channelId) {
         if (channelId == null) {
             throw new IllegalArgumentException("Channel ID is null");

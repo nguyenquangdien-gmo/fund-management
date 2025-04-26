@@ -25,6 +25,12 @@ public class LateController {
         return ResponseEntity.ok(lateRecords);
     }
 
+    @GetMapping("/users/late-count")
+    public ResponseEntity<List<UserLateCountDTO>> getLateCountByUserId(
+            @RequestParam("month") int month, @RequestParam("year") int year) {
+        return ResponseEntity.ok(service.getAllUserLateCountsInMonth(month, year));
+    }
+
     @GetMapping("/users/{userId}")
     public ResponseEntity<List<LateResponseDTO>> getLateRecordsByUserId(
             @PathVariable Long userId,
