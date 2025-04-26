@@ -1,9 +1,11 @@
 package com.huybq.fund_management.domain.order;
 
+import com.huybq.fund_management.domain.chatopsApi.ChatopsService;
 import com.huybq.fund_management.domain.restaurant.Restaurant;
 import com.huybq.fund_management.domain.restaurant.RestaurantRepository;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.utils.chatops.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,10 @@ public class OrderService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private Notification notification;
+
 
     @Transactional
     public OrderResponseDto createOrder(Long userId, OrderRequestDto request) {
@@ -44,6 +50,9 @@ public class OrderService {
         // Lưu đơn hàng vào database
         order = orderRepository.save(order);
 
+        // Gửi thông báo đến nhóm chat
+        sendNotificationNewOrder(request, order);
+
         // Trả về OrderResponseDto sau khi đã tạo xong đơn hàng
         return OrderMapper.toDto(order);
     }
@@ -57,6 +66,39 @@ public class OrderService {
         return orders.stream()
                 .map(OrderMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public void sendNotificationNewOrder(OrderRequestDto order, Order orderDetail) {
+        // Lấy thông tin từ order
+        String title = order.getTitle();
+        String description = order.getDescription();
+        List<Long> relatedUsersIds = order.getRelatedUserIds();
+        List<User> relatedUsers = userRepository.findAllById(relatedUsersIds);
+
+        StringBuilder message = new StringBuilder();
+        message.append("@all\n");
+        message.append("**").append(title).append("**\n\n");
+
+        if (description != null && !description.isEmpty()) {
+            message.append(description).append("\n\n");
+        }
+
+        // Thêm tag cho các thành viên liên quan
+        if (relatedUsers != null && !relatedUsers.isEmpty()) {
+            for (User user : relatedUsers) {
+                String mention = "@" + user.getEmail().replace("@", "-");
+                message.append(mention).append(" ");
+            }
+            message.append("\n");
+        }
+
+        // Thêm link tới trang orders
+        message.append("Anh/chị/em hãy order tại [đây](https://fund-manager-client-e1977.web.app/orders/")
+                .append(orderDetail.getId())
+                .append(")");
+
+        // Gửi thông báo
+        notification.sendNotification(message.toString(), "java");
     }
 }
 

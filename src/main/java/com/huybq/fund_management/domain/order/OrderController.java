@@ -24,8 +24,6 @@ public class OrderController {
 
         Long userId = user.getId();
 
-        System.out.println("orderRequest = " + orderRequest);
-
         // Gọi service để tạo đơn hàng
         OrderResponseDto orderResponseDto = orderService.createOrder(userId, orderRequest);
         return new ResponseEntity<>(orderResponseDto, HttpStatus.CREATED);
