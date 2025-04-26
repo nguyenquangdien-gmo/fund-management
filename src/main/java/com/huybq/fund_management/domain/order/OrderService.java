@@ -36,6 +36,7 @@ public class OrderService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .deadline(request.getDeadline())
+                .status(Order.Status.ORDERING)
                 .restaurant(restaurant)
                 .createdBy(creator)
                 .build();

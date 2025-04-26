@@ -19,13 +19,15 @@ public class OrderController {
     // Tạo đơn hàng mới
     @PostMapping
     public ResponseEntity<OrderResponseDto> createOrder(
-            @RequestBody OrderRequestDto request,
+            @RequestBody OrderRequestDto orderRequest,
             @AuthenticationPrincipal User user) {
 
         Long userId = user.getId();
 
+        System.out.println("orderRequest = " + orderRequest);
+
         // Gọi service để tạo đơn hàng
-        OrderResponseDto orderResponseDto = orderService.createOrder(userId, request);
+        OrderResponseDto orderResponseDto = orderService.createOrder(userId, orderRequest);
         return new ResponseEntity<>(orderResponseDto, HttpStatus.CREATED);
     }
 
