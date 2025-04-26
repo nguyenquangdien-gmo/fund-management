@@ -34,6 +34,7 @@ public class WorkMapper {
                 .startTime(work.getStartTime())
                 .endTime(work.getEndTime())
                 .type(work.getType())
+                .timePeriod(work.getTimePeriod())
                 .createdAt(work.getCreatedAt())
                 .build();
     }

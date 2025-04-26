@@ -14,5 +14,6 @@ public class WorkStatsResponse {
     private LocalTime startTime;
     private LocalTime endTime;
     private StatusType type;
+    private TimePeriod timePeriod;
     private LocalDateTime createdAt;
 }
