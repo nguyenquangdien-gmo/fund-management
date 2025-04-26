@@ -61,4 +61,34 @@ public class OrderItemService {
                 .map(orderItemMapper::toResponseDTO)
                 .toList();
     }
+
+    @Transactional
+    public OrderItemResponseDTO getItemById(Long orderItemId) {
+        OrderItem orderItem = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order item not found"));
+
+        return orderItemMapper.toResponseDTO(orderItem);
+    }
+
+    @Transactional
+    public OrderItemResponseDTO updateItem(Long orderItemId, Long userId, OrderItemRequestDTO request) {
+        OrderItem orderItem = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order item not found"));
+
+        if (!orderItem.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to update this item");
+        }
+
+        orderItem.setItemName(request.getItemName());
+        orderItem.setSize(request.getSize());
+        orderItem.setSugar(request.getSugar());
+        orderItem.setIce(request.getIce());
+        orderItem.setTopping(request.getTopping());
+        orderItem.setNote(request.getNote());
+
+        orderItem = orderItemRepository.save(orderItem);
+        return orderItemMapper.toResponseDTO(orderItem);
+    }
+
+
 }

@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.order;
 
+import com.huybq.fund_management.domain.order_item.OrderItemRequestDTO;
 import com.huybq.fund_management.domain.order_item.OrderItemResponseDTO;
 import com.huybq.fund_management.domain.order_item.OrderItemService;
 import com.huybq.fund_management.domain.user.User;
@@ -51,6 +52,15 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<List<OrderItemResponseDTO>> getItemsByOrder(@PathVariable Long orderId) {
         return ResponseEntity.ok(orderItemService.getItemsByOrder(orderId));
+    }
+
+    @PostMapping("/{orderId}")
+    public ResponseEntity<OrderItemResponseDTO> createItem(
+            @RequestBody OrderItemRequestDTO orderItem,
+            @AuthenticationPrincipal User user
+    ) {
+        OrderItemResponseDTO response = orderItemService.createItem(user.getId(), orderItem);
+        return ResponseEntity.ok(response);
     }
 }
 

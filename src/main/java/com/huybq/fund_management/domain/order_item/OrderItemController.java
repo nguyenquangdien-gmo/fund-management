@@ -24,9 +24,21 @@ public class OrderItemController {
         return ResponseEntity.ok(response);
     }
 
-//    @GetMapping("/{orderId}")
-//    public ResponseEntity<List<OrderItemResponseDTO>> getItemsByOrder(@PathVariable Long orderId) {
-//        return ResponseEntity.ok(orderItemService.getItemsByOrder(orderId));
-//    }
+    @GetMapping("{itemId}")
+    public ResponseEntity<OrderItemResponseDTO> getItemById(@PathVariable Long itemId) {
+        OrderItemResponseDTO item = orderItemService.getItemById(itemId);
+        return ResponseEntity.ok(item);
+    }
+
+    @PutMapping("{itemId}")
+    public ResponseEntity<OrderItemResponseDTO> updateItem(
+            @PathVariable Long itemId,
+            @RequestBody OrderItemRequestDTO orderItem,
+            @AuthenticationPrincipal User user
+    ) {
+        OrderItemResponseDTO response = orderItemService.updateItem(itemId, user.getId(), orderItem);
+        return ResponseEntity.ok(response);
+    }
+
 }
 
