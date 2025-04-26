@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -102,6 +103,18 @@ public class OrderService {
 
         // Gửi thông báo
         notification.sendNotification(message.toString(), "java");
+    }
+
+    public List<OrderResponseDto> getOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        List<Order> orders;
+        if (startDate != null && endDate != null) {
+            orders = orderRepository.findAllByDeadlineBetween(startDate, endDate);
+        } else {
+            orders = orderRepository.findAll();
+        }
+        return orders.stream()
+                .map(orderMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
 

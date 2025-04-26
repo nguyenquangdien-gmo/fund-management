@@ -8,5 +8,6 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByRestaurantId(Long restaurantId);
     List<Order> findAllByStatusAndDeadlineBefore(String status, LocalDateTime deadline);
+    List<Order> findAllByDeadlineBetween(LocalDateTime start, LocalDateTime end);
 }
 
