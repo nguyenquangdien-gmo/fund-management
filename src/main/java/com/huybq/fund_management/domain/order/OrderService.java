@@ -54,6 +54,9 @@ public class OrderService {
         // Lưu đơn hàng vào database
         order = orderRepository.save(order);
 
+        // Cập nhật số lượng đơn hàng của nhà hàng
+        restaurant.setOrderCount(restaurant.getOrderCount() + 1);
+
         // Gửi thông báo đến nhóm chat
         sendNotificationNewOrder(request, order);
 
