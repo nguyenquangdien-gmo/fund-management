@@ -44,6 +44,8 @@ public class Reminder {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    private LocalDateTime lastSentDate;
+
 
     public enum ReminderType {
         CONTRIBUTION, PENALTY, OTHER, SURVEY
