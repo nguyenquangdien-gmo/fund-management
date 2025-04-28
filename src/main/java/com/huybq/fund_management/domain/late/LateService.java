@@ -257,7 +257,7 @@ public class LateService {
 
             LateWithPenBillDTO lateWithPenBillDTO = new LateWithPenBillDTO(
                     late.getId(),
-                    late.getUser(),
+                    userMapper.toResponseDTO(late.getUser()),
                     late.getDate(),
                     late.getCheckinAt(),
                     late.getNote(),

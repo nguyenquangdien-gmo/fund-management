@@ -87,9 +87,9 @@ public class TeamService {
         repository.delete(team);
     }
 
-    public Team getTeamByUserId(Long userId) {
+    public TeamResponseDTO getTeamByUserId(Long userId) {
         return userRepository.findByIdAndIsDeleteIsFalse(userId)
-                .map(User::getTeam)
+                .map(user -> mapper.toResponseDTO(user.getTeam()))
                 .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
     }
 }

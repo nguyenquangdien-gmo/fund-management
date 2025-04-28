@@ -30,37 +30,37 @@ public interface PenBillRepository extends JpaRepository<PenBill, Long> {
             "WHEN 'UNPAID' THEN 1 " +
             "WHEN 'PAID' THEN 2 " +
             "WHEN 'CANCELED' THEN 3 " +
-            "ELSE 4 END, p.dueDate ASC")
+            "ELSE 4 END, p.createdAt ASC")
     List<PenBill> findAllOrderByStatusPriority();
 
     // Thống kê tổng tiền phạt theo từng tháng trong một năm
-    @Query("SELECT FUNCTION('MONTH', p.dueDate), COALESCE(SUM(p.totalAmount), 0) " +
+    @Query("SELECT FUNCTION('MONTH', p.createdAt), COALESCE(SUM(p.totalAmount), 0) " +
             "FROM PenBill p " +
-            "WHERE FUNCTION('YEAR', p.dueDate) = :year AND p.paymentStatus = 'PAID' " +
-            "GROUP BY FUNCTION('MONTH', p.dueDate) " +
-            "ORDER BY FUNCTION('MONTH', p.dueDate) ASC")
+            "WHERE FUNCTION('YEAR', p.createdAt) = :year AND p.paymentStatus = 'PAID' " +
+            "GROUP BY FUNCTION('MONTH', p.createdAt) " +
+            "ORDER BY FUNCTION('MONTH', p.createdAt) ASC")
     List<Object[]> getMonthlyPenaltyStatistics(@Param("year") int year);
 
     // Thống kê tổng tiền phạt theo từng năm
     @Query("SELECT new com.huybq.fund_management.domain.pen_bill.BillStatisticsDTO(" +
-            "YEAR( p.dueDate), COALESCE(SUM(p.totalAmount), 0) )" +
+            "YEAR( p.createdAt), COALESCE(SUM(p.totalAmount), 0) )" +
             "FROM PenBill p " +
-            "WHERE p.paymentStatus = 'PAID' AND YEAR( p.dueDate) = :year " +
-            "GROUP BY YEAR( p.dueDate) ")
+            "WHERE p.paymentStatus = 'PAID' AND YEAR( p.createdAt) = :year " +
+            "GROUP BY YEAR( p.createdAt) ")
     BillStatisticsDTO getPenaltyStatisticsByYear(@Param("year") int year);
 
 
     // Tổng số tiền phạt đã thanh toán trong một năm
     @Query("SELECT COALESCE(SUM(p.totalAmount), 0) " +
             "FROM PenBill p " +
-            "WHERE p.paymentStatus = 'PAID' AND FUNCTION('YEAR', p.dueDate) = :year")
+            "WHERE p.paymentStatus = 'PAID' AND FUNCTION('YEAR', p.createdAt) = :year")
     BigDecimal getTotalPaidPenaltiesByYear(@Param("year") int year);
 
     @Query("""
                 SELECT p.user, SUM(p.totalAmount)
                 FROM PenBill p
-                WHERE FUNCTION('YEAR', p.dueDate) = :year
-                  AND FUNCTION('MONTH', p.dueDate) = :month
+                WHERE FUNCTION('YEAR', p.createdAt) = :year
+                  AND FUNCTION('MONTH', p.createdAt) = :month
                   AND p.paymentStatus = 'UNPAID'
                 GROUP BY p.user,p.createdAt
             """)
