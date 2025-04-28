@@ -1,12 +1,10 @@
 package com.huybq.fund_management.domain.order_item;
 
 import com.huybq.fund_management.domain.order.Order;
-import com.huybq.fund_management.domain.order.OrderMapper;
 import com.huybq.fund_management.domain.order.OrderRepository;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
