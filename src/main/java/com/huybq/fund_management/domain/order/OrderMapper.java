@@ -20,6 +20,7 @@ public class OrderMapper {
         dto.setStatus(order.getStatus().name());
         dto.setRestaurantId(order.getRestaurant().getId());
         dto.setRestaurantName(order.getRestaurant().getName());
+        dto.setRestaurantLink(order.getRestaurant().getLink());
         dto.setCreatedBy(userMapper.toResponseDTO(order.getCreatedBy()));
         dto.setCreatedAt(order.getCreatedAt());
 

@@ -13,6 +13,7 @@ public class OrderResponseDto {
     private String status;
     private Long restaurantId;
     private String restaurantName;
+    private String restaurantLink;
     private UserResponseDTO createdBy;
     private LocalDateTime createdAt;
 }
