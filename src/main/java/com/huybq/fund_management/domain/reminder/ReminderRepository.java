@@ -9,6 +9,11 @@ import java.util.List;
 @Repository
 public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     List<Reminder> findByScheduledTimeBeforeAndStatus(LocalDateTime now, Reminder.Status status);
+    List<Reminder> findByScheduledTimeBetweenAndStatus(
+            LocalDateTime start,
+            LocalDateTime end,
+            Reminder.Status status
+    );
 
     List<Reminder> findAllByOrderByScheduledTimeDesc();
 
