@@ -19,6 +19,7 @@ public class PenBillMapper {
                 .description(penBill.getDescription())
                 .amount(penBill.getTotalAmount())
                 .paymentStatus(penBill.getPaymentStatus().name())
+                .createdAt(penBill.getCreatedAt())
                 .build();
     }
 
@@ -31,6 +32,7 @@ public class PenBillMapper {
                 .description(penBill.getDescription())
                 .amount(penBill.getTotalAmount())
                 .paymentStatus(penBill.getPaymentStatus())
+                .createdAt(penBill.getCreatedAt())
                 .build();
     }
 }

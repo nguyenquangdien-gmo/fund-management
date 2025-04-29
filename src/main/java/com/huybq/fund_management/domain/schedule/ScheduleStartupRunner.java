@@ -14,5 +14,6 @@ public class ScheduleStartupRunner {
     public void onApplicationReady() {
         scheduleManager.rescheduleEventNotificationTask();
         scheduleManager.scheduleLateTask();
+        scheduleManager.rescheduleContributedNotificationTask();
     }
 }

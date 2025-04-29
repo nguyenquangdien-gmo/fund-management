@@ -91,6 +91,7 @@ public class DataLoader {
                 schedule.setToDate(now.plusDays(30)); // ví dụ default 30 ngày
                 schedule.setSendTime(LocalTime.of(10, 5)); // mặc định giờ gửi
                 schedule.setType(type);
+                schedule.setChannelId("default-channel-id");
 
                 repository.save(schedule);
             }

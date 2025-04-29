@@ -23,5 +23,4 @@ public class EventResponeseDTO {
     private String location;
 
     private List<UserResponseDTO> hosts;
-
 }

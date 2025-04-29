@@ -93,8 +93,8 @@ public class TeamController {
     }
 
     @GetMapping("/{userId}/team")
-    public ResponseEntity<Team> getTeamByUserId(@PathVariable Long userId) {
-        Team team = teamService.getTeamByUserId(userId);
+    public ResponseEntity<TeamResponseDTO> getTeamByUserId(@PathVariable Long userId) {
+        TeamResponseDTO team = teamService.getTeamByUserId(userId);
         return ResponseEntity.ok(team);
     }
 }

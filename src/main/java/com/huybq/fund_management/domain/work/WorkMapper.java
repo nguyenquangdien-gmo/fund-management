@@ -13,22 +13,29 @@ public class WorkMapper {
                 .id(work.getId())
                 .userId(work.getUser().getId())
                 .fullName(work.getUser().getFullName())
-                .date(work.getDate())
+                .startTime(work.getStartTime())
+                .endTime(work.getEndTime())
+                .fromDate(work.getFromDate())
+                .endDate(work.getEndDate())
                 .type(work.getType())
                 .timePeriod(work.getTimePeriod())
                 .reason(work.getReason())
-                .status(work.getStatus().name())
-                .approvedByName(work.getApprovedBy().getFullName())
+                .approvedByName(work.getApprovedBy() == null ? null : work.getApprovedBy().getFullName())
+                .approvedById(work.getApprovedBy() == null ? null : work.getApprovedBy().getId())
                 .createdAt(work.getCreatedAt())
+                .idCreate(work.getIdCreate())
                 .build();
     }
 
-    public Work toWork(WorkDTO request) {
-        return Work.builder()
-                .date(request.getDate())
-                .type(request.getType())
-                .timePeriod(TimePeriod.valueOf(request.getTimePeriod()))
-                .reason(request.getReason())
+    public WorkStatsResponse toWorkStatsResponse(Work work) {
+        return WorkStatsResponse.builder()
+                .fromDate(work.getFromDate())
+                .endDate(work.getEndDate())
+                .startTime(work.getStartTime())
+                .endTime(work.getEndTime())
+                .type(work.getType())
+                .timePeriod(work.getTimePeriod())
+                .createdAt(work.getCreatedAt())
                 .build();
     }
 }

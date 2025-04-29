@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,12 +17,15 @@ public class WorkResponseDTO {
     private Long id;
     private Long userId;
     private String fullName;
-    private LocalDate date;
+    private LocalDate fromDate;
+    private LocalDate endDate;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private StatusType type;
     private TimePeriod timePeriod;
     private String reason;
-    private String status;
     private Long approvedById;
     private String approvedByName;
     private LocalDateTime createdAt;
+    private String idCreate;
 }

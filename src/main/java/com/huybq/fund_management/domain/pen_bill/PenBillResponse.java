@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -25,4 +26,5 @@ public class PenBillResponse {
     private String description;
 
     private PenBill.Status paymentStatus;
+    private LocalDateTime createdAt;
 }

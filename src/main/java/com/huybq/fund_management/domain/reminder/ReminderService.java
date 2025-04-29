@@ -158,15 +158,26 @@ public class ReminderService {
     @Scheduled(fixedRate = 60000)
     public void processScheduledReminders() {
         LocalDateTime now = LocalDateTime.now();
-        List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.UNSENT);
-        reminders.forEach(reminder -> {
-            if (reminder.isSendChatGroup()) {
-                sendNotification(reminder);
-            }
-            reminder.setStatus(Reminder.Status.SENT);
-            reminderRepository.save(reminder);
-        });
 
+        List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.SENT);
+
+        reminders.forEach(reminder -> {
+            if (reminder.getLastSentDate() == null || !reminder.getLastSentDate().toLocalDate().isEqual(now.toLocalDate())) {
+
+                if (reminder.getScheduledTime().toLocalDate().isEqual(now.toLocalDate()) &&
+                        reminder.getScheduledTime().getHour() == now.getHour() &&
+                        reminder.getScheduledTime().getMinute() == now.getMinute()) {
+
+                    if (reminder.isSendChatGroup()) {
+                        sendNotification(reminder);
+                    }
+
+                    reminder.setStatus(Reminder.Status.SENT);
+                    reminder.setLastSentDate(now);
+                    reminderRepository.save(reminder);
+                }
+            }
+        });
     }
 
     @Transactional

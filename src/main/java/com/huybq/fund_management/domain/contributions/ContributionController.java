@@ -20,7 +20,6 @@ public class ContributionController {
 
     private final ContributionService contributionService;
 
-
     @GetMapping
     public ResponseEntity<List<ContributionResponseDTO>> getAllContributions() {
         return ResponseEntity.ok(contributionService.getAllContributions());
@@ -38,6 +37,13 @@ public class ContributionController {
     @GetMapping("/")
     public ResponseEntity<List<ContributionResponseDTO>> getContributionById(@RequestParam int month, @RequestParam int year) {
         return ResponseEntity.ok(contributionService.getAllContributionsByMonthAndYear(month, year));
+    }
+
+    @PostMapping("/confirm/dept-contribution")
+    public ResponseEntity<List<ContributionResponseDTO>> createAndApproveContributions(
+            @Valid @RequestBody ContributionDTO contributionDTO) {
+        contributionService.confirmContributionWithDeptContribution(contributionDTO);
+        return ResponseEntity.noContent().build();
     }
 
     // Lấy tất cả contributions của một kỳ (period)

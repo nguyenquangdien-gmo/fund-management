@@ -45,7 +45,7 @@ public class ScheduleService {
         schedule.setToDate(request.getToDate());
         schedule.setSendTime(request.getSendTime());
 
-        if (!request.getChannelId().isEmpty()){
+        if (request.getChannelId() != null && !request.getChannelId().isEmpty()) {
             schedule.setChannelId(request.getChannelId());
         }
 

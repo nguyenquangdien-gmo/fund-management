@@ -18,11 +18,17 @@ public class LateController {
     private final LateService service;
 
     @GetMapping("/users")
-    public ResponseEntity<List<Late>> getLateRecords(
+    public ResponseEntity<List<LateWithPenBillDTO>> getLateRecords(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
-        List<Late> lateRecords = service.getLateRecordsByDateRange(fromDate, toDate);
+        List<LateWithPenBillDTO> lateRecords = service.getLateRecordsWithPenBill(fromDate, toDate);
         return ResponseEntity.ok(lateRecords);
+    }
+
+    @GetMapping("/users/late-count")
+    public ResponseEntity<List<UserLateCountDTO>> getLateCountByUserId(
+            @RequestParam("month") int month, @RequestParam("year") int year) {
+        return ResponseEntity.ok(service.getAllUserLateCountsInMonth(month, year));
     }
 
     @GetMapping("/users/{userId}")
@@ -51,10 +57,22 @@ public class LateController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/users/date")
-    public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate() {
-        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth());
+//    @GetMapping("/users/date")
+//    public ResponseEntity<List<LateDTO>> getLateRecordsByUserAndDate() {
+//        return ResponseEntity.ok(service.getUsersWithMultipleLatesInMonth());
+//    }
+
+    @DeleteMapping("users/{lateId}")
+    public ResponseEntity<?> deleteLateRecord(
+            @PathVariable Long lateId,
+            @RequestParam(required = false) Long penBillId
+    ) {
+        System.out.println("Received lateId: " + lateId);
+        service.deleteLateRecord(lateId, penBillId);
+        return ResponseEntity.noContent().build();
     }
+
+
 
 //    @GetMapping("/users/monthly")
 //    public List<?> getLatesFromPrevious28thToCurrent28th() {

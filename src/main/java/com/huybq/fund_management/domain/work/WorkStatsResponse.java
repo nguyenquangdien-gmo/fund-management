@@ -1,24 +1,19 @@
 package com.huybq.fund_management.domain.work;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Getter
 @Builder
-public class WorkDTO {
-    private Long userId;
+@Data
+public class WorkStatsResponse {
     private LocalDate fromDate;
     private LocalDate endDate;
     private LocalTime startTime;
     private LocalTime endTime;
     private StatusType type;
-    private String timePeriod;
-    private String reason;
-    private String idCreate;
+    private TimePeriod timePeriod;
+    private LocalDateTime createdAt;
 }

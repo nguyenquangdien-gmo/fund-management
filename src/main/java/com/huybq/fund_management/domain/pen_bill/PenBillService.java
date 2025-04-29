@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.pen_bill;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
+import com.huybq.fund_management.domain.contributions.Contribution;
 import com.huybq.fund_management.domain.invoice.InvoiceType;
 import com.huybq.fund_management.domain.penalty.Penalty;
 import com.huybq.fund_management.domain.penalty.PenaltyDTO;
@@ -13,6 +14,7 @@ import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserMapper;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.domain.user.UserResponseDTO;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -23,10 +25,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -110,7 +109,6 @@ public class PenBillService {
         createTrans(penBill, "Thành viên " + penBill.getUser().getFullName() + " đã thanh toán khoản phạt " + penBill.getPenalty().getName());
     }
 
-
     public void rejectPenBill(Long id, String reason) {
         PenBill penBill = penBillRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("PenBill not found with ID: " + id));
@@ -118,6 +116,14 @@ public class PenBillService {
         if (penBill.getPaymentStatus() == PenBill.Status.CANCELED) {
             throw new IllegalStateException("PenBill is already cancelled.");
         }
+        PenBill newPenBill = PenBill.builder()
+                .user(penBill.getUser())
+                .penalty(penBill.getPenalty())
+                .totalAmount(penBill.getTotalAmount())
+                .description(penBill.getDescription())
+                .paymentStatus(PenBill.Status.UNPAID)
+                .dueDate(penBill.getDueDate())
+                .build();
         penBill.setPaymentStatus(PenBill.Status.CANCELED);
         if (!reason.isEmpty()) {
             String currentNote = penBill.getDescription() != null ? penBill.getDescription() : "";
@@ -125,6 +131,7 @@ public class PenBillService {
         }
         penBillRepository.save(penBill);
 
+        penBillRepository.save(newPenBill);
         createTrans(penBill, "Hủy hóa đơn phạt " + penBill.getPenalty().getName() + " của " + penBill.getUser().getFullName() + " vì " + reason);
     }
 
@@ -138,7 +145,6 @@ public class PenBillService {
         transRepository.save(transaction);
     }
 
-
     public void deletePenBill(Long id) {
         if (!penBillRepository.existsById(id)) {
             throw new EntityNotFoundException("PenBill not found with ID: " + id);
@@ -148,20 +154,26 @@ public class PenBillService {
 
     public void createBill(PenBillDTO penBillDTO) {
         Penalty penalty = penaltyService.getPenaltyBySlug(penBillDTO.getPenaltySlug());
+
         userRepository.findAllById(penBillDTO.userIds)
                 .forEach(user -> {
-                    PenBill penBill = PenBill.builder()
-                            .user(user)
-                            .penalty(penalty)
-                            .totalAmount(penalty.getAmount())
-                            .description(penBillDTO.getDescription())
-                            .paymentStatus(PenBill.Status.UNPAID)
-                            .dueDate(penBillDTO.getDueDate())
-                            .build();
-                    penBillRepository.save(penBill);
+                    boolean alreadyExists = penBillRepository
+                            .findByUserAndPenaltyAndCreatedDate(user.getId(), penalty.getId(), LocalDate.now())
+                            .isPresent();
+
+                    if (!alreadyExists) {
+                        PenBill penBill = PenBill.builder()
+                                .user(user)
+                                .penalty(penalty)
+                                .totalAmount(penalty.getAmount())
+                                .description(penBillDTO.getDescription())
+                                .paymentStatus(PenBill.Status.UNPAID)
+                                .dueDate(penBillDTO.getDueDate())
+                                .build();
+                        penBillRepository.save(penBill);
+                    }
                 });
     }
-
 
     // 1. Thống kê tổng tiền phạt theo từng tháng trong năm
     public List<Map<String, Object>> getMonthlyPenaltyStats(int year) {
@@ -184,40 +196,52 @@ public class PenBillService {
         return penBillRepository.getPenaltyStatisticsByYear(year);
     }
 
-    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh")
-    public void sendNotificationPenBill() {
-        LocalDate now = LocalDate.now();
-        int month = now.getMonthValue();
-        int year = now.getYear();
-
-        List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
-
-        for (Object[] row : unpaidInfoList) {
-            User user = (User) row[0];
-            BigDecimal totalUnpaid = (BigDecimal) row[1];
-
-            String mention = "@" + user.getEmail().replace("@", "-");
-
-            String message = mention +
-                    "\n💸 Bạn có hóa đơn phạt chưa thanh toán!" +
-                    "\n🗓 Vào ngày: " + month + "/" + year +
-                    "\n💰 Số tiền: " + totalUnpaid + " VNĐ";
-
-            notification.sendNotification(message, "java");
-        }
+    //    public void sendNotificationPenBill() {
+//        LocalDate now = LocalDate.now();
+//        int month = now.getMonthValue();
+//        int year = now.getYear();
+//
+//        List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
+//
+//        for (Object[] row : unpaidInfoList) {
+//            User user = (User) row[0];
+//            BigDecimal totalUnpaid = (BigDecimal) row[1];
+//
+//            String mention = "@" + user.getEmail().replace("@", "-");
+//
+//            String message = mention +
+//                    "\n💸 Bạn có hóa đơn phạt chưa thanh toán!" +
+//                    "\n🗓 Vào ngày: " + month + "/" + year +
+//                    "\n💰 Số tiền: " + totalUnpaid + " VNĐ";
+//
+//            notification.sendNotification(message, "java");
+//        }
+//    }
+    private String formatCurrency(BigDecimal amount) {
+        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+        return formatter.format(amount);
     }
+
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh")
 
     public void sendNotificationPenBillNew() {
         LocalDate now = LocalDate.now();
         int month = now.getMonthValue();
         int year = now.getYear();
 
-        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
         List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
 
         if (unpaidInfoList.isEmpty()) {
             notification.sendNotification("@all\n🎉 **Tuyệt vời! Không ai còn hóa đơn phạt chưa thanh toán trong tháng này!** 🎉", "java");
             return;
+        }
+
+        Map<User, BigDecimal> userToUnpaidMap = new LinkedHashMap<>();
+        for (Object[] row : unpaidInfoList) {
+            User user = (User) row[0];
+            BigDecimal amount = (BigDecimal) row[1];
+
+            userToUnpaidMap.merge(user, amount, BigDecimal::add);
         }
 
         StringBuilder message = new StringBuilder();
@@ -227,13 +251,13 @@ public class PenBillService {
         message.append("|---|---|---|\n");
 
         int index = 1;
-        for (Object[] row : unpaidInfoList) {
-            User user = (User) row[0];
-            BigDecimal totalUnpaid = (BigDecimal) row[1];
-
+        for (Map.Entry<User, BigDecimal> entry : userToUnpaidMap.entrySet()) {
+            User user = entry.getKey();
+            BigDecimal totalUnpaid = entry.getValue();
             String mention = "@" + user.getEmail().replace("@", "-");
+
             message.append("| ").append(index++).append(" | ").append(mention).append(" | ")
-                    .append(formatter.format(totalUnpaid)).append(" VNĐ |\n");
+                    .append(formatCurrency(totalUnpaid)).append(" VNĐ |\n");
         }
 
         message.append("\nVui lòng vào [đây](https://fund-manager-client-e1977.web.app/bills) để kiểm tra và thanh toán.")
@@ -243,8 +267,8 @@ public class PenBillService {
 
         notification.sendNotification(message.toString(), "java");
     }
+
     public void sendUnpaidCheckinBillNotification() {
-        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
         List<PenBillResponse> lateRecords = penBillRepository.findBillsAndTotalUnpaidAmountInDate(LocalDate.now())
                 .stream().map(mapper::toPenBillResponse).toList();
 
@@ -253,16 +277,26 @@ public class PenBillService {
             return;
         }
 
+        Map<UserResponseDTO,BigDecimal> userToUnpaid = new LinkedHashMap<>();
+        for (PenBillResponse record : lateRecords) {
+            UserResponseDTO user = record.getUser();
+            BigDecimal amount = record.getAmount();
+            userToUnpaid.merge(user, amount, BigDecimal::add);
+        }
+
         StringBuilder message = new StringBuilder();
         message.append("🚨 **Danh sách đi trễ quá số lần cho phép nhưng chưa đóng phạt ").append(" ** 🚨\n\n");
         message.append("| STT | Tên | Số tiền nợ  |\n");
         message.append("|---|---|---|\n");
 
         int index = 1;
-        for (PenBillResponse record : lateRecords) {
+        for (Map.Entry<UserResponseDTO, BigDecimal> unpaidUser : userToUnpaid.entrySet()) {
+            UserResponseDTO user = unpaidUser.getKey();
+            BigDecimal amount = unpaidUser.getValue();
+
             message.append("| ").append(index++).append(" | @")
-                    .append(record.getUser().email().replace("@", "-")).append(" |")
-                    .append(formatter.format(record.getAmount())).append(" VNĐ").append(" |\n");
+                    .append(user.email().replace("@", "-")).append(" |")
+                    .append(formatCurrency(amount)).append(" VN").append(" |\n");
         }
 
         message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng phạt nếu có.\n")
@@ -273,5 +307,13 @@ public class PenBillService {
 
         // Gửi thông báo lên ChatOps
         notification.sendNotification(message.toString(), "java");
+    }
+
+    public Optional<PenBillDTO> findByUserAndPenaltyAndDate(User user, String penSlug, LocalDate date) {
+        var penalty = penaltyRepository.findBySlug(penSlug).orElseThrow(()-> new ResourceNotFoundException("Penalty not found with slug: "+penSlug));
+
+        return penBillRepository
+                .findByUserAndPenaltyAndCreatedDate(user.getId(), penalty.getId(), date)
+                .map(mapper::toDTO);
     }
 }
