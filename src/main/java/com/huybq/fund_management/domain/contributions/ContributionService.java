@@ -357,7 +357,6 @@ public class ContributionService {
                             (String) row[6],
                             row[7] != null ? row[7].toString() : null,
                             row[8] != null ? row[8].toString() : null
-
                     );
                     int month = (Integer) row[9];
                     int year = (Integer) row[10];

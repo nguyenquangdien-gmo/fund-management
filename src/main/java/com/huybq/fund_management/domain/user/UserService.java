@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,7 +56,7 @@ public class UserService {
         return repository.existsByEmail(email);
     }
 
-    public void updateUser(Long userId, UserDTO userDTO, MultipartFile avatar) throws IOException {
+    public void updateUser(Long userId, UserDTO userDTO, MultipartFile avatar, MultipartFile qrCode) throws IOException {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userDTO.id()));
 //        user.setId(userDTO.id());
@@ -70,13 +71,25 @@ public class UserService {
             user.setAvatar(avatar.getBytes());
         }
 
+        if (qrCode != null && !qrCode.isEmpty()) {
+            user.setQrCode(qrCode.getBytes());
+        }
+
         repository.save(user);
     }
 
     public byte[] getAvatar(Long userId) {
+        return getUserField(userId, User::getAvatar);
+    }
+
+    public byte[] getQRcode(Long userId) {
+        return getUserField(userId, User::getQrCode);
+    }
+
+    private byte[] getUserField(Long userId, Function<User, byte[]> fieldExtractor) {
         var user = repository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        return user.getAvatar();
+        return fieldExtractor.apply(user);
     }
 //    public List<Reminder> findRemindersByUserId(Long userId) {
 //        User user = repository.findById(userId)

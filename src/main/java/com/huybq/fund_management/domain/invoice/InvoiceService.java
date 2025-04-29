@@ -5,17 +5,22 @@ import com.huybq.fund_management.domain.fund.FundType;
 import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
+import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -85,10 +90,14 @@ public class InvoiceService {
     }
 
     @Transactional
-    public InvoiceResponseDTO create(InvoiceDTO dto) {
+    public InvoiceResponseDTO create(InvoiceDTO dto, MultipartFile billImage) throws IOException {
         var user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + dto.userId()));
         var invoice = mapper.toEntity(dto);
+
+        if (billImage != null && !billImage.isEmpty()) {
+            invoice.setBillImage(billImage.getBytes());
+        }
         invoice.setUser(user);
         invoice = repository.save(invoice);
 
@@ -128,7 +137,7 @@ public class InvoiceService {
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found with ID: " + idInvoice));
     }
 
-    public InvoiceResponseDTO update(Long idInvoice, InvoiceDTO dto) {
+    public InvoiceResponseDTO update(Long idInvoice, InvoiceDTO dto, MultipartFile billImage)  throws IOException {
         return repository.findById(idInvoice)
                 .map(invoice -> {
                     if (invoice.getStatus() == InvoiceStatus.APPROVED) {
@@ -138,6 +147,13 @@ public class InvoiceService {
                     var user = userRepository.findById(dto.userId())
                             .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + dto.userId()));
 
+                    if (billImage != null && !billImage.isEmpty()) {
+                        try {
+                            invoice.setBillImage(billImage.getBytes());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     invoice.setUser(user);
                     invoice.setAmount(dto.amount());
                     invoice.setDescription(dto.description());
@@ -172,6 +188,12 @@ public class InvoiceService {
                     return mapper.toDTO(repository.save(invoice));
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found with ID: " + idInvoice));
+    }
+
+    public byte[] getBillImage(Long userId) {
+        var user = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        return user.getBillImage();
     }
 
 
