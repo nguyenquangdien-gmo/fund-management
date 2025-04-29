@@ -90,18 +90,7 @@ public class AuthService {
                 "Bạn đã được thêm vào Team Java, hãy login và " +
                 "đổi mật khẩu\nLink: " +url+"/login"+
                 "\nAccount: "+user.getEmail()+"\nPassword: " +
-                generatedPassword,emailAdmin,userIdChat);
-
-        var userDto = UserDTO.builder()
-                .email(user.getEmail())
-                .fullName(user.getFullName().toUpperCase())
-                .role(String.valueOf(user.getRole()))
-                .phoneNumber(user.getPhone())
-                .position(user.getPosition())
-                .slugTeam(user.getTeam().getName())
-                .dob(user.getDob() != null ? user.getDob().toString() : null)
-                .joinDate(user.getJoinDate() != null ? user.getJoinDate().toString() : null)
-                .build();
+                generatedPassword,emailAdmin,user.getEmail());
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
@@ -142,7 +131,7 @@ public class AuthService {
                 "Tài khoản của bạn đã được reset, hãy login và " +
                         "đổi mật khẩu\nLink: " +url+"/change-password"+
                         "\nAccount: "+user.getEmail()+"\nPassword: " +
-                        generatedPassword,emailAdmin,user.getUserIdChat());
+                        generatedPassword,emailAdmin,user.getEmail());
     }
 
     public AuthenticationResponse authenticate(AuthenticationDto request) {

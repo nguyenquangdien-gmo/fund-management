@@ -69,9 +69,10 @@ public class ReminderController {
 //    public ResponseEntity<List<ReminderDTO>> getRemindersByUserId(@PathVariable Long userId) {
 //        return ResponseEntity.ok(reminderService.getRemindersByUser(userId));
 //    }
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/create")
-    public ResponseEntity<?> createReminder(@RequestBody ReminderDTO reminderDTO) {
-        reminderService.createReminder(reminderDTO);
+    public ResponseEntity<?> createReminder(@RequestBody ReminderDTO reminderDTO, @AuthenticationPrincipal User user) {
+        reminderService.createReminder(reminderDTO,user.getEmail());
         return ResponseEntity.noContent().build();
     }
 
