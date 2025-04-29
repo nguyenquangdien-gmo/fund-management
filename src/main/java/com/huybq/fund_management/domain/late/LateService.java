@@ -81,7 +81,7 @@ public class LateService {
         LocalDateTime now = LocalDateTime.now();
         String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
 
-        LocalTime targetTime = Optional.ofNullable(time).orElse(LocalTime.of(10, 0));
+        LocalTime targetTime = Optional.ofNullable(time).orElse(LocalTime.of(10, 5));
         long timestamp = now.toLocalDate()
                 .atTime(targetTime)
                 .atZone(vietnamZone)
@@ -173,8 +173,8 @@ public class LateService {
         }
     }
 
-    //len lich goi tu dong tu 10h05 t2- t6
-    @Scheduled(cron = "0 5 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
+    //len lich goi tu dong tu 10h t2- t6
+    @Scheduled(cron = "0 0 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
     public void scheduledCheckinLate() {
         Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"))
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule 'late-check-in' not found"));
