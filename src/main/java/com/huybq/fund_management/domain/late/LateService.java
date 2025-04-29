@@ -121,14 +121,13 @@ public class LateService {
   
     public void fetchLateCheckinsForCheckNow(LocalTime time, String channelId) {
         Team team = teamService.getTeamBySlug("java");
-
         // Kiểm tra sự tồn tại của schedule trước khi lấy channelId
         Optional<Schedule> scheduleOpt = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"));
 
         if (scheduleOpt.isPresent()) {
             // Lấy channelId từ schedule nếu có
             channelId = scheduleOpt.get().getChannelId().toString();
-        } else if (channelId == null) {
+        } else if (channelId == null || "default-channel-id".equals(channelId)) {
             // Nếu không có schedule và channelId vẫn null, ném lỗi
             throw new ResourceNotFoundException("Schedule 'late-check-in' not found or channelId is null");
         }
