@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -15,7 +16,6 @@ import java.util.List;
 public class PenBillDTO {
     private Long id;
 
-    @NotNull(message = "User ID is required")
     private Long userId;
 
     @NotNull(message = "Penalty slug is required")
@@ -29,6 +29,8 @@ public class PenBillDTO {
     private String description;
 
     private String paymentStatus;
+
+    private LocalDateTime createdAt;
 
     List<Long> userIds;
 }

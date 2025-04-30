@@ -16,7 +16,7 @@ import java.time.LocalTime;
 @Builder
 public class Late {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

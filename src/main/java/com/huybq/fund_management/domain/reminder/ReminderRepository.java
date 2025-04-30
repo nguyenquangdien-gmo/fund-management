@@ -8,26 +8,13 @@ import java.util.List;
 
 @Repository
 public interface ReminderRepository extends JpaRepository<Reminder, Long> {
-    //    List<Reminder> findByUserIdAndStatus(Long userId, Reminder.Status status);
-//
-//    List<Reminder> findSentRemindersByUserId(Long userId);
-//    List<Reminder> findByUserId(@Param("userId") Long userId);
-//    // Lấy tất cả reminder của một user
-//    @Query("SELECT r FROM Reminder r JOIN r.users u WHERE u.id = :userId")
-//    List<Reminder> findRemindersByUserId(@Param("userId") Long userId);
-//
-//    // Lấy tất cả reminder active (không bị xóa) của một user
-//    @Query("SELECT r FROM Reminder r JOIN r.users u WHERE u.id = :userId AND u.isDelete = false")
-//    List<Reminder> findActiveRemindersByUserId(@Param("userId") Long userId);
-//    @EntityGraph(attributePaths = "users")
     List<Reminder> findByScheduledTimeBeforeAndStatus(LocalDateTime now, Reminder.Status status);
-
-//    List<Reminder> findAllByStatus(Reminder.Status status);
-
-//    List<Reminder> findAllByStatusAndReminderType(Reminder.Status status, Reminder.ReminderType reminderType);
+    List<Reminder> findByScheduledTimeBetweenAndStatus(
+            LocalDateTime start,
+            LocalDateTime end,
+            Reminder.Status status
+    );
 
     List<Reminder> findAllByOrderByScheduledTimeDesc();
-
-    List<Reminder> findAllByReminderTypeOrderByScheduledTimeDesc(Reminder.ReminderType reminderType);
 
 }

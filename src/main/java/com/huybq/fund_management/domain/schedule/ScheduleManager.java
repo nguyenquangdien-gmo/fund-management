@@ -4,6 +4,7 @@ import com.huybq.fund_management.domain.contributions.ContributionService;
 import com.huybq.fund_management.domain.event.EventService;
 import com.huybq.fund_management.domain.late.LateService;
 import com.huybq.fund_management.domain.pen_bill.PenBillService;
+import com.huybq.fund_management.domain.reminder.Reminder;
 import com.huybq.fund_management.domain.team.Team;
 import com.huybq.fund_management.domain.team.TeamRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.*;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 
 
@@ -30,7 +32,6 @@ public class ScheduleManager {
 
     private final ContributionService contributionService;
 
-    private final TeamRepository teamRepository;
     private final PenBillService penBillService;
 
     private ScheduledFuture<?> eventTask;
@@ -46,7 +47,6 @@ public class ScheduleManager {
 //    }
 
     public synchronized void rescheduleEventNotificationTask() {
-        // Hủy task cũ nếu đang chạy
         if (eventTask != null && !eventTask.isCancelled()) {
             eventTask.cancel(false);
         }
@@ -56,7 +56,7 @@ public class ScheduleManager {
 
         LocalTime sendTime = schedule.getSendTime();
         ZonedDateTime now = ZonedDateTime.now(VIETNAM_ZONE);
-        ZonedDateTime firstRun = now.withHour(sendTime.getHour()).withMinute(sendTime.getMinute()).withSecond(30);
+        ZonedDateTime firstRun = now.withHour(sendTime.getHour()).withMinute(sendTime.getMinute()).withSecond(0);
 
         if (firstRun.isBefore(now)) {
             firstRun = firstRun.plusDays(1);
@@ -70,20 +70,6 @@ public class ScheduleManager {
                 new Date(System.currentTimeMillis() + initialDelay),
                 oneDay
         );
-        // DEBUG: set chạy sau 5 giây
-//        long initialDelay = 5 * 1000L; // 5 giây
-//        long repeatInterval = 10 * 1000L; // lặp lại mỗi 10 giây (cho dễ test)
-//
-//        System.out.println("[EventTask] Scheduled to start in 5s, repeat every 10s");
-//
-//        eventTask = taskScheduler.scheduleAtFixedRate(
-//                () -> {
-//                    System.out.println("[EventTask] Running at " + ZonedDateTime.now(VIETNAM_ZONE));
-//                    eventService.sendEventNotifications();
-//                },
-//                new Date(System.currentTimeMillis() + initialDelay),
-//                repeatInterval
-//        );
     }
 
     public synchronized void rescheduleContributedNotificationTask() {

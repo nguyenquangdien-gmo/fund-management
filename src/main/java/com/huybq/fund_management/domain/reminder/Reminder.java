@@ -22,7 +22,7 @@ public class Reminder {
     private Long id;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "reminder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "reminder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ReminderUser> reminderUsers = new ArrayList<>();
 
     private String title;
@@ -41,8 +41,12 @@ public class Reminder {
 
     private boolean isSendChatGroup;
 
+    private String createdEmail;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    private LocalDateTime lastSentDate;
 
 
     public enum ReminderType {

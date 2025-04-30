@@ -18,9 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +52,45 @@ public class UserService {
                 .map(mapper::toResponseDTO).toList();
     }
 
+    public boolean existByEmail(String email) {
+        return repository.existsByEmail(email);
+    }
+
+    public void updateUser(Long userId, UserDTO userDTO, MultipartFile avatar, MultipartFile qrCode) throws IOException {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userDTO.id()));
+//        user.setId(userDTO.id());
+        user.setEmail(userDTO.email());
+        user.setFullName(userDTO.fullName());
+        user.setPhone(userDTO.phoneNumber()!=null?userDTO.phoneNumber():user.getPhone());
+        user.setPosition(userDTO.position()!=null?userDTO.position():user.getPosition());
+        user.setDob(LocalDate.parse(userDTO.dob()));
+        user.setJoinDate(LocalDate.parse(userDTO.joinDate()));
+
+        if (avatar != null && !avatar.isEmpty()) {
+            user.setAvatar(avatar.getBytes());
+        }
+
+        if (qrCode != null && !qrCode.isEmpty()) {
+            user.setQrCode(qrCode.getBytes());
+        }
+
+        repository.save(user);
+    }
+
+    public byte[] getAvatar(Long userId) {
+        return getUserField(userId, User::getAvatar);
+    }
+
+    public byte[] getQRcode(Long userId) {
+        return getUserField(userId, User::getQrCode);
+    }
+
+    private byte[] getUserField(Long userId, Function<User, byte[]> fieldExtractor) {
+        var user = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        return fieldExtractor.apply(user);
+    }
 //    public List<Reminder> findRemindersByUserId(Long userId) {
 //        User user = repository.findById(userId)
 //                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -64,10 +106,12 @@ public class UserService {
     public List<UserDebtDTO> getUsersWithNoContribution(int month, int year) {
         return repository.findUsersWithNoContribution(month, year);
     }
+
     public UserResponseDTO getUserByEmail(String email) {
         Optional<User> user = repository.findByEmail(email);
         return mapper.toResponseDTO(user.get());
     }
+
     @Transactional
     public boolean deleteUserById(Long id) {
         var user = repository.findById(id);
@@ -81,13 +125,14 @@ public class UserService {
             return false;
         }
     }
+
     public AuthenticationResponse updateUserById(Long id, UserDTO u) {
         User user = repository.findById(id)
-    .orElseThrow(() -> new EntityNotFoundException("User not found with id " + id));
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id " + id));
 
-        Team team = teamRepository.findBySlug(u.slugTeam()).orElseThrow(() -> new EntityNotFoundException ("Team is not found with slug: "+u.slugTeam())   );
+        Team team = teamRepository.findBySlug(u.slugTeam()).orElseThrow(() -> new EntityNotFoundException("Team is not found with slug: " + u.slugTeam()));
 
-        Role role = roleRepository.findByName(u.role()).orElseThrow(() -> new EntityNotFoundException ("Role is not found with name: "+u.role())   );
+        Role role = roleRepository.findByName(u.role()).orElseThrow(() -> new EntityNotFoundException("Role is not found with name: " + u.role()));
         if (user != null) {
             user.setId(id);
             user.setFullName(u.fullName());
@@ -100,7 +145,6 @@ public class UserService {
             user.setDob(LocalDate.parse(u.dob()));
 
             var jwtToken = jwtService.generateToken(user);
-            var refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);
             saveUserToken(user, jwtToken);
             repository.save(user);
@@ -111,6 +155,7 @@ public class UserService {
         }
         return null;
     }
+
     private void saveUserToken(User user, String jwtToken) {
         var token = Token.builder()
                 .user(user)
@@ -121,6 +166,7 @@ public class UserService {
                 .build();
         tokenRepository.save(token);
     }
+
     private void revokeAllUserTokens(User user) {
         var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
         if (validUserTokens.isEmpty())

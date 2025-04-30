@@ -51,9 +51,15 @@
 
         private String phone;
 
+        @Lob
+        private byte[] avatar;
+
         private String position;
         private LocalDate dob;
         private LocalDate joinDate;
+
+        @Lob
+        private byte[] qrCode;
 
         @ManyToOne
         @JoinColumn(name = "team_id")

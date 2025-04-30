@@ -11,6 +11,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Work {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -25,17 +28,21 @@ public class Work {
     private User user;
 
     @Column(nullable = false)
-    private LocalDate date;
+    private LocalDate fromDate;
+
+    @Column(nullable = false)
+    private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
     private StatusType type; // WFH, LEAVE
+
+    private LocalTime startTime;
+    private LocalTime endTime;
 
     @Enumerated(EnumType.STRING)
     private TimePeriod timePeriod; // AM, PM, FULL
 
     private String reason;
-
-    private Status status;
 
     @ManyToOne
     @JoinColumn(name = "approved_by")
@@ -44,8 +51,7 @@ public class Work {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    public enum Status {
-        PENDING, APPROVED, REJECTED
-    }
+    private String idCreate;
+
 }
 

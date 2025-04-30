@@ -1,93 +1,82 @@
 package com.huybq.fund_management.domain.work;
 
-import com.huybq.fund_management.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/${server.version}/works")
 @RequiredArgsConstructor
 public class WorkController {
-    private final WorkService service;
 
-    @PostMapping
+    private final WorkService workService;
+
+    @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<WorkResponseDTO> createWorkStatus(@RequestBody WorkDTO request) {
-        WorkResponseDTO response = service.createWork(request);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<List<WorkResponseDTO>> getAllWorks() {
+        List<WorkResponseDTO> response = workService.getAllWorks();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<WorkResponseDTO>> getWorkStatusesByUserId(@PathVariable Long userId) {
-        List<WorkResponseDTO> responses = service.getWorksByUserId(userId);
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/user/{userId}/month/{month}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<WorkResponseDTO>> getWorkStatusesByUserIdAndMonth(
-            @PathVariable Long userId,
-            @PathVariable @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
-
-        List<WorkResponseDTO> responses = service.getWorksByUserIdAndMonth(
-                userId, month.getYear(), month.getMonthValue());
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/date/{date}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<WorkResponseDTO>> getWorkStatusesByDate(
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-
-        List<WorkResponseDTO> responses = service.getWorksByDate(date);
-        return ResponseEntity.ok(responses);
-    }
-
-    @PutMapping("/{id}/approve")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<WorkResponseDTO> approveWorkStatus(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User user) {
-
-        WorkResponseDTO response = service.approveWork(id, user.getId());
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<WorkResponseDTO>> getWorksByUserId(@PathVariable Long userId) {
+        List<WorkResponseDTO> response = workService.getWorksByUserId(userId);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/reject")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<WorkResponseDTO> rejectWorkStatus(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User user) {
-
-        WorkResponseDTO response = service.rejectWork(id, user.getId());
-        return ResponseEntity.ok(response);
+    @PostMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<WorkResponseDTO>> createWork(@RequestBody WorkDTO request) {
+        List<WorkResponseDTO> createdWorks = workService.createWork(request);
+        return new ResponseEntity<>(createdWorks, HttpStatus.CREATED);
     }
 
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteWorkStatus(@PathVariable Long id) {
-        service.deleteWorkStatus(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{date}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<UserWorkResponse>> getWorksByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<UserWorkResponse> statuses = workService.getWorksByDate(date);
+        return ResponseEntity.ok(statuses);
     }
 
-    @GetMapping("/user/{userId}/wfh-count/{month}/type/{type}")
-    public ResponseEntity<Long> getWfhCountForMonth(
+    @GetMapping("/user/{userId}/count")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> countWorkDaysInMonth(
             @PathVariable Long userId,
-            @PathVariable @DateTimeFormat(pattern = "yyyy-MM") YearMonth month,
-            @PathVariable String type
-    ) {
-        Long count = service.countWorkDaysInMonthWithType(userId, type.toUpperCase(), month.getYear(), month.getMonthValue());
+            @RequestParam int year,
+            @RequestParam int month,
+            @RequestParam String type) {
+        int count = workService.countDaysInMonthWithType(userId, year, month,type.toUpperCase());
         return ResponseEntity.ok(count);
     }
 
+    @GetMapping("/work-summary")
+    public ResponseEntity<List<WorkSummaryResponse>> getWorkSummaryByMonth(
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return ResponseEntity.ok(workService.getWorkSummaryByMonth(year, month));
+    }
+
+    @GetMapping("/user/{userId}/details")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<WorkResponseDTO>> getUserWorkDetails(
+            @PathVariable Long userId,
+            @RequestParam int year,
+            @RequestParam int month) {
+        List<WorkResponseDTO> details = workService.getUserWorkDetails(userId, year, month);
+        return ResponseEntity.ok(details);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteWork(@PathVariable Long id) {
+        workService.deleteWork(id);
+        return ResponseEntity.noContent().build();
+    }
 }

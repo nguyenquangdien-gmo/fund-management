@@ -1,7 +1,9 @@
 package com.huybq.fund_management.domain.late;
 
 import com.huybq.fund_management.domain.pen_bill.PenBill;
+import com.huybq.fund_management.domain.pen_bill.PenBillDTO;
 import com.huybq.fund_management.domain.pen_bill.PenBillRepository;
+import com.huybq.fund_management.domain.pen_bill.PenBillService;
 import com.huybq.fund_management.domain.penalty.Penalty;
 import com.huybq.fund_management.domain.penalty.PenaltyRepository;
 import com.huybq.fund_management.domain.schedule.Schedule;
@@ -44,12 +46,25 @@ public class LateService {
     private final PenBillRepository penBillRepository;
     private final Notification notification;
     private final TeamService teamService;
+    private final PenBillService penBillService;
     private final ScheduleRepository scheduleRepository;
     private final LateMapper mapper;
     private final UserMapper userMapper;
 
     public List<LateResponseDTO> getLateByUserIdWithDateRange(Long userId, LocalDate fromDate, LocalDate toDate) {
         return repository.findLatesByUser_IdAndDateRange(fromDate, toDate, userId).stream().map(mapper::toReponseDTO).toList();
+    }
+
+    public List<UserLateCountDTO> getAllUserLateCountsInMonth(int month,int year) {
+        List<Object[]> results = repository.countLatesByUserInMonthAndYear(month, year);
+
+        return results.stream()
+                .map(row -> new UserLateCountDTO(
+                        (Long) row[0],
+                        (String) row[1],
+                        ((Number) row[2]).intValue()
+                ))
+                .collect(Collectors.toList());
     }
 
     public void fetchLateCheckins(LocalTime time, String channelId) {
@@ -66,7 +81,7 @@ public class LateService {
         LocalDateTime now = LocalDateTime.now();
         String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
 
-        LocalTime targetTime = Optional.ofNullable(time).orElse(LocalTime.of(10, 0));
+        LocalTime targetTime = Optional.ofNullable(time).orElse(LocalTime.of(10, 5));
         long timestamp = now.toLocalDate()
                 .atTime(targetTime)
                 .atZone(vietnamZone)
@@ -103,10 +118,62 @@ public class LateService {
 
         matchedMessages.forEach(this::saveLateRecords);
     }
+  
+    public void fetchLateCheckinsForCheckNow(LocalTime time, String channelId) {
+        Team team = teamService.getTeamBySlug("java");
+        // Kiểm tra sự tồn tại của schedule trước khi lấy channelId
+        Optional<Schedule> scheduleOpt = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"));
 
+        if (scheduleOpt.isPresent()) {
+            // Lấy channelId từ schedule nếu có
+            channelId = scheduleOpt.get().getChannelId().toString();
+        } else if (channelId == null || "default-channel-id".equals(channelId)) {
+            // Nếu không có schedule và channelId vẫn null, ném lỗi
+            throw new ResourceNotFoundException("Schedule 'late-check-in' not found or channelId is null");
+        }
 
-    //len lich goi tu dong tu 10h05 t2- t6
-    @Scheduled(cron = "0 5 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
+        LocalDateTime now = LocalDateTime.now();
+        String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        long timestamp = now.atZone(vietnamZone)
+                .withHour(time.getHour()).withMinute(time.getMinute()).withSecond(time.getSecond())
+                .toEpochSecond() * 1000;
+
+        String url = "https://chat.runsystem.vn/api/v4/channels/" + channelId + "/posts?since=" + timestamp;
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + team.getToken());
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            Map<String, Object> responseBody = response.getBody();
+            Map<String, Object> posts = (Map<String, Object>) responseBody.get("posts");
+
+            if (posts != null && !posts.isEmpty()) {
+                // Lọc thông báo của ngày hiện tại
+                List<String> matchedMessages = posts.values().stream()
+                        .map(post -> (String) ((Map<String, Object>) post).get("message"))
+                        .filter(message -> message != null && message.contains("THÔNG BÁO DANH SÁCH ĐI LÀM MUỘN " + todayString))
+                        .collect(Collectors.toList());
+
+                if (!matchedMessages.isEmpty()) {
+                    matchedMessages.forEach(this::saveLateRecords);
+                } else {
+                    System.out.println("Không có message đi trễ nào trong dữ liệu API.");
+                }
+            } else {
+                System.out.println("Không có bài viết nào trong dữ liệu API.");
+            }
+        } else {
+            throw new RuntimeException("Lỗi khi gọi API: " + response.getStatusCode());
+        }
+    }
+
+    //len lich goi tu dong tu 10h t2- t6
+    @Scheduled(cron = "0 0 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
     public void scheduledCheckinLate() {
         Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"))
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule 'late-check-in' not found"));
@@ -200,10 +267,10 @@ public class LateService {
         System.out.println("saving successfully.");
     }
 
-    @Transactional(readOnly = true)
-    public List<Late> getLateRecordsByDateRange(LocalDate fromDate, LocalDate toDate) {
-        return repository.findByDateRange(fromDate, toDate);
-    }
+//    @Transactional(readOnly = true)
+//    public List<Late> getLateRecordsByDateRange(LocalDate fromDate, LocalDate toDate) {
+//        return repository.findByDateRange(fromDate, toDate);
+//    }
 
     /**
      * Parse thời gian từ string
@@ -219,16 +286,56 @@ public class LateService {
         }
     }
 
-    public static String formatLocalDate(LocalDate date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        return date.format(formatter);
+//    public static String formatLocalDate(LocalDate date) {
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+//        return date.format(formatter);
+//    }
+//
+//    public List<UserResponseDTO> getUsersWithLateDate() {
+//        LocalDate today = LocalDate.now();
+//        return repository.findUsersWithLateInDate(today).stream()
+//                .map(userMapper::toResponseDTO).toList();
+//    }
+
+    @Transactional(readOnly = true)
+    public List<LateWithPenBillDTO> getLateRecordsWithPenBill(LocalDate fromDate, LocalDate toDate) {
+        // Lấy tất cả các bản ghi Late trong khoảng thời gian từ fromDate đến toDate
+        List<Late> lates = repository.findByDateRange(fromDate, toDate);
+        List<LateWithPenBillDTO> result = new ArrayList<>();
+
+        for (Late late : lates) {
+            Optional<PenBillDTO> penBillOpt = penBillService.findByUserAndPenaltyAndDate(
+                    late.getUser(), "late-check-in", late.getDate()); // Giả sử penaltyID là 1L
+
+            LateWithPenBillDTO lateWithPenBillDTO = new LateWithPenBillDTO(
+                    late.getId(),
+                    userMapper.toResponseDTO(late.getUser()),
+                    late.getDate(),
+                    late.getCheckinAt(),
+                    late.getNote(),
+                    penBillOpt.orElse(null)
+            );
+
+            // Thêm LateWithPenBillDTO vào danh sách kết quả
+            result.add(lateWithPenBillDTO);
+        }
+
+        return result;
     }
 
-    public List<UserResponseDTO> getUsersWithLateDate() {
-        LocalDate today = LocalDate.now();
-        return repository.findUsersWithLateInDate(today).stream()
-                .map(userMapper::toResponseDTO).toList();
+    @Transactional
+    public void deleteLateRecord(Long lateId, Long penBillId) {
+        // Xóa bản ghi PenBill nếu có
+        if (penBillId != null) {
+            penBillRepository.deleteById(penBillId);
+        }
+
+        // Xóa bản ghi đi muộn
+        repository.deleteById(lateId);
     }
+
+
+
 
 //    public void sendLateReminder() {
 //
