@@ -88,7 +88,7 @@ public class EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
 
         // Dùng phương thức có @EntityGraph
-        List<Event> events = eventRepository.findByEventTimeBetween(schedule.getFromDate(), schedule.getToDate());
+        List<Event> events = eventRepository.findByEventTimeBetween(now, schedule.getToDate());
         if (events.isEmpty()) {
             return;
         }
