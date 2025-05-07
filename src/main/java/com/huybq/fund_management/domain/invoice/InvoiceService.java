@@ -2,12 +2,15 @@ package com.huybq.fund_management.domain.invoice;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
 import com.huybq.fund_management.domain.fund.FundType;
+import com.huybq.fund_management.domain.role.Role;
+import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
+import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -30,6 +30,8 @@ public class InvoiceService {
     private final UserRepository userRepository;
     private final BalanceService balanceService;
     private final TransService transService;
+    private final Notification notification;
+    private final RoleRepository roleRepository;
 
     public List<InvoiceResponseDTO> getInvoices() {
         return repository.findAllByStatusInOrderByCreatedAtDesc(List.of(InvoiceStatus.APPROVED)).stream()
@@ -103,6 +105,45 @@ public class InvoiceService {
             invoice.setBillImage(billImage.getBytes());
         }
         invoice = repository.save(invoice);
+
+        // Gửi message đến chatops
+        StringBuilder messageBuilder = new StringBuilder();
+
+        Optional<Role> adminRole = roleRepository.findByName("ADMIN");
+
+        if (adminRole.isPresent()) {
+            List<User> allAdmins = userRepository.findAllAdmin(adminRole.get());
+            for (User admin : allAdmins) {
+                String mention = "@" + admin.getEmail().replace("@", "-");
+                messageBuilder.append(mention).append(" ");
+            }
+        } else {
+            messageBuilder.append("@all");
+        }
+
+        messageBuilder.append("\n\n");
+
+        if (dto.userId() != null) {
+            Optional<User> relatedUser = userRepository.findById(dto.userId());
+            if (relatedUser.isPresent()) {
+                String mention = "@" + relatedUser.get().getEmail().replace("@", "-");
+                messageBuilder.append(mention).append(" ");
+            }
+            messageBuilder.append("** đã đóng hóa đơn**");
+            messageBuilder.append("\n\n");
+        }
+
+        if (dto.description() != null && !dto.description().isEmpty()) {
+            messageBuilder.append("**Mô tả: **").append(dto.description()).append("\n\n");
+        }
+
+        // Thêm link tới trang orders
+        messageBuilder.append("Hãy xem thông tin tại [đây](https://fund-manager-client-e1977.web.app/invoices/")
+                .append(invoice.getId())
+                .append(")");
+
+        String channelId = "java";
+        notification.sendNotification(messageBuilder.toString(), channelId);
 
         return mapper.toDTO(invoice);
     }
