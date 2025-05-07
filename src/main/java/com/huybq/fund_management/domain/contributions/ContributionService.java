@@ -357,7 +357,6 @@ public class ContributionService {
                             (String) row[6],
                             row[7] != null ? row[7].toString() : null,
                             row[8] != null ? row[8].toString() : null
-
                     );
                     int month = (Integer) row[9];
                     int year = (Integer) row[10];
@@ -371,7 +370,7 @@ public class ContributionService {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append("🚨 **Danh sách chưa đóng quỹ các tháng trước ").append(today.getMonthValue())
+        message.append("🚨 **Danh sách anh/chị em chưa đóng quỹ, nợ quỹ ").append(today.getMonthValue())
                 .append("/").append(today.getYear()).append(" ** 🚨\n\n");
         message.append("| STT | Tên | Tháng/Năm | Số tiền nợ  |\n");
         message.append("|---|---|---|---|\n");
