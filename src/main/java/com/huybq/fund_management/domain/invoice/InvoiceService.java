@@ -6,11 +6,14 @@ import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,16 +83,19 @@ public class InvoiceService {
         return response;
     }
 
-    public InvoiceStatsDTO getYearInvoiceStats(int year,String type) {
+    public InvoiceStatsDTO getYearInvoiceStats(int year, String type) {
         return repository.getYearInvoiceStatistics(year, InvoiceType.valueOf(type.toUpperCase()));
     }
 
     @Transactional
-    public InvoiceResponseDTO create(InvoiceDTO dto) {
+    public InvoiceResponseDTO create(InvoiceDTO dto, MultipartFile billImage) throws IOException {
         var user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + dto.userId()));
         var invoice = mapper.toEntity(dto);
         invoice.setUser(user);
+        if (billImage != null && !billImage.isEmpty()) {
+            invoice.setBillImage(billImage.getBytes());
+        }
         invoice = repository.save(invoice);
 
         return mapper.toDTO(invoice);
@@ -113,7 +119,7 @@ public class InvoiceService {
 
                     TransDTO transDTO = TransDTO.builder()
                             .amount(invoice.getAmount())
-                            .description("Phê duyệt phiếu: " + invoice.getDescription()+ " - "+invoice.getUser().getFullName())
+                            .description("Phê duyệt phiếu: " + invoice.getDescription() + " - " + invoice.getUser().getFullName())
                             .transactionType(invoice.getInvoiceType() == InvoiceType.EXPENSE
                                     ? Trans.TransactionType.EXPENSE
                                     : Trans.TransactionType.INCOME_FUND)
@@ -128,7 +134,7 @@ public class InvoiceService {
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found with ID: " + idInvoice));
     }
 
-    public InvoiceResponseDTO update(Long idInvoice, InvoiceDTO dto) {
+    public InvoiceResponseDTO update(Long idInvoice, InvoiceDTO dto, MultipartFile billImage) {
         return repository.findById(idInvoice)
                 .map(invoice -> {
                     if (invoice.getStatus() == InvoiceStatus.APPROVED) {
@@ -140,6 +146,14 @@ public class InvoiceService {
 
                     invoice.setUser(user);
                     invoice.setAmount(dto.amount());
+
+                    if (billImage != null && !billImage.isEmpty()) {
+                        try {
+                            invoice.setBillImage(billImage.getBytes());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     invoice.setDescription(dto.description());
                     invoice.setInvoiceType(InvoiceType.valueOf(dto.invoiceType()));
 
@@ -148,7 +162,7 @@ public class InvoiceService {
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found with ID: " + idInvoice));
     }
 
-    public InvoiceResponseDTO reject(Long idInvoice,String reason) {
+    public InvoiceResponseDTO reject(Long idInvoice, String reason) {
         return repository.findById(idInvoice)
                 .map(invoice -> {
                     if (invoice.getStatus() == InvoiceStatus.APPROVED) {
@@ -156,7 +170,7 @@ public class InvoiceService {
                     }
                     TransDTO transDTO = TransDTO.builder()
                             .amount(invoice.getAmount())
-                            .description("Hủy phiếu: " + " - "+invoice.getUser().getFullName()+invoice.getDescription()+" - \nlý do: "+reason)
+                            .description("Hủy phiếu: " + " - " + invoice.getUser().getFullName() + invoice.getDescription() + " - \nlý do: " + reason)
                             .transactionType(invoice.getInvoiceType() == InvoiceType.EXPENSE
                                     ? Trans.TransactionType.EXPENSE
                                     : Trans.TransactionType.INCOME_FUND)
@@ -164,7 +178,7 @@ public class InvoiceService {
                             .build();
 
                     transService.createTransaction(transDTO);
-                    if(!reason.isEmpty()){
+                    if (!reason.isEmpty()) {
                         String currentNote = invoice.getDescription() != null ? invoice.getDescription() : "";
                         invoice.setDescription(currentNote + (currentNote.isBlank() ? "" : " ") + "Bị hủy vì " + reason);
                     }
@@ -177,5 +191,11 @@ public class InvoiceService {
 
     public void delete(Long idInvoice) {
         repository.deleteById(idInvoice);
+    }
+
+    public byte[] getBillImage(Long invoiceId) {
+        var invoice = repository.findById(invoiceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+        return invoice.getBillImage();
     }
 }
