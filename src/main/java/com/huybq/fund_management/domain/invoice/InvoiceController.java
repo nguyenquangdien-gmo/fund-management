@@ -80,10 +80,8 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public ResponseEntity<InvoiceResponseDTO> createInvoice(
-            @Valid @RequestPart("invoice") InvoiceDTO dto,
-            @RequestPart(value = "billImage", required = false) MultipartFile billImage) throws IOException {
-        return ResponseEntity.ok(service.create(dto, billImage));
+    public ResponseEntity<InvoiceResponseDTO> createInvoice(@Valid @RequestPart InvoiceDTO dto, @RequestPart(value = "billImage", required = false) MultipartFile billImage) throws IOException {
+        return ResponseEntity.ok(service.create(dto,billImage));
     }
 
     @PutMapping("/{id}/approve")
@@ -101,25 +99,26 @@ public class InvoiceController {
         return ResponseEntity.ok(service.update(id, dto, billImage));
     }
 
-    @GetMapping("/{id}/bill-image")
-    public ResponseEntity<byte[]> getBillImage(@PathVariable Long id) {
-        try {
-            byte[] billImage = service.getBillImage(id);
-            if (billImage == null) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity
-                    .ok()
-                    .contentType(MediaType.IMAGE_PNG)
-                    .body(billImage);
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteInvoice(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{invoiceId}/bill-image")
+    public ResponseEntity<byte[]> getBillImage(@PathVariable Long invoiceId) {
+        try {
+            byte[] avatar = service.getBillImage(invoiceId);
+            if (avatar == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(avatar);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
