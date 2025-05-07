@@ -2,6 +2,8 @@ package com.huybq.fund_management.domain.invoice;
 
 import com.huybq.fund_management.domain.balance.BalanceService;
 import com.huybq.fund_management.domain.fund.FundType;
+import com.huybq.fund_management.domain.reminder.ReminderDTO;
+import com.huybq.fund_management.domain.reminder.ReminderService;
 import com.huybq.fund_management.domain.role.Role;
 import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.trans.Trans;
@@ -19,8 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
-import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class InvoiceService {
     private final UserRepository userRepository;
     private final BalanceService balanceService;
     private final TransService transService;
-    private final Notification notification;
+    private final ReminderService reminderService;
     private final RoleRepository roleRepository;
 
     public List<InvoiceResponseDTO> getInvoices() {
@@ -106,47 +109,12 @@ public class InvoiceService {
         }
         invoice = repository.save(invoice);
 
-        // Gửi message đến chatops
-        StringBuilder messageBuilder = new StringBuilder();
-
-        Optional<Role> adminRole = roleRepository.findByName("ADMIN");
-
-        if (adminRole.isPresent()) {
-            List<User> allAdmins = userRepository.findAllAdmin(adminRole.get());
-            for (User admin : allAdmins) {
-                String mention = "@" + admin.getEmail().replace("@", "-");
-                messageBuilder.append(mention).append(" ");
-            }
-        } else {
-            messageBuilder.append("@all");
-        }
-
-        messageBuilder.append("\n\n");
-
-        if (dto.userId() != null) {
-            Optional<User> relatedUser = userRepository.findById(dto.userId());
-            if (relatedUser.isPresent()) {
-                String mention = "@" + relatedUser.get().getEmail().replace("@", "-");
-                messageBuilder.append(mention).append(" ");
-            }
-            messageBuilder.append("** đã đóng hóa đơn**");
-            messageBuilder.append("\n\n");
-        }
-
-        if (dto.description() != null && !dto.description().isEmpty()) {
-            messageBuilder.append("**Mô tả: **").append(dto.description()).append("\n\n");
-        }
-
-        // Thêm link tới trang orders
-        messageBuilder.append("Hãy xem thông tin tại [đây](https://fund-manager-client-e1977.web.app/invoices/")
-                .append(invoice.getId())
-                .append(")");
-
-        String channelId = "java";
-        notification.sendNotification(messageBuilder.toString(), channelId);
+        // Gửi thông báo
+        sendNotificationToAdmins(dto, user);
 
         return mapper.toDTO(invoice);
     }
+
 
     public InvoiceResponseDTO approve(Long idInvoice, String fundType) {
         return repository.findById(idInvoice)
@@ -251,4 +219,123 @@ public class InvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
         return invoice.getBillImage();
     }
+
+    private void sendNotificationToAdmins(InvoiceDTO dto, User user) {
+        // Lấy role "ADMIN"
+        Optional<Role> adminRole = roleRepository.findByName("ADMIN");
+
+        // Kiểm tra xem có role ADMIN không
+        if (adminRole.isPresent()) {
+            List<User> allAdmins = userRepository.findAllAdmin(adminRole.get());
+
+            Date date = new Date(); // hoặc biến bạn đã có
+            LocalDateTime localDateTime = date.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+
+            // Duyệt qua từng admin và gửi thông báo
+            for (User admin : allAdmins) {
+                ReminderDTO reminderDTO = ReminderDTO.builder()
+                        .title("Thông báo từ hệ thống")
+                        .description("Có một hóa đơn mới từ " + user.getFullName())
+                        .type("OTHER")
+                        .scheduledTime(localDateTime)
+                        .isSendChatGroup(true)
+                        .userIds(List.of(admin.getId()))
+                        .build();
+                reminderService.createReminder(reminderDTO, admin.getEmail());
+            }
+        }
+    }
+
+//    private void sendMessageToChatOps(InvoiceDTO dto) {
+//        StringBuilder messageBuilder = new StringBuilder();
+//
+//        Optional<Role> adminRole = roleRepository.findByName("ADMIN");
+//
+//        if (adminRole.isPresent()) {
+//            List<User> allAdmins = userRepository.findAllAdmin(adminRole.get());
+//            for (User admin : allAdmins) {
+//                String mention = "@" + admin.getEmail().replace("@", "-");
+//                messageBuilder.append(mention).append(" ");
+//            }
+//        } else {
+//            messageBuilder.append("@all");
+//        }
+//
+//        messageBuilder.append("\n\n");
+//
+//        if (dto.userId() != null) {
+//            Optional<User> relatedUser = userRepository.findById(dto.userId());
+//            if (relatedUser.isPresent()) {
+//                String mention = "@" + relatedUser.get().getEmail().replace("@", "-");
+//                messageBuilder.append(mention).append(" ");
+//            }
+//            messageBuilder.append("** đã đóng hóa đơn**");
+//            messageBuilder.append("\n\n");
+//        }
+//
+//        if (dto.description() != null && !dto.description().isEmpty()) {
+//            messageBuilder.append("**Mô tả: **").append(dto.description()).append("\n\n");
+//        }
+//
+//        // Thêm link tới trang orders
+//        messageBuilder.append("Hãy xem thông tin tại [đây](https://fund-manager-client-e1977.web.app/invoices/")
+//                .append(dto.userId())
+//                .append(")");
+//
+//        String channelId = "java";
+//        notification.sendNotification(messageBuilder.toString(), channelId);
+//    }
+//
+//    private void sendNotificationToAdmins(InvoiceDTO dto) {
+//        // Lấy role "ADMIN"
+//        Optional<Role> adminRole = roleRepository.findByName("ADMIN");
+//
+//        // Kiểm tra xem có role ADMIN không
+//        if (adminRole.isPresent()) {
+//            List<User> allAdmins = userRepository.findAllAdmin(adminRole.get());
+//
+//            // Duyệt qua từng admin và gửi thông báo
+//            for (User admin : allAdmins) {
+//                StringBuilder messageBuilder = new StringBuilder();
+//
+//                // Mention admin trong message
+//                String mention = "@" + admin.getEmail().replace("@", "-");
+//                messageBuilder.append(mention).append(" ");
+//
+//                messageBuilder.append("\n\n");
+//
+//                // Thông tin về user đã đóng hóa đơn
+//                if (dto.userId() != null) {
+//                    Optional<User> relatedUser = userRepository.findById(dto.userId());
+//                    if (relatedUser.isPresent()) {
+//                        String relatedUserMention = "@" + relatedUser.get().getEmail().replace("@", "-");
+//                        messageBuilder.append(relatedUserMention).append(" ");
+//                    }
+//                    messageBuilder.append("** đã đóng hóa đơn**");
+//                    messageBuilder.append("\n\n");
+//                }
+//
+//                // Mô tả hóa đơn
+//                if (dto.description() != null && !dto.description().isEmpty()) {
+//                    messageBuilder.append("**Mô tả: **").append(dto.description()).append("\n\n");
+//                }
+//
+//                // Thêm link tới trang orders
+//                messageBuilder.append("Hãy xem thông tin tại [đây](https://fund-manager-client-e1977.web.app/invoices/")
+//                        .append(dto.userId())
+//                        .append(")");
+//
+//                // Gửi thông báo cho admin
+//                notification.sendNotificationForMember(messageBuilder.toString(), "system", admin.getEmail());
+//            }
+//        } else {
+//            // Nếu không tìm thấy role ADMIN, gửi thông báo cho một admin mặc định hoặc nhóm
+//            StringBuilder defaultMessage = new StringBuilder();
+//            defaultMessage.append("@all");
+//            notification.sendNotificationForMember(defaultMessage.toString(), "system", "admin@example.com");
+//        }
+//    }
+
 }
