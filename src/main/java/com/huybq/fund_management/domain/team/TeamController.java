@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.team;
 
+import com.huybq.fund_management.domain.user.UserDTO;
 import com.huybq.fund_management.domain.user.UserService;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -96,5 +97,11 @@ public class TeamController {
     public ResponseEntity<TeamResponseDTO> getTeamByUserId(@PathVariable Long userId) {
         TeamResponseDTO team = teamService.getTeamByUserId(userId);
         return ResponseEntity.ok(team);
+    }
+
+    @GetMapping("{teamId}/members")
+    public ResponseEntity<List<UserDTO>> getMembersByTeamId(@PathVariable String teamId) {
+        List<UserDTO> members = userService.getMembersByTeamId(teamId);
+        return ResponseEntity.ok(members);
     }
 }

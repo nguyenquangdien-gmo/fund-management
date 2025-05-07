@@ -3,6 +3,7 @@ package com.huybq.fund_management.domain.user;
 import com.huybq.fund_management.domain.reminder.Reminder;
 import com.huybq.fund_management.domain.reminder.ReminderRepository;
 import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUser;
+import com.huybq.fund_management.domain.reminder.reminder_user.ReminderUserRepository;
 import com.huybq.fund_management.domain.role.Role;
 import com.huybq.fund_management.domain.role.RoleRepository;
 import com.huybq.fund_management.domain.team.Team;
@@ -15,9 +16,11 @@ import com.huybq.fund_management.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -36,6 +39,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final TeamRepository teamRepository;
     private final ReminderRepository reminderRepository;
+    private final UserMapper userMapper;
 
     public List<UserResponseDTO> getUsers() {
         return repository.findAllByIsDeleteIsFalse().stream()
@@ -186,6 +190,16 @@ public class UserService {
         return repository.findByIdAndIsDeleteIsFalse(userId)
                 .map(User::getTeam)
                 .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
+    }
+
+    public List<UserDTO> getMembersByTeamId(String teamId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + teamId));
+
+        List<User> members = repository.findAllByTeamAndIsDeleteIsFalse(team);
+        return members.stream()
+                .map(userMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 }
