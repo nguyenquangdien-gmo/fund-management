@@ -6,6 +6,7 @@ import com.huybq.fund_management.domain.trans.Trans;
 import com.huybq.fund_management.domain.trans.TransDTO;
 import com.huybq.fund_management.domain.trans.TransService;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.utils.chatops.Notification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class InvoiceService {
     private final UserRepository userRepository;
     private final BalanceService balanceService;
     private final TransService transService;
+    private final Notification notification;
 
     public List<InvoiceResponseDTO> getInvoices() {
         return repository.findAllByStatusInOrderByCreatedAtDesc(List.of(InvoiceStatus.APPROVED)).stream()
@@ -91,6 +93,10 @@ public class InvoiceService {
         var invoice = mapper.toEntity(dto);
         invoice.setUser(user);
         invoice = repository.save(invoice);
+
+        // Gửi thông báo đến nhóm chat
+//        String message = "Có phiếu mới từ " + user.getFullName() + ": " + invoice.getDescription() + " - " + invoice.getAmount();
+//        notification.sendNotification(message, "java");
 
         return mapper.toDTO(invoice);
     }
