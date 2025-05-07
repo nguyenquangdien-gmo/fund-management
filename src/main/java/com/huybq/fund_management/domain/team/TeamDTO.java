@@ -15,4 +15,5 @@ public class TeamDTO {
     private String slug;
     private String channelId;
     private String token;
+    private String regulation;
 }

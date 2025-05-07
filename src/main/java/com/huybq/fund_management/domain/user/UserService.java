@@ -192,13 +192,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
     }
 
-    public List<UserDTO> getMembersByTeamId(String teamId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + teamId));
-
-        List<User> members = repository.findAllByTeamAndIsDeleteIsFalse(team);
-        return members.stream()
-                .map(userMapper::toDto)
+    public List<UserResponseDTO> getMembersByTeamSlug(String slug) {
+        Team team = teamRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
+        return repository.findAllByTeamAndIsDeleteIsFalse(team).stream()
+                .map(userMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 

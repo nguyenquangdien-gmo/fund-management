@@ -11,4 +11,5 @@ public class TeamResponseDTO {
     private String id;
     private String name;
     private String slug;
+    private String regulation;
 }

@@ -40,4 +40,7 @@ public class Team {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Lob
+    private String regulation;
+
 }

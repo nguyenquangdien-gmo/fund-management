@@ -12,6 +12,7 @@ public class TeamMapper {
                 .id(team.getId())
                 .name(team.getName())
                 .slug(team.getSlug())
+                .regulation(team.getRegulation())
                 .build();
     }
 
@@ -22,6 +23,7 @@ public class TeamMapper {
                 .slug(team.getSlug())
                 .channelId(team.getChannelId())
                 .token(team.getToken())
+                .regulation(team.getRegulation())
                 .build();
     }
 
@@ -33,6 +35,7 @@ public class TeamMapper {
                 .channelId(teamDTO.getChannelId())
 //                .qrCode(teamDTO.getQrCode().getBytes())
                 .token(teamDTO.getToken())
+                .regulation(teamDTO.getRegulation())
                 .build();
     }
 
@@ -42,5 +45,6 @@ public class TeamMapper {
         team.setChannelId(teamUpdateDTO.getChannelId());
 //        team.setQrCode(teamUpdateDTO.getQrCode().getBytes());
         team.setToken(teamUpdateDTO.getToken());
+        team.setRegulation(teamUpdateDTO.getRegulation());
     }
 }

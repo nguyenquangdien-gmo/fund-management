@@ -6,6 +6,7 @@ import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -92,4 +93,5 @@ public class TeamService {
                 .map(user -> mapper.toResponseDTO(user.getTeam()))
                 .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
     }
+
 }
