@@ -50,25 +50,6 @@ public class ReminderService {
                 .toList();
     }
 
-
-//    public List<ReminderResponseDTO> getAllRemindersByType() {
-//        return reminderRepository.findAllByReminderTypeOrderByScheduledTimeDesc(Reminder.ReminderType.SURVEY).stream()
-//                .map(reminder -> ReminderResponseDTO.builder()
-//                        .id(reminder.getId())
-//                        .title(reminder.getTitle())
-//                        .description(reminder.getDescription())
-//                        .type(reminder.getReminderType().name())
-//                        .status(reminder.getStatus().name())
-//                        .users(reminder.getReminderUsers().stream()
-//                                .map(userReminder -> userMapper.toResponseDTO(userReminder.getUser()))
-//                                .toList())
-//                        .isSendChatGroup(reminder.isSendChatGroup())
-//                        .scheduledTime(reminder.getScheduledTime())
-//                        .createdAt(String.valueOf(reminder.getCreatedAt()))
-//                        .build())
-//                .toList();
-//    }
-
     public ReminderResponseDTO getReminderById(Long id) {
         Reminder reminder = reminderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found"));
@@ -94,7 +75,7 @@ public class ReminderService {
                 .collect(Collectors.toSet());
     }
 
-    public void createReminder(ReminderDTO reminderDTO) {
+    public void createReminder(ReminderDTO reminderDTO, String createdEmail) {
 
         Reminder reminder = new Reminder();
 
@@ -110,20 +91,29 @@ public class ReminderService {
         reminder.setStatus(Reminder.Status.SENT);
         reminder.setScheduledTime(reminderDTO.scheduledTime());
         reminder.setSendChatGroup(reminderDTO.isSendChatGroup());
+        reminder.setCreatedEmail(createdEmail);
 
         reminderRepository.save(reminder);
 
-        if (reminderDTO.isSendChatGroup() &&
-                Optional.ofNullable(reminderDTO.scheduledTime())
-                        .map(t -> t.isBefore(LocalDateTime.now()))
-                        .orElse(true)) {
-            try {
+        if (Optional.ofNullable(reminderDTO.scheduledTime())
+                .map(t -> t.isBefore(LocalDateTime.now()))
+                .orElse(true)) {
+            if (reminderDTO.isSendChatGroup()) {
                 sendNotification(reminder);
-            } catch (Exception e) {
-                System.err.println("Lỗi khi gửi notification: " + e);
+            } else {
+                sendForMember(reminder);
             }
         }
     }
+
+    private void sendForMember(Reminder reminder) {
+        for (User user : reminder.getReminderUsers().stream().map(ReminderUser::getUser).collect(Collectors.toSet())) {
+            StringBuilder message = new StringBuilder("@" + user.getEmail().replace("@", "-") + "\n🔔 Thông báo mới: " + reminder.getTitle())
+                    .append("\nNội dung: " + reminder.getDescription());
+            notification.sendNotificationForMember(message.toString(), reminder.getCreatedEmail(), user.getEmail());
+        }
+    }
+
 
     public void sendNotification(Reminder reminder) {
         Set<User> users = reminder.getReminderUsers().stream()
@@ -144,9 +134,6 @@ public class ReminderService {
                 "\nNội dung: " + reminder.getDescription();
 
         notification.sendNotification(message, "java");
-
-        reminder.setStatus(Reminder.Status.READ);
-        reminderRepository.save(reminder);
     }
 
     private boolean isAllUsersSelected(Set<User> selectedUsers) {
@@ -158,24 +145,22 @@ public class ReminderService {
     @Scheduled(fixedRate = 60000)
     public void processScheduledReminders() {
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfMinute = now.withSecond(0).withNano(0);
+        LocalDateTime endOfMinute = now.withSecond(59).withNano(999_999_999);
 
-        List<Reminder> reminders = reminderRepository.findByScheduledTimeBeforeAndStatus(now, Reminder.Status.SENT);
+
+        List<Reminder> reminders = reminderRepository
+                .findByScheduledTimeBetweenAndStatus(startOfMinute, endOfMinute, Reminder.Status.SENT);
 
         reminders.forEach(reminder -> {
             if (reminder.getLastSentDate() == null || !reminder.getLastSentDate().toLocalDate().isEqual(now.toLocalDate())) {
-
-                if (reminder.getScheduledTime().toLocalDate().isEqual(now.toLocalDate()) &&
-                        reminder.getScheduledTime().getHour() == now.getHour() &&
-                        reminder.getScheduledTime().getMinute() == now.getMinute()) {
-
-                    if (reminder.isSendChatGroup()) {
-                        sendNotification(reminder);
-                    }
-
-                    reminder.setStatus(Reminder.Status.SENT);
-                    reminder.setLastSentDate(now);
-                    reminderRepository.save(reminder);
+                if (reminder.isSendChatGroup()) {
+                    sendNotification(reminder);
+                } else {
+                    sendForMember(reminder);
                 }
+                reminder.setLastSentDate(now);
+                reminderRepository.save(reminder);
             }
         });
     }

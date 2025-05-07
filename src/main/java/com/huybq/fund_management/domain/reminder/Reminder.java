@@ -41,6 +41,8 @@ public class Reminder {
 
     private boolean isSendChatGroup;
 
+    private String createdEmail;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

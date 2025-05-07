@@ -20,7 +20,6 @@ public class GoogleDriveAccount {
     private String refreshToken;
     private LocalDateTime tokenExpiryDate;
     private String rootFolderId;
-    private String userId;
 
     @OneToMany(mappedBy = "googleDriveAccount", cascade = CascadeType.ALL)
     private List<DriveFolder> folders = new ArrayList<>();

@@ -34,3 +34,12 @@ build/
 ### .env###
 .env
 src/main/resources/application.yml
+src/main/resources/application.properties
+
+# Google Service Account credentials
+src/main/resources/keys/key.json
+src/main/resources/keys/*.json
+
+# Logs
+logs/
+*.log

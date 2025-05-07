@@ -88,7 +88,7 @@ public class EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
 
         // Dùng phương thức có @EntityGraph
-        List<Event> events = eventRepository.findByEventTimeBetween(schedule.getFromDate(), schedule.getToDate());
+        List<Event> events = eventRepository.findByEventTimeBetween(now, schedule.getToDate());
         if (events.isEmpty()) {
             return;
         }
@@ -165,7 +165,7 @@ public class EventService {
 
 
     public List<EventResponeseDTO> getAllEvents() {
-        return eventRepository.findAllByEventTimeGreaterThanEqual(LocalDateTime.now()).stream()
+        return eventRepository.findAll().stream()
                 .map(mapper::toResponseDTO).toList();
     }
 

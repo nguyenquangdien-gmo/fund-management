@@ -45,7 +45,7 @@ public class InvoiceController {
             @RequestParam int month,
             @RequestParam int year,
             @RequestParam String type) {
-        return ResponseEntity.ok(service.getInvoiceByMonthAndYear(type,month, year));
+        return ResponseEntity.ok(service.getInvoiceByMonthAndYear(type, month, year));
     }
 
     @GetMapping("/total")
@@ -53,13 +53,14 @@ public class InvoiceController {
             @RequestParam int month,
             @RequestParam int year,
             @RequestParam String type) {
-        return ResponseEntity.ok(service.getTotalAmountByMonthAndYear(month, year,type));
+        return ResponseEntity.ok(service.getTotalAmountByMonthAndYear(month, year, type));
     }
+
     @GetMapping("/total-year")
     public ResponseEntity<BigDecimal> getTotalAmountByYear(
             @RequestParam int year,
             @RequestParam String type) {
-        return ResponseEntity.ok(service.getTotalAmountByYear(year,type));
+        return ResponseEntity.ok(service.getTotalAmountByYear(year, type));
     }
 
     @GetMapping("/monthly-stats")
@@ -75,7 +76,7 @@ public class InvoiceController {
             @PathVariable int year,
             @RequestParam String type
     ) {
-        return ResponseEntity.ok(service.getYearInvoiceStats(year,type));
+        return ResponseEntity.ok(service.getYearInvoiceStats(year, type));
     }
 
     @PostMapping
@@ -89,14 +90,15 @@ public class InvoiceController {
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<InvoiceResponseDTO> rejectInvoice(@PathVariable Long id,@RequestBody Map<String,String> request) {
-        return ResponseEntity.ok(service.reject(id,request.get("reason")));
+    public ResponseEntity<InvoiceResponseDTO> rejectInvoice(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        return ResponseEntity.ok(service.reject(id, request.get("reason")));
     }
 
     @PutMapping("/{id}/update")
-    public ResponseEntity<InvoiceResponseDTO> updateInvoice(@PathVariable Long id, @Valid @RequestPart InvoiceDTO dto,@RequestPart(value = "billImage", required = false) MultipartFile billImage) {
-        return ResponseEntity.ok(service.update(id,dto,billImage));
+    public ResponseEntity<InvoiceResponseDTO> updateInvoice(@PathVariable Long id, @Valid @RequestPart("invoice") InvoiceDTO dto, @RequestPart(value = "billImage", required = false) MultipartFile billImage) throws IOException {
+        return ResponseEntity.ok(service.update(id, dto, billImage));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteInvoice(@PathVariable Long id) {

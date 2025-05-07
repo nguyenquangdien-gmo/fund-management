@@ -47,14 +47,18 @@ public class Notification {
             e.printStackTrace(); // In stack trace để dễ debug
         }
     }
-    public void sendNotificationForMember(String messageContent, String receiverEmail, String senderIdChat) {
+
+    public void sendNotificationForMember(String messageContent, String senderEmail, String receiverEmail) {
         try {
             // Lấy thông tin user nhận bằng email
             Map<String, Object> receiver = chatopsService.getUserByEmail(receiverEmail);
-            String receiverIdChat = (String) receiver.get("id");
+            String receiverId = (String) receiver.get("id");
+
+            Map<String, Object> sender = chatopsService.getUserByEmail(senderEmail);
+            String senderId = (String) sender.get("id");
 
             // Tạo channel direct giữa sender và receiver
-            String channelId = chatopsService.getDirectChannelId(senderIdChat, receiverIdChat);
+            String channelId = chatopsService.getDirectChannelId(receiverId, senderId);
 
             // Gửi tin nhắn
             chatopsService.sendMessage(channelId, messageContent);
