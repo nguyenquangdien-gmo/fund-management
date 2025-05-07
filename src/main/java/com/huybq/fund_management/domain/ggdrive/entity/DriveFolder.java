@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Data
@@ -30,9 +31,15 @@ public class DriveFolder {
 
     @Column(name = "google_folder_id", nullable = false)
     private String googleFolderId;
-
+  
     @Column(name = "web_view_link")
     private String webViewLink;
+
+    @CreationTimestamp
+    private LocalDateTime createdTime;
+
+    @UpdateTimestamp
+    private LocalDateTime modifiedTime;
 
     @ManyToOne
     @JoinColumn(name = "parent_folder_id")

@@ -58,6 +58,9 @@
         private LocalDate dob;
         private LocalDate joinDate;
 
+        @Lob
+        private byte[] qrCode;
+
         @ManyToOne
         @JoinColumn(name = "team_id")
         private Team team;

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/${server.version}/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
@@ -53,8 +53,10 @@ public class UserController {
     @PutMapping("/{id}/update")
     public ResponseEntity<?> updateProfile(@PathVariable("id") Long userId,
                                            @RequestPart("user") UserDTO userDto,
-                                           @RequestPart(value = "avatarImage", required = false) MultipartFile avatar) throws IOException {
-        userService.updateUser(userId, userDto, avatar);
+                                           @RequestPart(value = "avatarImage", required = false) MultipartFile avatar,
+
+                                           @RequestPart(value = "qrCode", required = false) MultipartFile qrCode) throws IOException {
+        userService.updateUser(userId, userDto, avatar, qrCode);
         return ResponseEntity.noContent().build();
     }
 
@@ -69,6 +71,22 @@ public class UserController {
                     .ok()
                     .contentType(MediaType.IMAGE_PNG)
                     .body(avatar);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{userId}/qr-code")
+    public ResponseEntity<byte[]> getQrCode(@PathVariable Long userId) {
+        try {
+            byte[] qrCode = userService.getQRcode(userId);
+            if (qrCode == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(qrCode);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }

@@ -98,7 +98,6 @@ public class GoogleDriveService {
         if (fileRepository.existsByNameAndFolder(fileName, folder)) {
             throw new FileAlreadyExistsException(fileName, folderId);
         }
-
         File fileMetadata = new File();
         fileMetadata.setName(fileName);
         fileMetadata.setParents(Collections.singletonList(folder.getGoogleFolderId()));
@@ -190,7 +189,6 @@ public class GoogleDriveService {
         Drive driveService = accountId != null
                 ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
                 : driveServiceFactory.getDriveService(userId);
-
         Map<String, Object> result = new HashMap<>();
         result.put("currentFolder", driveMapper.toDriveFolderResponseDTO(folder));
         result.put("subFolders", folderRepository.findByParentFolderId(folder.getId())
@@ -355,10 +353,10 @@ public class GoogleDriveService {
      */
     @Transactional
     public DriveFolderResponseDTO createFolderWithAccount(String name, String parentFolderId, Long userId, Long accountId) {
+
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new GoogleDriveException("User not found"));
-
             // Check if folder with same name already exists in the parent folder
             if (parentFolderId != null && !parentFolderId.isEmpty()) {
                 DriveFolder parentFolder = folderRepository.findById(Long.parseLong(parentFolderId))
@@ -661,7 +659,6 @@ public class GoogleDriveService {
 
             // Get Drive service for the user
             Drive driveService = driveServiceFactory.getDriveService(userId);
-
             File fileMetadata = new File();
             fileMetadata.setName(newName);
             File updatedFolder = driveService.files().update(folder.getGoogleFolderId(), fileMetadata)

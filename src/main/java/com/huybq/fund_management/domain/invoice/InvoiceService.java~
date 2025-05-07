@@ -154,6 +154,7 @@ public class InvoiceService {
                             throw new RuntimeException(e);
                         }
                     }
+
                     invoice.setDescription(dto.description());
                     invoice.setInvoiceType(InvoiceType.valueOf(dto.invoiceType()));
 

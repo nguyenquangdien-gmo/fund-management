@@ -18,14 +18,6 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 
-/**
- * This class is no longer used for production as we now use per-user service
- * accounts. It's kept for reference and potential fallback purposes.
- *
- * The application now uses GoogleDriveServiceFactory to create Drive instances
- * for each user.
- */
-//@Configuration
 public class GoogleServiceAccountConfig {
 
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
