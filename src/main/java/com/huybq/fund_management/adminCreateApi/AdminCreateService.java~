@@ -1,0 +1,512 @@
+package com.huybq.fund_management.adminCreateApi;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+public class AdminCreateService {
+    private final RestTemplate restTemplate;
+    @Value("${api.base-url}")
+    private  String apiBaseUrl;
+    @Value("${api.auth-header}")
+    private  String authHeader;
+
+    /**
+     * Creates HTTP headers with authentication
+     * @param token User's authentication token
+     * @return HttpHeaders with proper authentication
+     */
+    private HttpHeaders createHeaders(String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + authHeader);
+
+        if (token != null && !token.isEmpty()) {
+            headers.set("X-Access-Token", token);
+        }
+
+        return headers;
+    }
+
+    public ApiResponse<UserDto> signIn(String username, String password) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/signIn";
+
+            // Create form data
+            MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+            formData.add("username", username);
+            formData.add("password", password);
+
+            HttpHeaders headers = createHeaders(null);
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formData, headers);
+
+            ResponseEntity<ApiResponse<UserDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<UserDto>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Authentication failed";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error during sign in: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get list of leave types
+     * @param token User's authentication token
+     * @return List of LeaveType objects
+     * @throws ApiException If API call fails
+     */
+    public List<LeaveTypeDto> fetchLeaveTypes(String token) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/list-staff-attendance";
+
+            HttpHeaders headers = createHeaders(token);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+
+            ResponseEntity<ApiResponse<List<LeaveTypeDto>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<List<LeaveTypeDto>>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to fetch leave types";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error fetching leave types: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get list of reporters (approvers)
+     * @param token User's authentication token
+     * @return List of Reporter objects
+     * @throws ApiException If API call fails
+     */
+    public List<ReporterDto> fetchReporters(String token) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/authDefault/listReporter";
+
+            HttpHeaders headers = createHeaders(token);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+
+            ResponseEntity<ApiResponse<List<ReporterDto>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<List<ReporterDto>>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to fetch reporters";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error fetching reporters: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Create a leave request
+     * @param token User's authentication token
+     * @param leaveRequest Leave request details
+     * @return Created LeaveRequest
+     * @throws ApiException If API call fails
+     */
+    public LeaveRequestDto createLeaveRequest(String token, CreateLeaveRequestDto leaveRequest) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-attendance/create";
+
+            HttpHeaders headers = createHeaders(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<CreateLeaveRequestDto> request = new HttpEntity<>(leaveRequest, headers);
+
+            ResponseEntity<ApiResponse<LeaveRequestDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<LeaveRequestDto>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to create leave request";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error creating leave request: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Create a new formatted leave request
+     * @param token User's authentication token
+     * @param leaveRequest Leave request details with time information
+     * @return Created LeaveRequest
+     * @throws ApiException If API call fails
+     */
+    public LeaveRequestDto createLeaveRequestNew(String token, CreateLeaveRequestNewDto leaveRequest) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-attendance/create";
+
+            // Format dates as required by the API (YYYY-MM-DD HH:MM:SS)
+            String formattedFromDate = leaveRequest.getFromDate() + " " + leaveRequest.getFromTime() + ":00";
+            String formattedEndDate = leaveRequest.getEndDate() + " " + leaveRequest.getEndTime() + ":00";
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("userObjId", leaveRequest.getUserObjId());
+            payload.put("staffAttendanceTypeObjId", leaveRequest.getAttendanceTypeObjId());
+            payload.put("reportObjId", leaveRequest.getReportObjId());
+            payload.put("fromDate", formattedFromDate);
+            payload.put("endDate", formattedEndDate);
+            payload.put("note", leaveRequest.getReason());
+            payload.put("reason", leaveRequest.getReason());
+            payload.put("relationshipObjIds", leaveRequest.getRelationshipObjIds() != null ?
+                    leaveRequest.getRelationshipObjIds() : Collections.emptyList());
+
+            HttpHeaders headers = createHeaders(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+            ResponseEntity<ApiResponse<LeaveRequestDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<LeaveRequestDto>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to create leave request";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error creating leave request: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Create a WFH request
+     * @param token User's authentication token
+     * @param wfhRequest Work from home request details
+     * @return Created WFH request
+     * @throws ApiException If API call fails
+     */
+    public LeaveRequestDto createWfhRequest(String token, CreateWfhRequestDto wfhRequest) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-wfh/create";
+
+            HttpHeaders headers = createHeaders(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<CreateWfhRequestDto> request = new HttpEntity<>(wfhRequest, headers);
+
+            ResponseEntity<ApiResponse<LeaveRequestDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<LeaveRequestDto>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to create WFH request";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error creating WFH request: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Create a new formatted WFH request
+     * @param token User's authentication token
+     * @param wfhRequest Work from home request details
+     * @return Created WFH request
+     * @throws ApiException If API call fails
+     */
+    public LeaveRequestDto createWfhRequestNew(String token, CreateWfhRequestNewDto wfhRequest) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-wfh/create";
+
+            HttpHeaders headers = createHeaders(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<CreateWfhRequestNewDto> request = new HttpEntity<>(wfhRequest, headers);
+
+            ResponseEntity<ApiResponse<LeaveRequestDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<LeaveRequestDto>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to create WFH request";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error creating WFH request: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Delete a leave request
+     * @param token User's authentication token
+     * @param staffAttendanceObjId ID of the leave request to delete
+     * @return API response
+     * @throws ApiException If API call fails
+     */
+    public Map<String, Object> deleteLeaveRequest(String token, String staffAttendanceObjId) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-attendance/delete";
+
+            HttpHeaders headers = createHeaders(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, String> payload = Collections.singletonMap("staffAttendanceObjId", staffAttendanceObjId);
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+
+            ResponseEntity<ApiResponse<Map<String, Object>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<Map<String, Object>>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to delete leave request";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error deleting leave request: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Delete a WFH request
+     * @param token User's authentication token
+     * @param wfhObjId ID of the WFH request to delete
+     * @return API response
+     * @throws ApiException If API call fails
+     */
+    public Map<String, Object> deleteWfhRequest(String token, String wfhObjId) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-wfh/delete";
+
+            HttpHeaders headers = createHeaders(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, String> payload = Collections.singletonMap("wfhObjId", wfhObjId);
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+
+            ResponseEntity<ApiResponse<Map<String, Object>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<Map<String, Object>>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to delete WFH request";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error deleting WFH request: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get list of leave requests for the current user
+     * @param token User's authentication token
+     * @return List of leave requests
+     * @throws ApiException If API call fails
+     */
+    public List<LeaveRequestDto> fetchMyLeaveRequests(String token) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-attendance/list";
+
+            HttpHeaders headers = createHeaders(token);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+
+            ResponseEntity<ApiResponse<List<LeaveRequestDto>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<List<LeaveRequestDto>>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to fetch leave requests";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error fetching leave requests: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get list of WFH requests for the current user
+     * @param token User's authentication token
+     * @return List of WFH requests
+     * @throws ApiException If API call fails
+     */
+    public List<LeaveRequestDto> fetchMyWfhRequests(String token) throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-wfh/list";
+
+            HttpHeaders headers = createHeaders(token);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+
+            ResponseEntity<ApiResponse<List<LeaveRequestDto>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<List<LeaveRequestDto>>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to fetch WFH requests";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error fetching WFH requests: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get list of personal staff attendance records
+     * @param token User's authentication token
+     * @param params Query parameters
+     * @return List of leave requests
+     * @throws ApiException If API call fails
+     */
+    public List<LeaveRequestDto> fetchPersonalStaffAttendance(String token, PersonalStaffAttendanceParams params)
+            throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-attendance/personalStaffAttendance";
+
+            // Build URL with query parameters
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+                    .queryParam("startDate", params.getStartDate())
+                    .queryParam("endDate", params.getEndDate())
+                    .queryParam("fromDate", params.getFromDate())
+                    .queryParam("toDate", params.getToDate())
+                    .queryParam("page", params.getPage())
+                    .queryParam("userObjId", params.getUserObjId());
+
+            HttpHeaders headers = createHeaders(token);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+
+            ResponseEntity<ApiResponse<PersonalStaffAttendanceResponse>> response = restTemplate.exchange(
+                    builder.toUriString(),
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<PersonalStaffAttendanceResponse>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData().getItems();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to fetch personal staff attendance";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error fetching personal staff attendance: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get list of personal staff WFH records
+     * @param token User's authentication token
+     * @param params Query parameters
+     * @return List of WFH requests
+     * @throws ApiException If API call fails
+     */
+    public List<LeaveRequestDto> fetchPersonalStaffWfh(String token, PersonalStaffWfhParams params)
+            throws ApiException {
+        try {
+            String url = apiBaseUrl + "/auth/staff-wfh/personalStaffWfh";
+
+            // Build URL with query parameters
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+                    .queryParam("startDate", params.getStartDate())
+                    .queryParam("endDate", params.getEndDate())
+                    .queryParam("fromDate", params.getFromDate())
+                    .queryParam("toDate", params.getToDate())
+                    .queryParam("page", params.getPage())
+                    .queryParam("userObjId", params.getUserObjId());
+
+            HttpHeaders headers = createHeaders(token);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+
+            ResponseEntity<ApiResponse<PersonalStaffWfhResponse>> response = restTemplate.exchange(
+                    builder.toUriString(),
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<ApiResponse<PersonalStaffWfhResponse>>() {}
+            );
+
+            if (response.getBody() != null && response.getBody().isSuccess()) {
+                return response.getBody().getData().getItems();
+            } else {
+                String errorMessage = response.getBody() != null ?
+                        response.getBody().getMessage() : "Failed to fetch personal staff WFH";
+                throw new ApiException(errorMessage);
+            }
+        } catch (Exception e) {
+            throw new ApiException("Error fetching personal staff WFH: " + e.getMessage(), e);
+        }
+    }
+}

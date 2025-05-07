@@ -9,7 +9,18 @@ import java.util.Optional;
 
 @Repository
 public interface DriveFolderRepository extends JpaRepository<DriveFolder, Long> {
+
     List<DriveFolder> findByParentFolderId(Long parentFolderId);
+
     Optional<DriveFolder> findByGoogleFolderId(String googleFolderId);
+
     List<DriveFolder> findByCreatedBy_Id(Long userId);
+
+    boolean existsByNameAndParentFolder(String name, DriveFolder parentFolder);
+
+    boolean existsByNameAndParentFolderIsNull(String name);
+
+    Optional<DriveFolder> findByNameAndParentFolder(String name, DriveFolder parentFolder);
+
+    Optional<DriveFolder> findByNameAndParentFolderIsNull(String name);
 }

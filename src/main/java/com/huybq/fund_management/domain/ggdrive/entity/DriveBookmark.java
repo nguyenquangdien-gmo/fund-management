@@ -2,9 +2,10 @@ package com.huybq.fund_management.domain.ggdrive.entity;
 
 import com.huybq.fund_management.domain.user.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "drive_bookmarks")
 public class DriveBookmark {
 
@@ -24,40 +26,37 @@ public class DriveBookmark {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "google_id", unique = true, nullable = false)
-    private String googleId;
-
-    @Column(nullable = false)
-    private String type;
-
     @Column(nullable = false)
     private String url;
 
-    private String category;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BookmarkType type;  // 'FILE', 'FOLDER', or 'EXTERNAL'
+
+    @Column(name = "google_id")
+    private String googleId;  // Can be null for external bookmarks
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BookmarkSource source; // 'DRIVE' or 'EXTERNAL'
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "folder_id")
-    private DriveFolder folder;
-
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    public enum BookmarkType {
+        FILE, FOLDER, EXTERNAL
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    public enum BookmarkSource {
+        DRIVE, EXTERNAL
     }
 }

@@ -15,10 +15,16 @@ public class DriveFolderResponseDTO {
 
     private Long id;
     private String name;
+    private String googleId;
     private String webViewLink;
-    private LocalDateTime createdTime;
-    private LocalDateTime modifiedTime;
     private Long parentFolderId;
     private String parentFolderName;
     private String createdByUsername;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    // Method to update Google Folder ID directly
+    public void setGoogleFolderId(String googleFolderId) {
+        this.googleId = googleFolderId;
+    }
 }

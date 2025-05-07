@@ -1,0 +1,68 @@
+package com.huybq.fund_management.config;
+
+import com.huybq.fund_management.domain.user.UserRepository;
+import io.github.cdimascio.dotenv.Dotenv;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+@RequiredArgsConstructor
+public class AppConfig {
+    private final UserRepository repository;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
+    @Primary
+    public TaskScheduler taskScheduler() {
+        return new ConcurrentTaskScheduler(); // Hoặc ThreadPoolTaskScheduler nếu muốn
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> repository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public Dotenv dotenv() {
+        return Dotenv.configure()
+                .ignoreIfMissing() // Không lỗi nếu không có file .env (tùy chọn)
+                .load();
+    }
+}

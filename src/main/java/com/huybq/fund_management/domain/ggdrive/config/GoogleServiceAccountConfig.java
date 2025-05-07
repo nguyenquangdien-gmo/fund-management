@@ -18,16 +18,17 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 
-@Configuration
 public class GoogleServiceAccountConfig {
 
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String APPLICATION_NAME = "Google Drive Management";
 
-    @Value("${google.service.account.credentials}")
+    // Commented out as we no longer use a default service account
+    // @Value("${google.service.account.credentials}")
     private Resource credentialsResource;
 
-    @Bean
+    // This bean is no longer used as we use per-user credentials
+    // @Bean
     public Drive driveService() throws GeneralSecurityException, IOException {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 

@@ -6,67 +6,69 @@ import com.huybq.fund_management.domain.ggdrive.dto.DriveFolderResponseDTO;
 import com.huybq.fund_management.domain.ggdrive.entity.DriveBookmark;
 import com.huybq.fund_management.domain.ggdrive.entity.DriveFile;
 import com.huybq.fund_management.domain.ggdrive.entity.DriveFolder;
+import com.huybq.fund_management.domain.ggdrive.service.GoogleDriveService;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 @Component
 public class DriveMapper {
 
-    public DriveFileResponseDTO toDriveFileResponseDTO(DriveFile file) {
-        if (file == null) {
-            return null;
+    public DriveFileResponseDTO toDriveFileResponseDTO(DriveFile driveFile) {
+        String googleId = driveFile.getGoogleFileId();
+        if ((googleId == null || googleId.isEmpty()) && driveFile.getWebViewLink() != null) {
+            googleId = GoogleDriveService.extractGoogleIdFromUrl(driveFile.getWebViewLink());
         }
 
         return DriveFileResponseDTO.builder()
-                .id(file.getId())
-                .name(file.getName())
-                .mimeType(file.getMimeType())
-                .size(file.getSize())
-                .webViewLink(file.getWebViewLink())
-                .webContentLink(file.getWebContentLink())
-                .createdTime(file.getCreatedTime())
-                .modifiedTime(file.getModifiedTime())
-                .folderId(file.getFolder() != null ? file.getFolder().getId() : null)
-                .folderName(file.getFolder() != null ? file.getFolder().getName() : null)
-                .createdByUsername(file.getCreatedBy() != null ? file.getCreatedBy().getUsername() : null)
+                .id(driveFile.getId())
+                .name(driveFile.getName())
+                .googleId(googleId)
+                .mimeType(driveFile.getMimeType())
+                .size(driveFile.getSize())
+                .webViewLink(driveFile.getWebViewLink())
+                .webContentLink(driveFile.getWebContentLink())
+                .folderId(driveFile.getFolder() != null ? driveFile.getFolder().getId() : null)
+                .folderName(driveFile.getFolder() != null ? driveFile.getFolder().getName() : null)
+                .createdTime(driveFile.getCreatedTime())
+                .modifiedTime(driveFile.getModifiedTime())
+                .createdByUsername(driveFile.getCreatedBy() != null ? driveFile.getCreatedBy().getUsername() : null)
+                .uploadedByUsername(driveFile.getUploadedBy() != null ? driveFile.getUploadedBy().getUsername() : null)
                 .build();
     }
 
-    public DriveFolderResponseDTO toDriveFolderResponseDTO(DriveFolder folder) {
-        if (folder == null) {
-            return null;
+    public DriveFolderResponseDTO toDriveFolderResponseDTO(DriveFolder driveFolder) {
+        String googleId = driveFolder.getGoogleFolderId();
+        if ((googleId == null || googleId.isEmpty()) && driveFolder.getWebViewLink() != null) {
+            googleId = GoogleDriveService.extractGoogleIdFromUrl(driveFolder.getWebViewLink());
         }
 
         return DriveFolderResponseDTO.builder()
-                .id(folder.getId())
-                .name(folder.getName())
-                .webViewLink(folder.getWebViewLink())
-                .createdTime(folder.getCreatedTime())
-                .modifiedTime(folder.getModifiedTime())
-                .parentFolderId(folder.getParentFolder() != null ? folder.getParentFolder().getId() : null)
-                .parentFolderName(folder.getParentFolder() != null ? folder.getParentFolder().getName() : null)
-                .createdByUsername(folder.getCreatedBy() != null ? folder.getCreatedBy().getUsername() : null)
+                .id(driveFolder.getId())
+                .name(driveFolder.getName())
+                .googleId(googleId)
+                .webViewLink(driveFolder.getWebViewLink())
+                .parentFolderId(driveFolder.getParentFolder() != null ? driveFolder.getParentFolder().getId() : null)
+                .parentFolderName(driveFolder.getParentFolder() != null ? driveFolder.getParentFolder().getName() : null)
+                .createdByUsername(driveFolder.getCreatedBy() != null ? driveFolder.getCreatedBy().getUsername() : null)
+                .createdAt(driveFolder.getCreatedAt())
+                .updatedAt(driveFolder.getUpdatedAt())
                 .build();
     }
 
     public DriveBookmarkResponseDTO toDriveBookmarkResponseDTO(DriveBookmark bookmark) {
-        if (bookmark == null) {
-            return null;
+        String googleId = bookmark.getGoogleId();
+        if ((googleId == null || googleId.isEmpty()) && bookmark.getUrl() != null) {
+            googleId = GoogleDriveService.extractGoogleIdFromUrl(bookmark.getUrl());
         }
 
         return DriveBookmarkResponseDTO.builder()
                 .id(bookmark.getId())
                 .name(bookmark.getName())
                 .url(bookmark.getUrl())
+                .googleId(googleId)
                 .type(bookmark.getType())
-                .googleId(bookmark.getGoogleId())
-                .category(bookmark.getCategory())
+                .source(bookmark.getSource())
                 .createdAt(bookmark.getCreatedAt())
                 .updatedAt(bookmark.getUpdatedAt())
-                .folderId(bookmark.getFolder() != null ? bookmark.getFolder().getId() : null)
-                .folderName(bookmark.getFolder() != null ? bookmark.getFolder().getName() : null)
-                .createdByUsername(bookmark.getUser() != null ? bookmark.getUser().getUsername() : null)
                 .build();
     }
 }

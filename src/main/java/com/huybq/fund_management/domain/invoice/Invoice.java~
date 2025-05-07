@@ -38,7 +38,7 @@ public class Invoice {
     private InvoiceStatus status;
 
     @Lob
-    private byte[] image;
+    private byte[] billImage;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

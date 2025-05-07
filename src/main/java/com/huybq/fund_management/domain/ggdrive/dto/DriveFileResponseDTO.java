@@ -15,13 +15,20 @@ public class DriveFileResponseDTO {
 
     private Long id;
     private String name;
+    private String googleId;
     private String mimeType;
     private Long size;
     private String webViewLink;
     private String webContentLink;
-    private LocalDateTime createdTime;
-    private LocalDateTime modifiedTime;
     private Long folderId;
     private String folderName;
+    private LocalDateTime createdTime;
+    private LocalDateTime modifiedTime;
     private String createdByUsername;
+    private String uploadedByUsername;
+
+    // Method to update Google File ID directly
+    public void setGoogleFileId(String googleFileId) {
+        this.googleId = googleFileId;
+    }
 }

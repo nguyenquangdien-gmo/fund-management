@@ -10,6 +10,12 @@ import java.util.Optional;
 
 @Repository
 public interface DriveFileRepository extends JpaRepository<DriveFile, Long> {
+
     List<DriveFile> findByFolder(DriveFolder folder);
+
     Optional<DriveFile> findByGoogleFileId(String googleFileId);
+
+    boolean existsByNameAndFolder(String name, DriveFolder folder);
+
+    Optional<DriveFile> findByNameAndFolder(String name, DriveFolder folder);
 }

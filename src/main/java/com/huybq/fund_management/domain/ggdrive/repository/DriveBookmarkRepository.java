@@ -1,6 +1,7 @@
 package com.huybq.fund_management.domain.ggdrive.repository;
 
 import com.huybq.fund_management.domain.ggdrive.entity.DriveBookmark;
+import com.huybq.fund_management.domain.ggdrive.entity.DriveBookmark.BookmarkSource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +12,5 @@ public interface DriveBookmarkRepository extends JpaRepository<DriveBookmark, Lo
 
     List<DriveBookmark> findByUserId(Long userId);
 
-    List<DriveBookmark> findByUserIdAndCategory(Long userId, String category);
+    List<DriveBookmark> findByUserIdAndSource(Long userId, BookmarkSource source);
 }
