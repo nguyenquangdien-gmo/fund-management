@@ -9,21 +9,34 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.api.services.drive.model.Permission;
-import com.google.auth.http.HttpCredentialsAdapter;
-import com.google.auth.oauth2.AccessToken;
-import com.google.auth.oauth2.GoogleCredentials;
+import com.huybq.fund_management.domain.ggdrive.dto.DriveBookmarkResponseDTO;
+import com.huybq.fund_management.domain.ggdrive.dto.DriveFileResponseDTO;
+import com.huybq.fund_management.domain.ggdrive.dto.DriveFolderResponseDTO;
 import com.huybq.fund_management.domain.ggdrive.entity.DriveFile;
 import com.huybq.fund_management.domain.ggdrive.entity.DriveFolder;
-import com.huybq.fund_management.domain.ggdrive.entity.GoogleDriveAccount;
+import com.huybq.fund_management.domain.ggdrive.entity.DriveBookmark;
+import com.huybq.fund_management.domain.ggdrive.exception.FileNotFoundException;
+import com.huybq.fund_management.domain.ggdrive.exception.FolderNotFoundException;
+import com.huybq.fund_management.domain.ggdrive.exception.GoogleDriveException;
+import com.huybq.fund_management.domain.ggdrive.exception.PermissionDeniedException;
+import com.huybq.fund_management.domain.ggdrive.exception.FileAlreadyExistsException;
+import com.huybq.fund_management.domain.ggdrive.exception.FolderAlreadyExistsException;
+import com.huybq.fund_management.domain.ggdrive.mapper.DriveMapper;
 import com.huybq.fund_management.domain.ggdrive.repository.DriveFileRepository;
 import com.huybq.fund_management.domain.ggdrive.repository.DriveFolderRepository;
-import com.huybq.fund_management.domain.ggdrive.repository.GoogleDriveAccountRepository;
+import com.huybq.fund_management.domain.ggdrive.repository.DriveBookmarkRepository;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
+import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,81 +47,108 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GoogleDriveService {
+
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private final GoogleDriveAccountRepository driveAccountRepository;
+
     private final DriveFolderRepository folderRepository;
+
     private final DriveFileRepository fileRepository;
+
+    private final DriveBookmarkRepository bookmarkRepository;
+
     private final UserRepository userRepository;
 
+    private final GoogleDriveServiceFactory driveServiceFactory;
+
+    private final DriveMapper driveMapper;
+
+
+    /**
+     * Uploads a file to the specified folder using the user's default service
+     * account
+     */
     @Transactional
-    public GoogleDriveAccount saveGoogleDriveAccount(GoogleDriveAccount account) {
-        return driveAccountRepository.save(account);
+    public DriveFileResponseDTO uploadFile(Long folderId, Long userId, MultipartFile file)
+            throws IOException {
+        return uploadFileWithAccount(folderId, userId, null, file);
     }
 
-    private Drive getDriveService(GoogleDriveAccount account) throws GeneralSecurityException, IOException {
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-
-        GoogleCredentials credentials = GoogleCredentials.create(
-                new AccessToken(account.getAccessToken(),
-                        java.util.Date.from(account.getTokenExpiryDate().atZone(ZoneId.systemDefault()).toInstant()))
-        );
-
-        return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, new HttpCredentialsAdapter(credentials))
-                .setApplicationName("Google Drive Management")
-                .build();
-    }
-
+    /**
+     * Uploads a file to the specified folder using a specific service account
+     */
     @Transactional
-    public DriveFile uploadFile(Long driveAccountId, Long folderId, Long userId, MultipartFile file)
-            throws IOException, GeneralSecurityException {
-        GoogleDriveAccount account = driveAccountRepository.findById(driveAccountId)
-                .orElseThrow(() -> new RuntimeException("Google Drive account not found"));
-
+    public DriveFileResponseDTO uploadFileWithAccount(Long folderId, Long userId, Long accountId, MultipartFile file)
+            throws IOException {
         DriveFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Drive driveService = getDriveService(account);
+        // Check if file with same name already exists in this folder
+        String fileName = file.getOriginalFilename();
+        if (fileRepository.existsByNameAndFolder(fileName, folder)) {
+            throw new FileAlreadyExistsException(fileName, folderId);
+        }
 
         File fileMetadata = new File();
-        fileMetadata.setName(file.getOriginalFilename());
+        fileMetadata.setName(fileName);
         fileMetadata.setParents(Collections.singletonList(folder.getGoogleFolderId()));
 
-        File uploadedFile = driveService.files().create(fileMetadata,
-                        new InputStreamContent(file.getContentType(), new ByteArrayInputStream(file.getBytes())))
-                .setFields("id, name, mimeType, size, webViewLink, webContentLink, createdTime, modifiedTime")
-                .execute();
+        try {
+            // Get Drive service for the user (default or specific account)
+            Drive driveService = accountId != null
+                    ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
+                    : driveServiceFactory.getDriveService(userId);
 
-        // Set permission to read only
-        Permission permission = new Permission();
-        permission.setType("anyone");
-        permission.setRole("reader");
+            File uploadedFile = driveService.files().create(fileMetadata,
+                    new InputStreamContent(file.getContentType(), new ByteArrayInputStream(file.getBytes())))
+                    .setFields("id, name, mimeType, size, webViewLink, webContentLink, createdTime, modifiedTime")
+                    .execute();
 
-        driveService.permissions().create(uploadedFile.getId(), permission).execute();
+            // Set read-only permission for everyone
+            Permission permission = new Permission();
+            permission.setType("anyone");
+            permission.setRole("reader");
+            driveService.permissions().create(uploadedFile.getId(), permission).execute();
 
-        DriveFile driveFile = new DriveFile();
-        driveFile.setName(uploadedFile.getName());
-        driveFile.setGoogleFileId(uploadedFile.getId());
-        driveFile.setMimeType(uploadedFile.getMimeType());
-        driveFile.setSize(uploadedFile.getSize());
-        driveFile.setWebViewLink(uploadedFile.getWebViewLink());
-        driveFile.setWebContentLink(uploadedFile.getWebContentLink());
-        driveFile.setCreatedTime(LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(uploadedFile.getCreatedTime().getValue()), ZoneId.systemDefault()));
-        driveFile.setModifiedTime(LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(uploadedFile.getModifiedTime().getValue()), ZoneId.systemDefault()));
-        driveFile.setFolder(folder);
-        driveFile.setUploadedBy(user);
-        driveFile.setGoogleDriveAccount(account);
+            // Lưu ý: Đảm bảo googleFileId là ID thực từ Google Drive
+            String googleFileId = uploadedFile.getId();
 
-        return fileRepository.save(driveFile);
+            DriveFile driveFile = new DriveFile();
+            driveFile.setName(uploadedFile.getName());
+            driveFile.setGoogleFileId(googleFileId); // Sử dụng ID trực tiếp từ Google API
+            driveFile.setMimeType(uploadedFile.getMimeType());
+            driveFile.setSize(uploadedFile.getSize());
+            driveFile.setWebViewLink(uploadedFile.getWebViewLink());
+            driveFile.setWebContentLink(uploadedFile.getWebContentLink());
+            driveFile.setCreatedTime(LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(uploadedFile.getCreatedTime().getValue()), ZoneId.systemDefault()));
+            driveFile.setModifiedTime(LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(uploadedFile.getModifiedTime().getValue()), ZoneId.systemDefault()));
+            driveFile.setFolder(folder);
+            driveFile.setUploadedBy(user);
+            driveFile.setCreatedBy(user);
+
+            DriveFile savedFile = fileRepository.save(driveFile);
+
+            // Tạo DTO với googleFileId lấy trực tiếp từ Google
+            DriveFileResponseDTO responseDTO = driveMapper.toDriveFileResponseDTO(savedFile);
+            responseDTO.setGoogleFileId(googleFileId);
+
+            return responseDTO;
+        } catch (GoogleDriveException e) {
+            log.error("Failed to upload file: {}", e.getMessage());
+            throw new GoogleDriveException("Cannot upload file. " + e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -116,146 +156,785 @@ public class GoogleDriveService {
         DriveFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
-        GoogleDriveAccount account = folder.getGoogleDriveAccount();
-
         Map<String, Object> result = new HashMap<>();
-        result.put("currentFolder", folder);
-        result.put("subFolders", folderRepository.findByParentFolderId(folder.getId()));
-        result.put("files", fileRepository.findByFolder(folder));
+        result.put("currentFolder", driveMapper.toDriveFolderResponseDTO(folder));
+        result.put("subFolders", folderRepository.findByParentFolderId(folder.getId())
+                .stream()
+                .map(driveMapper::toDriveFolderResponseDTO)
+                .collect(Collectors.toList()));
+        result.put("files", fileRepository.findByFolder(folder)
+                .stream()
+                .map(driveMapper::toDriveFileResponseDTO)
+                .collect(Collectors.toList()));
 
         return result;
     }
 
+    /**
+     * Lists folder contents using user's default service account
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> listFolderContents(Long folderId, Long userId) {
+        return listFolderContentsWithAccount(folderId, userId, null);
+    }
+
+    /**
+     * Lists folder contents using a specific service account
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> listFolderContentsWithAccount(Long folderId, Long userId, Long accountId) {
+        DriveFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        // Get Drive service for the user (default or specific account)
+        Drive driveService = accountId != null
+                ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
+                : driveServiceFactory.getDriveService(userId);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("currentFolder", driveMapper.toDriveFolderResponseDTO(folder));
+        result.put("subFolders", folderRepository.findByParentFolderId(folder.getId())
+                .stream()
+                .map(driveMapper::toDriveFolderResponseDTO)
+                .collect(Collectors.toList()));
+        result.put("files", fileRepository.findByFolder(folder)
+                .stream()
+                .map(driveMapper::toDriveFileResponseDTO)
+                .collect(Collectors.toList()));
+
+        return result;
+    }
+
+    /**
+     * Deletes a file using the user's default service account
+     */
     @Transactional
-    public void deleteFile(Long fileId, User user) throws IOException, GeneralSecurityException {
+    public void deleteFile(Long fileId, User user) throws IOException {
+        deleteFileWithAccount(fileId, user, null);
+    }
+
+    /**
+     * Deletes a file using a specific service account
+     */
+    @Transactional
+    public void deleteFileWithAccount(Long fileId, User user, Long accountId) throws IOException {
         DriveFile driveFile = fileRepository.findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found"));
 
+        // Only admin can delete files
         if (!user.getRole().getName().equals("ADMIN")) {
             throw new RuntimeException("Only admin can delete files");
         }
 
-        GoogleDriveAccount account = driveFile.getGoogleDriveAccount();
-        Drive driveService = getDriveService(account);
+        try {
+            // Get Drive service for the user (default or specific account)
+            Drive driveService = accountId != null
+                    ? driveServiceFactory.getDriveServiceForAccount(user.getId(), accountId)
+                    : driveServiceFactory.getDriveService(user.getId());
 
-        driveService.files().delete(driveFile.getGoogleFileId()).execute();
-        fileRepository.delete(driveFile);
+            driveService.files().delete(driveFile.getGoogleFileId()).execute();
+            fileRepository.delete(driveFile);
+        } catch (GoogleDriveException e) {
+            log.error("Failed to delete file: {}", e.getMessage());
+            throw new GoogleDriveException("Cannot delete file. " + e.getMessage());
+        }
     }
 
-    public byte[] downloadFile(Long fileId) throws IOException, GeneralSecurityException {
+    /**
+     * Creates a bookmark using the user's default service account
+     */
+    @Transactional
+    public DriveBookmarkResponseDTO createBookmark(Long userId, String name, String googleId, String type) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        DriveBookmark bookmark = new DriveBookmark();
+        bookmark.setName(name);
+        bookmark.setGoogleId(googleId);
+        bookmark.setType(DriveBookmark.BookmarkType.valueOf(type.toUpperCase()));
+        bookmark.setSource(DriveBookmark.BookmarkSource.DRIVE);
+        bookmark.setUser(user);
+
+        // Cập nhật: Luôn tạo URL chuẩn từ Google ID
+        String webViewLink;
+        if (type.equalsIgnoreCase("FILE")) {
+            webViewLink = "https://drive.google.com/file/d/" + googleId + "/view";
+        } else {
+            webViewLink = "https://drive.google.com/drive/folders/" + googleId;
+        }
+        bookmark.setUrl(webViewLink);
+
+        // Thử lấy webViewLink chính xác từ Google API nếu có thể
+        try {
+            Drive driveService = driveServiceFactory.getDriveService(userId);
+            File file = driveService.files()
+                    .get(googleId)
+                    .setFields("webViewLink")
+                    .execute();
+            if (file.getWebViewLink() != null) {
+                bookmark.setUrl(file.getWebViewLink());
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch webViewLink for googleId {}: {}. Using default URL.", googleId, e.getMessage());
+            // Tiếp tục với URL mặc định đã đặt ở trên
+        }
+
+        DriveBookmark savedBookmark = bookmarkRepository.save(bookmark);
+        return driveMapper.toDriveBookmarkResponseDTO(savedBookmark);
+    }
+
+    /**
+     * Creates a bookmark for an external URL
+     */
+    @Transactional
+    public DriveBookmarkResponseDTO createExternalBookmark(Long userId, String name, String url) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        DriveBookmark bookmark = new DriveBookmark();
+        bookmark.setName(name);
+        bookmark.setUrl(url);
+
+        // Kiểm tra xem URL có phải từ Google Drive không
+        String googleId = extractGoogleIdFromUrl(url);
+        if (googleId != null) {
+            bookmark.setGoogleId(googleId);
+
+            // Xác định loại: file hay folder
+            if (url.contains("file/d/")) {
+                bookmark.setType(DriveBookmark.BookmarkType.FILE);
+                bookmark.setSource(DriveBookmark.BookmarkSource.DRIVE);
+            } else if (url.contains("folders/")) {
+                bookmark.setType(DriveBookmark.BookmarkType.FOLDER);
+                bookmark.setSource(DriveBookmark.BookmarkSource.DRIVE);
+            } else {
+                bookmark.setType(DriveBookmark.BookmarkType.EXTERNAL);
+                bookmark.setSource(DriveBookmark.BookmarkSource.EXTERNAL);
+            }
+        } else {
+            bookmark.setType(DriveBookmark.BookmarkType.EXTERNAL);
+            bookmark.setSource(DriveBookmark.BookmarkSource.EXTERNAL);
+        }
+
+        bookmark.setUser(user);
+
+        DriveBookmark savedBookmark = bookmarkRepository.save(bookmark);
+        return driveMapper.toDriveBookmarkResponseDTO(savedBookmark);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DriveBookmarkResponseDTO> getUserBookmarks(Long userId) {
+        List<DriveBookmark> bookmarks = bookmarkRepository.findByUserId(userId);
+        return bookmarks.stream()
+                .map(driveMapper::toDriveBookmarkResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteBookmark(Long bookmarkId, Long userId) {
+        DriveBookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new RuntimeException("Bookmark not found"));
+
+        if (!bookmark.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You can only delete your own bookmarks");
+        }
+
+        bookmarkRepository.delete(bookmark);
+    }
+
+    /**
+     * Creates a folder using the user's default service account
+     */
+    @Transactional
+    public DriveFolderResponseDTO createFolder(String name, String parentFolderId, Long userId) {
+        return createFolderWithAccount(name, parentFolderId, userId, null);
+    }
+
+    /**
+     * Creates a folder using a specific service account
+     */
+    @Transactional
+    public DriveFolderResponseDTO createFolderWithAccount(String name, String parentFolderId, Long userId, Long accountId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new GoogleDriveException("User not found"));
+
+            // Check if folder with same name already exists in the parent folder
+            if (parentFolderId != null && !parentFolderId.isEmpty()) {
+                DriveFolder parentFolder = folderRepository.findById(Long.parseLong(parentFolderId))
+                        .orElseThrow(() -> new FolderNotFoundException(Long.parseLong(parentFolderId)));
+
+                if (folderRepository.existsByNameAndParentFolder(name, parentFolder)) {
+                    throw new FolderAlreadyExistsException(name, Long.parseLong(parentFolderId));
+                }
+            } else {
+                // Check in the root folder
+                if (folderRepository.existsByNameAndParentFolderIsNull(name)) {
+                    throw new FolderAlreadyExistsException(name);
+                }
+            }
+
+            // Get Drive service for the user (default or specific account)
+            Drive driveService = accountId != null
+                    ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
+                    : driveServiceFactory.getDriveService(userId);
+
+            File fileMetadata = new File();
+            fileMetadata.setName(name);
+            fileMetadata.setMimeType("application/vnd.google-apps.folder");
+
+            if (parentFolderId != null && !parentFolderId.isEmpty()) {
+                DriveFolder parentFolder = folderRepository.findById(Long.parseLong(parentFolderId))
+                        .orElseThrow(() -> new FolderNotFoundException(Long.parseLong(parentFolderId)));
+                fileMetadata.setParents(Collections.singletonList(parentFolder.getGoogleFolderId()));
+            } else {
+                // Get the user's root folder ID (default or specific account)
+                String rootFolderId = accountId != null
+                        ? driveServiceFactory.getRootFolderIdForAccount(userId, accountId)
+                        : driveServiceFactory.getRootFolderId(userId);
+                fileMetadata.setParents(Collections.singletonList(rootFolderId));
+            }
+
+            File folder = driveService.files().create(fileMetadata)
+                    .setFields("id, name, webViewLink")
+                    .execute();
+
+            // Set read-only permission for everyone
+            Permission permission = new Permission();
+            permission.setType("anyone");
+            permission.setRole("reader");
+            driveService.permissions().create(folder.getId(), permission)
+                    .setSendNotificationEmail(false)
+                    .execute();
+
+            // Lưu ý: Đảm bảo googleFolderId là ID thực từ Google Drive
+            String googleFolderId = folder.getId();
+
+            DriveFolder newFolder = new DriveFolder();
+            newFolder.setName(folder.getName());
+            newFolder.setGoogleFolderId(googleFolderId); // Sử dụng ID trực tiếp từ Google API
+            newFolder.setWebViewLink(folder.getWebViewLink());
+            newFolder.setCreatedBy(user);
+
+            if (parentFolderId != null && !parentFolderId.isEmpty()) {
+                DriveFolder parentFolder = folderRepository.findById(Long.parseLong(parentFolderId))
+                        .orElseThrow(() -> new FolderNotFoundException(Long.parseLong(parentFolderId)));
+                newFolder.setParentFolder(parentFolder);
+            }
+
+            DriveFolder savedFolder = folderRepository.save(newFolder);
+
+            // Tạo DTO với googleFolderId lấy trực tiếp từ Google
+            DriveFolderResponseDTO responseDTO = driveMapper.toDriveFolderResponseDTO(savedFolder);
+            responseDTO.setGoogleFolderId(googleFolderId);
+
+            return responseDTO;
+        } catch (IOException e) {
+            log.error("Failed to create folder in Google Drive: {}", e.getMessage());
+            throw new GoogleDriveException("Failed to create folder in Google Drive", e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<DriveFolderResponseDTO> getAllFolders(Long userId) {
+        List<DriveFolder> folders = folderRepository.findByCreatedBy_Id(userId);
+        return folders.stream()
+                .map(driveMapper::toDriveFolderResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public DriveFolderResponseDTO getFolderById(Long folderId, Long userId) {
+        DriveFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        if (!folder.getCreatedBy().getId().equals(userId)) {
+            throw new RuntimeException("You don't have permission to access this folder");
+        }
+
+        return driveMapper.toDriveFolderResponseDTO(folder);
+    }
+
+    @Transactional
+    public DriveFolderResponseDTO updateFolder(Long folderId, String name, Long userId) {
+        DriveFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        if (!folder.getCreatedBy().getId().equals(userId)) {
+            throw new RuntimeException("You don't have permission to update this folder");
+        }
+
+        try {
+            // Get Drive service for the user
+            Drive driveService = driveServiceFactory.getDriveService(userId);
+
+            File fileMetadata = new File();
+            fileMetadata.setName(name);
+
+            File updatedFolder = driveService.files().update(folder.getGoogleFolderId(), fileMetadata)
+                    .setFields("id, name, webViewLink")
+                    .execute();
+
+            folder.setName(updatedFolder.getName());
+            folder.setWebViewLink(updatedFolder.getWebViewLink());
+
+            DriveFolder savedFolder = folderRepository.save(folder);
+            return driveMapper.toDriveFolderResponseDTO(savedFolder);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to update folder in Google Drive", e);
+        }
+    }
+
+    @Transactional
+    public void deleteFolder(Long folderId, User user) {
+        DriveFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        // Only admin can delete folders
+        if (!user.getRole().getName().equals("ADMIN")) {
+            throw new RuntimeException("Only admin can delete folders");
+        }
+
+        try {
+            // Get Drive service for the user
+            Drive driveService = driveServiceFactory.getDriveService(user.getId());
+
+            // Delete all files in the folder
+            List<DriveFile> files = fileRepository.findByFolder(folder);
+            for (DriveFile file : files) {
+                driveService.files().delete(file.getGoogleFileId()).execute();
+                fileRepository.delete(file);
+            }
+
+            // Delete all subfolders recursively
+            List<DriveFolder> subFolders = folderRepository.findByParentFolderId(folderId);
+            for (DriveFolder subFolder : subFolders) {
+                deleteFolder(subFolder.getId(), user);
+            }
+
+            // Delete the folder itself
+            driveService.files().delete(folder.getGoogleFolderId()).execute();
+            folderRepository.delete(folder);
+        } catch (IOException e) {
+            log.error("Failed to delete folder from Google Drive: {}", e.getMessage());
+            throw new GoogleDriveException("Failed to delete folder from Google Drive", e);
+        }
+    }
+
+    @Transactional
+    public void moveFile(Long fileId, Long targetFolderId, Long userId) {
+        log.info("Moving file: {} to folder: {}", fileId, targetFolderId);
+        try {
+            DriveFile file = fileRepository.findById(fileId)
+                    .orElseThrow(() -> new FileNotFoundException(fileId));
+
+            DriveFolder targetFolder = folderRepository.findById(targetFolderId)
+                    .orElseThrow(() -> new FolderNotFoundException(targetFolderId));
+
+            if (!file.getCreatedBy().getId().equals(userId)) {
+                throw new PermissionDeniedException("You don't have permission to move this file");
+            }
+
+            // Get Drive service for the user
+            Drive driveService = driveServiceFactory.getDriveService(userId);
+
+            // Update in Google Drive
+            File fileMetadata = new File();
+            fileMetadata.setParents(Collections.singletonList(targetFolder.getGoogleFolderId()));
+            driveService.files().update(file.getGoogleFileId(), fileMetadata)
+                    .setFields("id")
+                    .execute();
+
+            // Update in database
+            file.setFolder(targetFolder);
+            fileRepository.save(file);
+        } catch (IOException e) {
+            log.error("Failed to move file: {}", e.getMessage());
+            throw new GoogleDriveException("Failed to move file", e);
+        }
+    }
+
+    @Transactional
+    public void moveFolder(Long folderId, Long targetFolderId, Long userId) {
+        log.info("Moving folder: {} to folder: {}", folderId, targetFolderId);
+        try {
+            DriveFolder folder = folderRepository.findById(folderId)
+                    .orElseThrow(() -> new FolderNotFoundException(folderId));
+
+            DriveFolder targetFolder = folderRepository.findById(targetFolderId)
+                    .orElseThrow(() -> new FolderNotFoundException(targetFolderId));
+
+            // Check if target folder is a subfolder of the source folder
+            if (isSubfolder(targetFolder, folder)) {
+                throw new GoogleDriveException("Cannot move a folder into its own subfolder");
+            }
+
+            // Check permissions
+            if (!folder.getCreatedBy().getId().equals(userId)) {
+                throw new PermissionDeniedException("You don't have permission to move this folder");
+            }
+
+            if (!targetFolder.getCreatedBy().getId().equals(userId)) {
+                throw new PermissionDeniedException("You don't have permission to move to the target folder");
+            }
+
+            // Get Drive service for the user
+            Drive driveService = driveServiceFactory.getDriveService(userId);
+
+            // Update in Google Drive
+            File fileMetadata = new File();
+            fileMetadata.setParents(Collections.singletonList(targetFolder.getGoogleFolderId()));
+            File updatedFolder = driveService.files().update(folder.getGoogleFolderId(), fileMetadata)
+                    .setFields("id, webViewLink")
+                    .execute();
+
+            // Update in database
+            folder.setParentFolder(targetFolder);
+            folder.setWebViewLink(updatedFolder.getWebViewLink());
+            folderRepository.save(folder);
+        } catch (IOException e) {
+            log.error("Failed to move folder: {}", e.getMessage());
+            throw new GoogleDriveException("Failed to move folder", e);
+        }
+    }
+
+    private boolean isSubfolder(DriveFolder folder, DriveFolder potentialParent) {
+        if (folder == null || potentialParent == null) {
+            return false;
+        }
+        if (folder.getParentFolder() == null) {
+            return false;
+        }
+        if (folder.getParentFolder().getId().equals(potentialParent.getId())) {
+            return true;
+        }
+        return isSubfolder(folder.getParentFolder(), potentialParent);
+    }
+
+    @Transactional
+    public DriveFileResponseDTO renameFile(Long fileId, String newName, Long userId) {
+        log.info("Renaming file: {} to: {}", fileId, newName);
+        try {
+            DriveFile file = fileRepository.findById(fileId)
+                    .orElseThrow(() -> new FileNotFoundException(fileId));
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Only admin can rename files
+            if (!user.getRole().getName().equals("ADMIN")) {
+                throw new PermissionDeniedException("Only admin can rename files");
+            }
+
+            // Get Drive service for the user
+            Drive driveService = driveServiceFactory.getDriveService(userId);
+
+            File fileMetadata = new File();
+            fileMetadata.setName(newName);
+            File updatedFile = driveService.files().update(file.getGoogleFileId(), fileMetadata)
+                    .setFields("id, name")
+                    .execute();
+
+            file.setName(updatedFile.getName());
+            DriveFile savedFile = fileRepository.save(file);
+            return driveMapper.toDriveFileResponseDTO(savedFile);
+        } catch (IOException e) {
+            log.error("Failed to rename file: {}", e.getMessage());
+            throw new GoogleDriveException("Failed to rename file", e);
+        }
+    }
+
+    @Transactional
+    public DriveFolderResponseDTO renameFolder(Long folderId, String newName, Long userId) {
+        log.info("Renaming folder: {} to: {}", folderId, newName);
+        try {
+            DriveFolder folder = folderRepository.findById(folderId)
+                    .orElseThrow(() -> new FolderNotFoundException(folderId));
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Only admin can rename folders
+            if (!user.getRole().getName().equals("ADMIN")) {
+                throw new PermissionDeniedException("Only admin can rename folders");
+            }
+
+            // Get Drive service for the user
+            Drive driveService = driveServiceFactory.getDriveService(userId);
+
+            File fileMetadata = new File();
+            fileMetadata.setName(newName);
+            File updatedFolder = driveService.files().update(folder.getGoogleFolderId(), fileMetadata)
+                    .setFields("id, name")
+                    .execute();
+
+            folder.setName(updatedFolder.getName());
+            folder.setWebViewLink(updatedFolder.getWebViewLink());
+            DriveFolder savedFolder = folderRepository.save(folder);
+            return driveMapper.toDriveFolderResponseDTO(savedFolder);
+        } catch (IOException e) {
+            log.error("Failed to rename folder: {}", e.getMessage());
+            throw new GoogleDriveException("Failed to rename folder", e);
+        }
+    }
+
+    @Transactional
+    public DriveBookmarkResponseDTO updateBookmark(Long bookmarkId, String name, Long userId) {
+        DriveBookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new RuntimeException("Bookmark not found"));
+
+        if (!bookmark.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You don't have permission to update this bookmark");
+        }
+
+        bookmark.setName(name);
+        DriveBookmark savedBookmark = bookmarkRepository.save(bookmark);
+        return driveMapper.toDriveBookmarkResponseDTO(savedBookmark);
+    }
+
+    /**
+     * Updates a bookmark with a new name and Google ID
+     */
+    @Transactional
+    public DriveBookmarkResponseDTO updateBookmark(Long bookmarkId, String name, Long userId, String googleId) {
+        DriveBookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new RuntimeException("Bookmark not found"));
+
+        if (!bookmark.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You don't have permission to update this bookmark");
+        }
+
+        bookmark.setName(name);
+        if (googleId != null && !googleId.isEmpty()) {
+            bookmark.setGoogleId(googleId);
+        }
+
+        DriveBookmark savedBookmark = bookmarkRepository.save(bookmark);
+        return driveMapper.toDriveBookmarkResponseDTO(savedBookmark);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DriveBookmarkResponseDTO> getBookmarksBySource(Long userId, String source) {
+        log.info("Getting bookmarks for user: {} with source: {}", userId, source);
+        DriveBookmark.BookmarkSource bookmarkSource = DriveBookmark.BookmarkSource.valueOf(source.toUpperCase());
+        List<DriveBookmark> bookmarks = bookmarkRepository.findByUserIdAndSource(userId, bookmarkSource);
+        return bookmarks.stream()
+                .map(driveMapper::toDriveBookmarkResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Downloads a file from Google Drive using the user's default service
+     * account
+     */
+    @Transactional(readOnly = true)
+    public Resource downloadFile(Long fileId, Long userId) throws IOException {
+        return downloadFileWithAccount(fileId, userId, null);
+    }
+
+    /**
+     * Downloads a file from Google Drive using a specific service account
+     */
+    @Transactional(readOnly = true)
+    public Resource downloadFile(Long fileId, Long userId, Long accountId) throws IOException {
+        return downloadFileWithAccount(fileId, userId, accountId);
+    }
+
+    /**
+     * Helper method to download a file with a specific account
+     */
+    private Resource downloadFileWithAccount(Long fileId, Long userId, Long accountId) throws IOException {
         DriveFile driveFile = fileRepository.findById(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+                .orElseThrow(() -> new FileNotFoundException(fileId));
 
-        GoogleDriveAccount account = driveFile.getGoogleDriveAccount();
-        Drive driveService = getDriveService(account);
+        try {
+            // Get Drive service for the user (default or specific account)
+            Drive driveService = accountId != null
+                    ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
+                    : driveServiceFactory.getDriveService(userId);
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        driveService.files().get(driveFile.getGoogleFileId())
-                .executeMediaAndDownloadTo(outputStream);
+            // Download the file content
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            driveService.files().get(driveFile.getGoogleFileId())
+                    .executeMediaAndDownloadTo(outputStream);
 
-        return outputStream.toByteArray();
-    }
-
-    @Transactional(readOnly = true)
-    public void refreshDriveContents(Long accountId) throws IOException, GeneralSecurityException {
-        GoogleDriveAccount account = driveAccountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Google Drive account not found"));
-
-        Drive driveService = getDriveService(account);
-
-        // First get the root folder
-        String rootFolderId = account.getRootFolderId();
-        File rootFile = driveService.files().get(rootFolderId)
-                .setFields("id, name, webViewLink")
-                .execute();
-
-        DriveFolder rootFolder = folderRepository.findByGoogleFolderId(rootFolderId)
-                .orElseGet(() -> {
-                    DriveFolder newFolder = new DriveFolder();
-                    newFolder.setGoogleFolderId(rootFolderId);
-                    newFolder.setGoogleDriveAccount(account);
-                    return newFolder;
-                });
-
-        rootFolder.setName(rootFile.getName());
-        rootFolder.setWebViewLink(rootFile.getWebViewLink());
-        folderRepository.save(rootFolder);
-
-        // Now recursively sync all folders and files
-        syncFolder(account, driveService, rootFolder, null);
-    }
-
-    private void syncFolder(GoogleDriveAccount account, Drive driveService, DriveFolder folder, DriveFolder parentFolder)
-            throws IOException {
-        // Sync all subfolders
-        String query = String.format("'%s' in parents and mimeType='application/vnd.google-apps.folder'",
-                folder.getGoogleFolderId());
-
-        FileList subFolders = driveService.files().list()
-                .setQ(query)
-                .setFields("files(id, name, webViewLink)")
-                .execute();
-
-        for (File subFolder : subFolders.getFiles()) {
-            DriveFolder dbSubFolder = folderRepository.findByGoogleFolderId(subFolder.getId())
-                    .orElseGet(() -> {
-                        DriveFolder newFolder = new DriveFolder();
-                        newFolder.setGoogleFolderId(subFolder.getId());
-                        newFolder.setGoogleDriveAccount(account);
-                        newFolder.setParentFolder(folder);
-                        return newFolder;
-                    });
-
-            dbSubFolder.setName(subFolder.getName());
-            dbSubFolder.setWebViewLink(subFolder.getWebViewLink());
-            folderRepository.save(dbSubFolder);
-
-            // Recursively sync this subfolder
-            syncFolder(account, driveService, dbSubFolder, folder);
-        }
-
-        // Sync all files in this folder
-        query = String.format("'%s' in parents and mimeType!='application/vnd.google-apps.folder'",
-                folder.getGoogleFolderId());
-
-        FileList files = driveService.files().list()
-                .setQ(query)
-                .setFields("files(id, name, mimeType, size, webViewLink, webContentLink, createdTime, modifiedTime)")
-                .execute();
-
-        for (File file : files.getFiles()) {
-            DriveFile dbFile = fileRepository.findByGoogleFileId(file.getId())
-                    .orElseGet(() -> {
-                        DriveFile newFile = new DriveFile();
-                        newFile.setGoogleFileId(file.getId());
-                        newFile.setFolder(folder);
-                        newFile.setGoogleDriveAccount(account);
-                        return newFile;
-                    });
-
-            dbFile.setName(file.getName());
-            dbFile.setMimeType(file.getMimeType());
-            dbFile.setSize(file.getSize());
-            dbFile.setWebViewLink(file.getWebViewLink());
-            dbFile.setWebContentLink(file.getWebContentLink());
-
-            if (file.getCreatedTime() != null) {
-                dbFile.setCreatedTime(LocalDateTime.ofInstant(
-                        Instant.ofEpochMilli(file.getCreatedTime().getValue()), ZoneId.systemDefault()));
-            }
-
-            if (file.getModifiedTime() != null) {
-                dbFile.setModifiedTime(LocalDateTime.ofInstant(
-                        Instant.ofEpochMilli(file.getModifiedTime().getValue()), ZoneId.systemDefault()));
-            }
-
-            fileRepository.save(dbFile);
+            return new ByteArrayResource(outputStream.toByteArray());
+        } catch (Exception e) {
+            log.error("Failed to download file: {}", e.getMessage());
+            throw new GoogleDriveException("Cannot download file. " + e.getMessage());
         }
     }
+
+    /**
+     * Downloads a folder as a zip archive using the user's default service
+     * account
+     */
     @Transactional(readOnly = true)
-    public DriveFile getFileById(Long fileId) {
-        return fileRepository.findById(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+    public Resource downloadFolderAsZip(Long folderId, Long userId) throws IOException {
+        return downloadFolderAsZipWithAccount(folderId, userId, null);
+    }
+
+    /**
+     * Downloads a folder as a zip archive using a specific service account
+     */
+    @Transactional(readOnly = true)
+    public Resource downloadFolderAsZip(Long folderId, Long userId, Long accountId) throws IOException {
+        return downloadFolderAsZipWithAccount(folderId, userId, accountId);
+    }
+
+    /**
+     * Helper method to download a folder as a zip archive with a specific
+     * account
+     */
+    private Resource downloadFolderAsZipWithAccount(Long folderId, Long userId, Long accountId) throws IOException {
+        DriveFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new FolderNotFoundException(folderId));
+
+        // Get Drive service for the user (default or specific account)
+        Drive driveService = accountId != null
+                ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
+                : driveServiceFactory.getDriveService(userId);
+
+        ByteArrayOutputStream zipOutputStream = new ByteArrayOutputStream();
+        try (java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(zipOutputStream)) {
+            // Start with an empty path prefix for the root of the zip archive
+            downloadFolderContentsRecursively(driveService, folder, zos, "");
+        } catch (Exception e) {
+            log.error("Failed to download folder as zip: {}", e.getMessage());
+            throw new GoogleDriveException("Cannot download folder. " + e.getMessage());
+        }
+
+        return new ByteArrayResource(zipOutputStream.toByteArray());
+    }
+
+    /**
+     * Recursively download folder contents and add them to the zip archive
+     */
+    private void downloadFolderContentsRecursively(Drive driveService, DriveFolder folder,
+            java.util.zip.ZipOutputStream zos,
+            String pathPrefix) throws IOException {
+        // First, add all files in the current folder
+        List<DriveFile> files = fileRepository.findByFolder(folder);
+        for (DriveFile file : files) {
+            addFileToZip(driveService, file, zos, pathPrefix);
+        }
+
+        // Then, recursively process all subfolders
+        List<DriveFolder> subFolders = folderRepository.findByParentFolderId(folder.getId());
+        for (DriveFolder subFolder : subFolders) {
+            String newPathPrefix = pathPrefix.isEmpty()
+                    ? subFolder.getName()
+                    : pathPrefix + "/" + subFolder.getName();
+
+            // Create an entry for the folder itself
+            java.util.zip.ZipEntry folderEntry = new java.util.zip.ZipEntry(newPathPrefix + "/");
+            zos.putNextEntry(folderEntry);
+            zos.closeEntry();
+
+            // Process the contents of this subfolder
+            downloadFolderContentsRecursively(driveService, subFolder, zos, newPathPrefix);
+        }
+    }
+
+    /**
+     * Add a file to the zip archive
+     */
+    private void addFileToZip(Drive driveService, DriveFile file,
+            java.util.zip.ZipOutputStream zos,
+            String pathPrefix) throws IOException {
+        try {
+            // Create a new entry in the zip file
+            String entryName = pathPrefix.isEmpty()
+                    ? file.getName()
+                    : pathPrefix + "/" + file.getName();
+            java.util.zip.ZipEntry zipEntry = new java.util.zip.ZipEntry(entryName);
+            zos.putNextEntry(zipEntry);
+
+            // Download and write the file contents
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            driveService.files().get(file.getGoogleFileId())
+                    .executeMediaAndDownloadTo(outputStream);
+            zos.write(outputStream.toByteArray());
+
+            // Close the entry
+            zos.closeEntry();
+        } catch (Exception e) {
+            log.error("Failed to add file to zip: {}", e.getMessage());
+            // Continue with other files even if one fails
+        }
+    }
+
+    @Transactional
+    public DriveBookmarkResponseDTO createBookmarkWithAccount(Long userId, Long accountId, String name, String googleId, String type) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        DriveBookmark bookmark = new DriveBookmark();
+        bookmark.setName(name);
+        bookmark.setGoogleId(googleId);
+        bookmark.setType(DriveBookmark.BookmarkType.valueOf(type.toUpperCase()));
+        bookmark.setSource(DriveBookmark.BookmarkSource.DRIVE);
+        bookmark.setUser(user);
+
+        // Set default URL first in case the API call fails
+        if (type.equalsIgnoreCase("FILE")) {
+            bookmark.setUrl("https://drive.google.com/file/d/" + googleId + "/view");
+        } else {
+            bookmark.setUrl("https://drive.google.com/drive/folders/" + googleId);
+        }
+
+        // Try to get the file/folder details to set the actual URL
+        try {
+            // Get Drive service for the user with specific account
+            Drive driveService = driveServiceFactory.getDriveServiceForAccount(userId, accountId);
+            File file = driveService.files()
+                    .get(googleId)
+                    .setFields("webViewLink")
+                    .execute();
+            if (file.getWebViewLink() != null) {
+                bookmark.setUrl(file.getWebViewLink());
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch webViewLink for googleId {}: {}. Using default URL.", googleId, e.getMessage());
+            // Continue with the default URL set above
+        }
+
+        DriveBookmark savedBookmark = bookmarkRepository.save(bookmark);
+        return driveMapper.toDriveBookmarkResponseDTO(savedBookmark);
+    }
+
+    /**
+     * Extracts the Google Drive ID from a webViewLink URL
+     *
+     * @param webViewLink the Google Drive URL
+     * @return the extracted Google Drive ID
+     */
+    public static String extractGoogleIdFromUrl(String webViewLink) {
+        if (webViewLink == null || webViewLink.isEmpty()) {
+            return null;
+        }
+
+        // For files (pattern: /file/d/{fileId}/view)
+        if (webViewLink.contains("/file/d/")) {
+            int startIndex = webViewLink.indexOf("/file/d/") + 8;
+            int endIndex = webViewLink.indexOf("/view");
+            if (endIndex > startIndex) {
+                return webViewLink.substring(startIndex, endIndex);
+            }
+        }
+
+        // For folders (pattern: /folders/{folderId})
+        if (webViewLink.contains("/folders/")) {
+            int startIndex = webViewLink.indexOf("/folders/") + 9;
+            int endIndex = webViewLink.indexOf("?", startIndex);
+            if (endIndex == -1) {
+                // No query parameters
+                return webViewLink.substring(startIndex);
+            } else {
+                return webViewLink.substring(startIndex, endIndex);
+            }
+        }
+
+        return null;
     }
 }
-
