@@ -71,10 +71,6 @@ public class UserService {
             user.setAvatar(avatar.getBytes());
         }
 
-        if (qrCode != null && !qrCode.isEmpty()) {
-            user.setQrCode(qrCode.getBytes());
-        }
-
         repository.save(user);
     }
 

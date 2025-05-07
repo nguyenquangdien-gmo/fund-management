@@ -131,7 +131,7 @@ public class AuthService {
                 "Tài khoản của bạn đã được reset, hãy login và " +
                         "đổi mật khẩu\nLink: " +url+"/change-password"+
                         "\nAccount: "+user.getEmail()+"\nPassword: " +
-                        generatedPassword,emailAdmin,user.getEmail());
+                        generatedPassword,emailAdmin,user.getUserIdChat());
     }
 
     public AuthenticationResponse authenticate(AuthenticationDto request) {

@@ -52,13 +52,13 @@ public class Notification {
         try {
             // Lấy thông tin user nhận bằng email
             Map<String, Object> receiver = chatopsService.getUserByEmail(receiverEmail);
-            String receiverId = (String) receiver.get("id");
+            String receiverIdChat = (String) receiver.get("id");
 
             Map<String, Object> sender = chatopsService.getUserByEmail(senderEmail);
             String senderId = (String) sender.get("id");
 
             // Tạo channel direct giữa sender và receiver
-            String channelId = chatopsService.getDirectChannelId(receiverId, senderId);
+            String channelId = chatopsService.getDirectChannelId(senderId, receiverIdChat);
 
             // Gửi tin nhắn
             chatopsService.sendMessage(channelId, messageContent);

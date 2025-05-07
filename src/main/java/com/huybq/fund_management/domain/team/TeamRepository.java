@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TeamRepository extends JpaRepository<Team,Integer> {
+public interface TeamRepository extends JpaRepository<Team,String> {
     List<Team> findUsersByName(String name);
     Optional<Team> findBySlug(String slug);
 

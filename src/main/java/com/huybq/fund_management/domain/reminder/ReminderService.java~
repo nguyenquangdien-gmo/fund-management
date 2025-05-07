@@ -162,6 +162,7 @@ public class ReminderService {
                 reminder.setLastSentDate(now);
                 reminderRepository.save(reminder);
             }
+
         });
     }
 

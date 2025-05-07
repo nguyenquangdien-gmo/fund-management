@@ -80,8 +80,10 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public ResponseEntity<InvoiceResponseDTO> createInvoice(@Valid @RequestPart InvoiceDTO dto, @RequestPart(value = "billImage", required = false) MultipartFile billImage) throws IOException {
-        return ResponseEntity.ok(service.create(dto,billImage));
+    public ResponseEntity<InvoiceResponseDTO> createInvoice(
+            @Valid @RequestPart("invoice") InvoiceDTO dto,
+            @RequestPart(value = "billImage", required = false) MultipartFile billImage) throws IOException {
+        return ResponseEntity.ok(service.create(dto, billImage));
     }
 
     @PutMapping("/{id}/approve")
@@ -95,30 +97,29 @@ public class InvoiceController {
     }
 
     @PutMapping("/{id}/update")
-    public ResponseEntity<InvoiceResponseDTO> updateInvoice(@PathVariable Long id, @Valid @RequestPart("invoice") InvoiceDTO dto, @RequestPart(value = "billImage", required = false) MultipartFile billImage) throws IOException {
+    public ResponseEntity<InvoiceResponseDTO> updateInvoice(@PathVariable Long id, @Valid @RequestPart("invoice") InvoiceDTO dto, @RequestPart(value = "avatarImage", required = false) MultipartFile billImage) throws IOException {
         return ResponseEntity.ok(service.update(id, dto, billImage));
     }
 
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteInvoice(@PathVariable Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{invoiceId}/bill-image")
-    public ResponseEntity<byte[]> getBillImage(@PathVariable Long invoiceId) {
+    @GetMapping("/{id}/bill-image")
+    public ResponseEntity<byte[]> getBillImage(@PathVariable Long id) {
         try {
-            byte[] avatar = service.getBillImage(invoiceId);
-            if (avatar == null) {
+            byte[] billImage = service.getBillImage(id);
+            if (billImage == null) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity
                     .ok()
                     .contentType(MediaType.IMAGE_PNG)
-                    .body(avatar);
+                    .body(billImage);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteInvoice(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
