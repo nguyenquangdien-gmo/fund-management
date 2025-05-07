@@ -55,7 +55,7 @@ public class LateService {
         return repository.findLatesByUser_IdAndDateRange(fromDate, toDate, userId).stream().map(mapper::toReponseDTO).toList();
     }
 
-    public List<UserLateCountDTO> getAllUserLateCountsInMonth(int month,int year) {
+    public List<UserLateCountDTO> getAllUserLateCountsInMonth(int month, int year) {
         List<Object[]> results = repository.countLatesByUserInMonthAndYear(month, year);
 
         return results.stream()
@@ -118,7 +118,7 @@ public class LateService {
 
         matchedMessages.forEach(this::saveLateRecords);
     }
-  
+
     public void fetchLateCheckinsForCheckNow(LocalTime time, String channelId) {
         Team team = teamService.getTeamBySlug("java");
         // Kiểm tra sự tồn tại của schedule trước khi lấy channelId
@@ -198,7 +198,7 @@ public class LateService {
             penBill.setPenalty(penalty);
             penBill.setDueDate(today.plusDays(7)); // Hạn nộp phạt sau 7 ngày
             penBill.setPaymentStatus(PenBill.Status.UNPAID);
-            penBill.setDescription("Phạt do đi trễ quá số lần quy định trong tháng " + month+ "/" + year);
+            penBill.setDescription("Phạt do đi trễ quá số lần quy định trong tháng " + month + "/" + year);
 
             penBillRepository.save(penBill);
         }
@@ -333,82 +333,5 @@ public class LateService {
         // Xóa bản ghi đi muộn
         repository.deleteById(lateId);
     }
-
-
-
-
-//    public void sendLateReminder() {
-//
-//        List<UserResponseDTO> lateRecords = getUsersWithLateDate();
-//
-//        if (lateRecords.isEmpty()) {
-//            notification.sendNotification("@all\n🎉 **Thật tuyệt vời, hôm nay không ai đi trễ!** 🎉", "java");
-//            return;
-//        }
-//
-//        StringBuilder message = new StringBuilder();
-//        message.append("🚨 **Danh sách đi trễ quá số lần cho phép nhưng chưa đóng phạt ").append(" ** 🚨\n\n");
-//        message.append("| STT | Tên | Số tiền nợ  |\n");
-//        message.append("|---|---|---|\n");
-//
-//        int index = 1;
-//        for (UserResponseDTO record : lateRecords) {
-//            message.append("| ").append(index++).append(" | @")
-//                    .append(record.email().replace("@", "-")).append(" |\n");
-//        }
-//
-//        message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng phạt nếu có.\n")
-//                .append("Rất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
-//                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
-//                .append("Trân trọng! \n\n")
-//                .append(" #checkin-statistic ");
-//
-//        // Gửi thông báo lên ChatOps
-//        notification.sendNotification(message.toString(), "java");
-//    }
-
-//send statstic late in month
-//    public List<Object[]> getLatesFromPrevious1stToCurrent1st() {
-//        LocalDate today = LocalDate.now();
-//        LocalDate startDate = today.minusMonths(1).withDayOfMonth(1); // 1 tháng trước
-//        LocalDate endDate = today.withDayOfMonth(1); // 1 tháng này
-//        return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
-//    }
-//    public void sendLateInMonth() {
-//        LocalDate today = LocalDate.now();
-//
-//        List<Object[]> lateRecords = getLatesFromPrevious1stToCurrent1st();;
-//        int previousMonth = today.getMonthValue() - 1;
-//
-//        if (lateRecords.isEmpty()) {
-//            notification.sendNotification("@all\n🎉 **Tháng này không ai đi trễ!** 🎉", "java");
-//            return;
-//        }
-//
-//        StringBuilder message = new StringBuilder();
-//        message.append("@all\n 🚨 **Danh sách đi trễ tháng ").append(previousMonth).append(" ** 🚨\n\n");
-//        message.append("| STT | TÊN | SỐ LẦN ĐI TRỄ |\n");
-//        message.append("|---|---|---|\n");
-//
-//        int index = 1;
-//        for (Object[] record : lateRecords) {
-//            User user = (User) record[0];
-//            Long lateCount = (Long) record[1];
-//
-//            message.append("| ").append(index++).append(" | ")
-//                    .append(user.getFullName()).append(" | ")
-//                    .append(lateCount).append(" |\n");
-//
-//        }
-//
-//        message.append("\nRất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
-//                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
-//                .append("Trân trọng! \n\n")
-//                .append(" #checkin-statistic ");
-//
-//        // Gửi thông báo lên ChatOps
-//        notification.sendNotification(message.toString(), "java");
-//    }
-
 
 }

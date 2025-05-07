@@ -273,7 +273,6 @@ public class PenBillService {
                 .stream().map(mapper::toPenBillResponse).toList();
 
         if (lateRecords.isEmpty()) {
-            notification.sendNotification("@all\n🎉 **Thật tuyệt vời, hôm nay không ai đi trễ!** 🎉", "java");
             return;
         }
 
