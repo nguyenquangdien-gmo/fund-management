@@ -165,7 +165,7 @@ public class EventService {
 
 
     public List<EventResponeseDTO> getAllEvents() {
-        return eventRepository.findAllByEventTimeGreaterThanEqual(LocalDateTime.now()).stream()
+        return eventRepository.findAll().stream()
                 .map(mapper::toResponseDTO).toList();
     }
 
