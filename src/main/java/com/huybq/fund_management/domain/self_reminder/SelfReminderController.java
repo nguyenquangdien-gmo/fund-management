@@ -24,6 +24,7 @@ public class SelfReminderController {
             @AuthenticationPrincipal User user,
             @RequestBody @Valid SelfReminderRequestDTO request
     ) {
+        System.out.println("Creating reminder: " + request);
         return ResponseEntity.ok(reminderService.createReminder(user.getId(), request));
     }
 
@@ -36,7 +37,6 @@ public class SelfReminderController {
 
         return ResponseEntity.ok(reminderService.getRemindersByUser(user.getId(), startDate, endDate));
     }
-
 
     // Sửa reminder
     @PatchMapping("/{id}")
