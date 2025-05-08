@@ -196,33 +196,10 @@ public class PenBillService {
         return penBillRepository.getPenaltyStatisticsByYear(year);
     }
 
-    //    public void sendNotificationPenBill() {
-//        LocalDate now = LocalDate.now();
-//        int month = now.getMonthValue();
-//        int year = now.getYear();
-//
-//        List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
-//
-//        for (Object[] row : unpaidInfoList) {
-//            User user = (User) row[0];
-//            BigDecimal totalUnpaid = (BigDecimal) row[1];
-//
-//            String mention = "@" + user.getEmail().replace("@", "-");
-//
-//            String message = mention +
-//                    "\n💸 Bạn có hóa đơn phạt chưa thanh toán!" +
-//                    "\n🗓 Vào ngày: " + month + "/" + year +
-//                    "\n💰 Số tiền: " + totalUnpaid + " VNĐ";
-//
-//            notification.sendNotification(message, "java");
-//        }
-//    }
     private String formatCurrency(BigDecimal amount) {
         NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
         return formatter.format(amount);
     }
-
-    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh")
 
     public void sendNotificationPenBillNew() {
         LocalDate now = LocalDate.now();
@@ -232,7 +209,6 @@ public class PenBillService {
         List<Object[]> unpaidInfoList = penBillRepository.findUserAndTotalUnpaidAmountByMonthAndYear(month, year);
 
         if (unpaidInfoList.isEmpty()) {
-            notification.sendNotification("@all\n🎉 **Tuyệt vời! Không ai còn hóa đơn phạt chưa thanh toán trong tháng này!** 🎉", "java");
             return;
         }
 

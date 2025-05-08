@@ -1,5 +1,6 @@
 package com.huybq.fund_management.domain.schedule;
 
+import com.huybq.fund_management.domain.schedule.quartz.manager.QuartzScheduleManager;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final ScheduleMapper mapper;
-    private final ScheduleManager scheduleManager;
+    private final QuartzScheduleManager scheduleManager;
 
     public ScheduleResponse getSchedulesByType(String type) {
         Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf(type.toUpperCase())).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with type: " + type));

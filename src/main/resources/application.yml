@@ -8,7 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -17,6 +17,22 @@ spring:
     multipart:
       max-file-size: 2MB
       max-request-size: 2MB
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always # or never if tables exist
+    # Direct properties to control Quartz behavior
+    properties:
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.scheduler.instanceName: fundManagementScheduler
+      org.quartz.jobStore.isClustered: true
+      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+      org.quartz.jobStore.useProperties: false
+      org.quartz.jobStore.misfireThreshold: 60000
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.threadPool.threadCount: 10
+
 
 logging:
   level:
@@ -72,9 +88,9 @@ server:
         same-site: strict
 chatops:
   api:
-    base-url: https://chat.runsystem.vn
-    token: gnuook57mfg7mgw61oxmece6ty
+    base-url:
+    token:
 
 create-api:
-    base-url: h
+    base-url:
     auth-header:
