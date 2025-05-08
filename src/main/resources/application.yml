@@ -18,20 +18,6 @@ spring:
       max-file-size: 2MB
       max-request-size: 2MB
 
-server:
-  port: 8080
-  domain:
-    url-v1: http://localhost:3000
-    url-v2: http://localhost:5173
-  version: v1
-
-google:
-  service:
-    account:
-      credentials: classpath:keys/key.json
-  drive:
-    root-folder-id: "root"
-
 logging:
   level:
     root: INFO
@@ -90,5 +76,5 @@ chatops:
     token: gnuook57mfg7mgw61oxmece6ty
 
 create-api:
-    base-url:
+    base-url: h
     auth-header:

@@ -85,7 +85,8 @@ public class AdminCreateController {
 
                 return ResponseEntity.ok(Map.of(
                         "success", true,
-                        "data", user
+                        "data", user,
+                        "token", apiResponse.getToken()
                 ));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
@@ -322,8 +323,8 @@ public class AdminCreateController {
             HttpServletRequest request,
             @RequestParam String startDate,
             @RequestParam String endDate,
-            @RequestParam Integer fromDate,
-            @RequestParam Integer toDate,
+            @RequestParam Long fromDate,
+            @RequestParam Long toDate,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam String userObjId) {
 
@@ -363,8 +364,8 @@ public class AdminCreateController {
             HttpServletRequest request,
             @RequestParam String startDate,
             @RequestParam String endDate,
-            @RequestParam String fromDate,
-            @RequestParam Integer toDate,
+            @RequestParam Long fromDate,
+            @RequestParam Long toDate,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam String userObjId) {
 
@@ -389,7 +390,8 @@ public class AdminCreateController {
             List<LeaveRequestDto> wfhRecords = adminCreateService.fetchPersonalStaffWfh(token, params);
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "data", wfhRecords
+                    "data", wfhRecords,
+                    "token", token
             ));
         } catch (AdminCreateException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(

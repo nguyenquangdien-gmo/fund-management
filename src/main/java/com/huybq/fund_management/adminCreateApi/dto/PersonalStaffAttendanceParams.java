@@ -6,8 +6,8 @@ import lombok.Data;
 public class PersonalStaffAttendanceParams {
     private String startDate;
     private String endDate;
-    private Integer fromDate;
-    private Integer toDate;
+    private Long fromDate;
+    private Long toDate;
     private Integer page;
     private String userObjId;
 }

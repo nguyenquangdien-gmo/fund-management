@@ -6,8 +6,8 @@ import lombok.Data;
 public class PersonalStaffWfhParams {
     private String startDate;
     private String endDate;
-    private String fromDate;
-    private Integer toDate;
+    private Long fromDate;
+    private Long toDate;
     private Integer page;
     private String userObjId;
 }

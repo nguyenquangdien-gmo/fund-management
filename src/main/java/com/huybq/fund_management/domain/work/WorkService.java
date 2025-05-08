@@ -44,10 +44,11 @@ public class WorkService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // Không cho tạo nếu là tháng trước
-        LocalDate now = LocalDate.now();
-        if (dto.getFromDate().getMonthValue() < now.getMonthValue() || dto.getEndDate().getMonthValue() < now.getMonthValue()) {
-            throw new BusinessException("Cannot create work in the previous month");
-        }
+//        LocalDate now = LocalDate.now();
+//        if (dto.getFromDate().getMonthValue() < now.getMonthValue() || dto.getEndDate().getMonthValue() < now.getMonthValue()) {
+//            throw new BusinessException("Cannot create work in the previous month");
+//        }
+        //do bị vướng phan đồng bộ voi create api nên tạm thời chỉ ràng buoc phía client
 
         // Kiểm tra xem đã tồn tại Work giao thời gian chưa
         boolean exists = workRepository.existsByUserIdAndDateRangeOverlap(
