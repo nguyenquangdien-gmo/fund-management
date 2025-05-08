@@ -105,4 +105,14 @@ public class TeamController {
         List<UserResponseDTO> members = userService.getMembersByTeamSlug(slug);
         return ResponseEntity.ok(members);
     }
+
+    @PutMapping("{slug}/regulation")
+    public ResponseEntity<TeamDTO> updateRegulation(@PathVariable String slug, @RequestBody TeamDTO teamDTO) {
+        try {
+            TeamDTO updatedTeam = teamService.updateRegulation(slug, teamDTO);
+            return ResponseEntity.ok(updatedTeam);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

@@ -94,4 +94,12 @@ public class TeamService {
                 .orElseThrow(() -> new RuntimeException("User không tồn tại hoặc đã bị xóa"));
     }
 
+    public TeamDTO updateRegulation(String slug, TeamDTO teamUpdateDTO) {
+        Team team = repository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with slug: " + slug));
+        team.setRegulation(teamUpdateDTO.getRegulation());
+        repository.save(team);
+        return mapper.toDTO(team);
+    }
+
 }
