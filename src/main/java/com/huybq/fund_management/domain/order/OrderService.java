@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,6 +80,7 @@ public class OrderService {
         // Lấy thông tin từ order
         String title = order.getTitle();
         String description = order.getDescription();
+        String deadline = String.valueOf(order.getDeadline());
         List<Long> relatedUsersIds = order.getRelatedUserIds();
         List<User> relatedUsers = userRepository.findAllById(relatedUsersIds);
 
@@ -89,6 +91,11 @@ public class OrderService {
         if (description != null && !description.isEmpty()) {
             message.append(description).append("\n\n");
         }
+
+        LocalDateTime deadlineTime = LocalDateTime.parse(deadline);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+        String formattedTime = deadlineTime.format(formatter);
+        message.append("Deadline: ").append(formattedTime).append("\n\n");
 
         // Thêm tag cho các thành viên liên quan
         if (relatedUsers != null && !relatedUsers.isEmpty()) {
