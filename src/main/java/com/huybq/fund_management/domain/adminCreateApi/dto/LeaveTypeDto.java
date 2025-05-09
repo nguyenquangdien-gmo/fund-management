@@ -1,4 +1,4 @@
-package com.huybq.fund_management.adminCreateApi.dto;
+package com.huybq.fund_management.domain.adminCreateApi.dto;
 
 import lombok.Data;
 

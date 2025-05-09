@@ -1,6 +1,6 @@
-package com.huybq.fund_management.adminCreateApi.service;
+package com.huybq.fund_management.domain.adminCreateApi.service;
 
-import com.huybq.fund_management.adminCreateApi.dto.*;
+import com.huybq.fund_management.domain.adminCreateApi.dto.*;
 import com.huybq.fund_management.exception.AdminCreateException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -248,31 +248,6 @@ public class AdminCreateService {
         }
     }
 
-    public List<LeaveRequestDto> fetchMyWfhRequests(String token) throws AdminCreateException {
-        try {
-            String url = apiBaseUrl + "/auth/staff-wfh/list";
-
-            HttpHeaders headers = createHeaders(token);
-            HttpEntity<?> request = new HttpEntity<>(headers);
-
-            ResponseEntity<ApiResponse<List<LeaveRequestDto>>> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    request,
-                    new ParameterizedTypeReference<ApiResponse<List<LeaveRequestDto>>>() {}
-            );
-
-            if (response.getBody() != null && response.getBody().isSuccess()) {
-                return response.getBody().getData();
-            } else {
-                String errorMessage = response.getBody() != null ?
-                        response.getBody().getMessage() : "Failed to fetch WFH requests";
-                throw new AdminCreateException(errorMessage);
-            }
-        } catch (Exception e) {
-            throw new AdminCreateException("Error fetching WFH requests: " + e.getMessage(), e);
-        }
-    }
 
     public List<LeaveRequestDto> fetchPersonalStaffAttendance(String token, PersonalStaffAttendanceParams params)
             throws AdminCreateException {
@@ -285,6 +260,7 @@ public class AdminCreateService {
                     .queryParam("endDate", params.getEndDate())
                     .queryParam("fromDate", params.getFromDate())
                     .queryParam("toDate", params.getToDate())
+                    .queryParam("status", "All")
                     .queryParam("page", params.getPage())
                     .queryParam("userObjId", params.getUserObjId());
 
@@ -317,7 +293,6 @@ public class AdminCreateService {
 
             // Build URL with query parameters
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                    .queryParam("startDate", params.getStartDate())
                     .queryParam("endDate", params.getEndDate())
                     .queryParam("fromDate", params.getFromDate())
                     .queryParam("toDate", params.getToDate())

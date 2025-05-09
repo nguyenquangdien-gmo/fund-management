@@ -1,9 +1,9 @@
-package com.huybq.fund_management.adminCreateApi.controller;
+package com.huybq.fund_management.domain.adminCreateApi.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huybq.fund_management.adminCreateApi.dto.*;
-import com.huybq.fund_management.adminCreateApi.service.AdminCreateService;
+import com.huybq.fund_management.domain.adminCreateApi.dto.*;
+import com.huybq.fund_management.domain.adminCreateApi.service.AdminCreateService;
 import com.huybq.fund_management.exception.AdminCreateException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -293,31 +293,6 @@ public class AdminCreateController {
         }
     }
 
-    @GetMapping("/my-wfh-requests")
-    public ResponseEntity<?> getMyWfhRequests(HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "success", false,
-                    "message", "Authentication required"
-            ));
-        }
-
-        try {
-            List<LeaveRequestDto> wfhRequests = adminCreateService.fetchMyWfhRequests(token);
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", wfhRequests
-            ));
-        } catch (AdminCreateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "success", false,
-                    "message", e.getMessage()
-            ));
-        }
-    }
-
     @GetMapping("/personal-staff-attendance")
     public ResponseEntity<?> getPersonalStaffAttendance(
             HttpServletRequest request,
@@ -362,9 +337,8 @@ public class AdminCreateController {
     @GetMapping("/personal-staff-wfh")
     public ResponseEntity<?> getPersonalStaffWfh(
             HttpServletRequest request,
-            @RequestParam String startDate,
             @RequestParam String endDate,
-            @RequestParam Long fromDate,
+            @RequestParam String fromDate,
             @RequestParam Long toDate,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam String userObjId) {
@@ -380,11 +354,11 @@ public class AdminCreateController {
 
         try {
             PersonalStaffWfhParams params = new PersonalStaffWfhParams();
-            params.setStartDate(startDate);
             params.setEndDate(endDate);
             params.setFromDate(fromDate);
             params.setToDate(toDate);
             params.setPage(page);
+            params.setStatus("All");
             params.setUserObjId(userObjId);
 
             List<LeaveRequestDto> wfhRecords = adminCreateService.fetchPersonalStaffWfh(token, params);
