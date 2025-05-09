@@ -55,7 +55,7 @@ public class LateService {
         return repository.findLatesByUser_IdAndDateRange(fromDate, toDate, userId).stream().map(mapper::toReponseDTO).toList();
     }
 
-    public List<UserLateCountDTO> getAllUserLateCountsInMonth(int month,int year) {
+    public List<UserLateCountDTO> getAllUserLateCountsInMonth(int month, int year) {
         List<Object[]> results = repository.countLatesByUserInMonthAndYear(month, year);
 
         return results.stream()
@@ -81,7 +81,7 @@ public class LateService {
         LocalDateTime now = LocalDateTime.now();
         String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
 
-        LocalTime targetTime = Optional.ofNullable(time).orElse(LocalTime.of(10, 5));
+        LocalTime targetTime = Optional.ofNullable(time).orElse(LocalTime.of(10, 0, 0));
         long timestamp = now.toLocalDate()
                 .atTime(targetTime)
                 .atZone(vietnamZone)
@@ -119,9 +119,61 @@ public class LateService {
         matchedMessages.forEach(this::saveLateRecords);
     }
 
+    public void fetchLateCheckinsForCheckNow(LocalTime time, String channelId) {
+        Team team = teamService.getTeamBySlug("java");
+        // Kiểm tra sự tồn tại của schedule trước khi lấy channelId
+        Optional<Schedule> scheduleOpt = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"));
 
-    //len lich goi tu dong tu 10h05 t2- t6
-    @Scheduled(cron = "0 0 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
+        if (scheduleOpt.isPresent()) {
+            // Lấy channelId từ schedule nếu có
+            channelId = scheduleOpt.get().getChannelId().toString();
+        } else if (channelId == null || "default-channel-id".equals(channelId)) {
+            // Nếu không có schedule và channelId vẫn null, ném lỗi
+            throw new ResourceNotFoundException("Schedule 'late-check-in' not found or channelId is null");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        String todayString = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        long timestamp = now.atZone(vietnamZone)
+                .withHour(time.getHour()).withMinute(time.getMinute()).withSecond(time.getSecond())
+                .toEpochSecond() * 1000;
+
+        String url = "https://chat.runsystem.vn/api/v4/channels/" + channelId + "/posts?since=" + timestamp;
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + team.getToken());
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            Map<String, Object> responseBody = response.getBody();
+            Map<String, Object> posts = (Map<String, Object>) responseBody.get("posts");
+
+            if (posts != null && !posts.isEmpty()) {
+                // Lọc thông báo của ngày hiện tại
+                List<String> matchedMessages = posts.values().stream()
+                        .map(post -> (String) ((Map<String, Object>) post).get("message"))
+                        .filter(message -> message != null && message.contains("THÔNG BÁO DANH SÁCH ĐI LÀM MUỘN " + todayString))
+                        .collect(Collectors.toList());
+
+                if (!matchedMessages.isEmpty()) {
+                    matchedMessages.forEach(this::saveLateRecords);
+                } else {
+                    System.out.println("Không có message đi trễ nào trong dữ liệu API.");
+                }
+            } else {
+                System.out.println("Không có bài viết nào trong dữ liệu API.");
+            }
+        } else {
+            throw new RuntimeException("Lỗi khi gọi API: " + response.getStatusCode());
+        }
+    }
+
+    //len lich goi tu dong tu 10h t2- t6
+    @Scheduled(cron = "0 5 10 * * MON-FRI", zone = "Asia/Ho_Chi_Minh")
     public void scheduledCheckinLate() {
         Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf("LATE_NOTIFICATION"))
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule 'late-check-in' not found"));
@@ -146,7 +198,7 @@ public class LateService {
             penBill.setPenalty(penalty);
             penBill.setDueDate(today.plusDays(7)); // Hạn nộp phạt sau 7 ngày
             penBill.setPaymentStatus(PenBill.Status.UNPAID);
-            penBill.setDescription("Phạt do đi trễ quá số lần quy định trong tháng " + month+ "/" + year);
+            penBill.setDescription("Phạt do đi trễ quá số lần quy định trong tháng " + month + "/" + year);
 
             penBillRepository.save(penBill);
         }
@@ -281,82 +333,5 @@ public class LateService {
         // Xóa bản ghi đi muộn
         repository.deleteById(lateId);
     }
-
-
-
-
-//    public void sendLateReminder() {
-//
-//        List<UserResponseDTO> lateRecords = getUsersWithLateDate();
-//
-//        if (lateRecords.isEmpty()) {
-//            notification.sendNotification("@all\n🎉 **Thật tuyệt vời, hôm nay không ai đi trễ!** 🎉", "java");
-//            return;
-//        }
-//
-//        StringBuilder message = new StringBuilder();
-//        message.append("🚨 **Danh sách đi trễ quá số lần cho phép nhưng chưa đóng phạt ").append(" ** 🚨\n\n");
-//        message.append("| STT | Tên | Số tiền nợ  |\n");
-//        message.append("|---|---|---|\n");
-//
-//        int index = 1;
-//        for (UserResponseDTO record : lateRecords) {
-//            message.append("| ").append(index++).append(" | @")
-//                    .append(record.email().replace("@", "-")).append(" |\n");
-//        }
-//
-//        message.append("\nHãy vào [đây](https://fund-manager-client-e1977.web.app/bills) để đóng phạt nếu có.\n")
-//                .append("Rất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
-//                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
-//                .append("Trân trọng! \n\n")
-//                .append(" #checkin-statistic ");
-//
-//        // Gửi thông báo lên ChatOps
-//        notification.sendNotification(message.toString(), "java");
-//    }
-
-//send statstic late in month
-//    public List<Object[]> getLatesFromPrevious1stToCurrent1st() {
-//        LocalDate today = LocalDate.now();
-//        LocalDate startDate = today.minusMonths(1).withDayOfMonth(1); // 1 tháng trước
-//        LocalDate endDate = today.withDayOfMonth(1); // 1 tháng này
-//        return repository.findUsersWithLateCountBetweenDates(startDate, endDate);
-//    }
-//    public void sendLateInMonth() {
-//        LocalDate today = LocalDate.now();
-//
-//        List<Object[]> lateRecords = getLatesFromPrevious1stToCurrent1st();;
-//        int previousMonth = today.getMonthValue() - 1;
-//
-//        if (lateRecords.isEmpty()) {
-//            notification.sendNotification("@all\n🎉 **Tháng này không ai đi trễ!** 🎉", "java");
-//            return;
-//        }
-//
-//        StringBuilder message = new StringBuilder();
-//        message.append("@all\n 🚨 **Danh sách đi trễ tháng ").append(previousMonth).append(" ** 🚨\n\n");
-//        message.append("| STT | TÊN | SỐ LẦN ĐI TRỄ |\n");
-//        message.append("|---|---|---|\n");
-//
-//        int index = 1;
-//        for (Object[] record : lateRecords) {
-//            User user = (User) record[0];
-//            Long lateCount = (Long) record[1];
-//
-//            message.append("| ").append(index++).append(" | ")
-//                    .append(user.getFullName()).append(" | ")
-//                    .append(lateCount).append(" |\n");
-//
-//        }
-//
-//        message.append("\nRất mong mọi người sẽ tuân thủ quy định và đến đúng giờ!\n")
-//                .append("Hãy cùng nhau xây dựng môi trường làm việc chuyên nghiệp nhé 💪🏻\n")
-//                .append("Trân trọng! \n\n")
-//                .append(" #checkin-statistic ");
-//
-//        // Gửi thông báo lên ChatOps
-//        notification.sendNotification(message.toString(), "java");
-//    }
-
 
 }

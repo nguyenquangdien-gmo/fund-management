@@ -1,9 +1,9 @@
-package com.huybq.fund_management.adminCreateApi.controller;
+package com.huybq.fund_management.domain.adminCreateApi.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huybq.fund_management.adminCreateApi.dto.*;
-import com.huybq.fund_management.adminCreateApi.service.AdminCreateService;
+import com.huybq.fund_management.domain.adminCreateApi.dto.*;
+import com.huybq.fund_management.domain.adminCreateApi.service.AdminCreateService;
 import com.huybq.fund_management.exception.AdminCreateException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -85,7 +85,8 @@ public class AdminCreateController {
 
                 return ResponseEntity.ok(Map.of(
                         "success", true,
-                        "data", user
+                        "data", user,
+                        "token", apiResponse.getToken()
                 ));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
@@ -172,7 +173,7 @@ public class AdminCreateController {
     }
 
 
-    @PostMapping("/create")
+    @PostMapping("/leave/create")
     public ResponseEntity<?> createLeaveRequest(HttpServletRequest request,
                                                 @RequestBody CreateLeaveRequestDto leaveRequest) {
         String token = getTokenFromCookies(request);
@@ -224,7 +225,7 @@ public class AdminCreateController {
         }
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/leave/delete")
     public ResponseEntity<?> deleteLeaveRequest(HttpServletRequest request,
                                                 @RequestBody Map<String, String> requestBody) {
         String token = getTokenFromCookies(request);
@@ -292,38 +293,13 @@ public class AdminCreateController {
         }
     }
 
-    @GetMapping("/my-wfh-requests")
-    public ResponseEntity<?> getMyWfhRequests(HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "success", false,
-                    "message", "Authentication required"
-            ));
-        }
-
-        try {
-            List<LeaveRequestDto> wfhRequests = adminCreateService.fetchMyWfhRequests(token);
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", wfhRequests
-            ));
-        } catch (AdminCreateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "success", false,
-                    "message", e.getMessage()
-            ));
-        }
-    }
-
     @GetMapping("/personal-staff-attendance")
     public ResponseEntity<?> getPersonalStaffAttendance(
             HttpServletRequest request,
             @RequestParam String startDate,
             @RequestParam String endDate,
-            @RequestParam Integer fromDate,
-            @RequestParam Integer toDate,
+            @RequestParam Long fromDate,
+            @RequestParam Long toDate,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam String userObjId) {
 
@@ -342,6 +318,7 @@ public class AdminCreateController {
             params.setEndDate(endDate);
             params.setFromDate(fromDate);
             params.setToDate(toDate);
+            params.set("All");
             params.setPage(page);
             params.setUserObjId(userObjId);
 
@@ -361,10 +338,9 @@ public class AdminCreateController {
     @GetMapping("/personal-staff-wfh")
     public ResponseEntity<?> getPersonalStaffWfh(
             HttpServletRequest request,
-            @RequestParam String startDate,
             @RequestParam String endDate,
             @RequestParam String fromDate,
-            @RequestParam Integer toDate,
+            @RequestParam Long toDate,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam String userObjId) {
 
@@ -379,17 +355,18 @@ public class AdminCreateController {
 
         try {
             PersonalStaffWfhParams params = new PersonalStaffWfhParams();
-            params.setStartDate(startDate);
             params.setEndDate(endDate);
             params.setFromDate(fromDate);
             params.setToDate(toDate);
             params.setPage(page);
+            params.setStatus("All");
             params.setUserObjId(userObjId);
 
             List<LeaveRequestDto> wfhRecords = adminCreateService.fetchPersonalStaffWfh(token, params);
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "data", wfhRecords
+                    "data", wfhRecords,
+                    "token", token
             ));
         } catch (AdminCreateException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(

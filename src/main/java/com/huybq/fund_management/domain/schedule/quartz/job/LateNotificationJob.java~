@@ -1,0 +1,14 @@
+package com.huybq.fund_management.domain.schedule.quartz.job;
+
+import com.huybq.fund_management.domain.pen_bill.PenBillService;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public class LateNotificationJob {
+    private final PenBillService penBillService;
+
+    @Override
+    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+        penBillService.sendUnpaidCheckinBillNotification();
+    }
+}

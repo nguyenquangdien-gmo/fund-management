@@ -1,0 +1,52 @@
+package com.huybq.fund_management.domain.schedule.quartz.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+
+import javax.sql.DataSource;
+import java.util.Properties;
+
+@Configuration
+public class QuartzConfig {
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Bean
+    public SpringBeanJobFactory springBeanJobFactory() {
+        AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory();
+        jobFactory.setApplicationContext(applicationContext);
+        return jobFactory;
+    }
+
+    @Bean
+    public SchedulerFactoryBean schedulerFactoryBean() {
+        SchedulerFactoryBean factoryBean = new SchedulerFactoryBean();
+
+        // Set the JobFactory to allow injection in your job classes
+        factoryBean.setJobFactory(springBeanJobFactory());
+
+        // Configure Quartz with RAMJobStore
+        Properties quartzProperties = new Properties();
+        quartzProperties.put("org.quartz.scheduler.instanceName", "MyScheduler");
+        quartzProperties.put("org.quartz.scheduler.instanceId", "AUTO");
+        
+        // Use RAMJobStore
+        quartzProperties.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
+        
+        // Configure thread pool
+        quartzProperties.put("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
+        quartzProperties.put("org.quartz.threadPool.threadCount", "10");
+        quartzProperties.put("org.quartz.threadPool.threadPriority", "5");
+
+        factoryBean.setQuartzProperties(quartzProperties);
+        factoryBean.setOverwriteExistingJobs(true);
+        factoryBean.setAutoStartup(true);
+        factoryBean.setApplicationContextSchedulerContextKey("applicationContext");
+
+        return factoryBean;
+    }
+}

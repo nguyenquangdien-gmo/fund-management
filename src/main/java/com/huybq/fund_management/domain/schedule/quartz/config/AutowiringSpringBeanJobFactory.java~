@@ -1,0 +1,4 @@
+package com.huybq.fund_management.domain.schedule.quartz.config;
+
+public class AutowiringSpringBeanJobFactory {
+}
