@@ -318,6 +318,7 @@ public class AdminCreateController {
             params.setEndDate(endDate);
             params.setFromDate(fromDate);
             params.setToDate(toDate);
+            params.setStatus("All");
             params.setPage(page);
             params.setUserObjId(userObjId);
 

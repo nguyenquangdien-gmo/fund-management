@@ -297,6 +297,7 @@ public class AdminCreateService {
                     .queryParam("fromDate", params.getFromDate())
                     .queryParam("toDate", params.getToDate())
                     .queryParam("page", params.getPage())
+                    .queryParam("status", params.getStatus())
                     .queryParam("userObjId", params.getUserObjId());
 
             HttpHeaders headers = createHeaders(token);

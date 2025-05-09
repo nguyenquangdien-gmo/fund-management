@@ -9,6 +9,6 @@ public class PersonalStaffAttendanceParams {
     private Long fromDate;
     private Long toDate;
     private Integer page;
-    private String All;
+    private String status;
     private String userObjId;
 }
