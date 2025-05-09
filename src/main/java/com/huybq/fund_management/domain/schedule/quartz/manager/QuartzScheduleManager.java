@@ -221,12 +221,12 @@ public class QuartzScheduleManager {
                     .storeDurably()
                     .build();
 
-            // Create trigger with daily schedule at 10:00 AM
+            // Create trigger with daily schedule at 10:05 AM
             Trigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity(triggerKey)
                     .forJob(jobDetail) // Explicitly link trigger to job
                     .startNow()
-                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(10, 0)
+                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(10, 5)
                             .inTimeZone(java.util.TimeZone.getTimeZone(VIETNAM_ZONE)))
                     .build();
 
@@ -234,7 +234,7 @@ public class QuartzScheduleManager {
             scheduler.addJob(jobDetail, true);
             scheduler.scheduleJob(trigger);
 
-            System.out.println("Checkin job scheduled at 10:00 AM Vietnam time");
+            System.out.println("Checkin job scheduled at 10:05 AM Vietnam time");
 
         } catch (Exception e) {
             e.printStackTrace();
