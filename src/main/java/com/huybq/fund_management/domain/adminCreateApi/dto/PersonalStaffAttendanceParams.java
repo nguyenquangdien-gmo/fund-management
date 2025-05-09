@@ -1,4 +1,4 @@
-package com.huybq.fund_management.adminCreateApi.dto;
+package com.huybq.fund_management.domain.adminCreateApi.dto;
 
 import lombok.Data;
 
@@ -9,5 +9,6 @@ public class PersonalStaffAttendanceParams {
     private Long fromDate;
     private Long toDate;
     private Integer page;
+    private String status;
     private String userObjId;
 }
