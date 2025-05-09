@@ -258,14 +258,19 @@ public class LateService {
     @Transactional
     public void saveLateRecords(String message) {
         List<Late> lateData = parseLateRecords(message);
-        repository.deleteByDate(lateData.get(0).getDate());
-        repository.flush();
-        repository.saveAll(lateData);
+        if (!lateData.isEmpty()) {
+            repository.deleteByDate(lateData.get(0).getDate());
+            repository.flush();
+            repository.saveAll(lateData);
 
-        int size = processUserWithMultipleLatesInDate();
-        System.out.println("Đã xử lý phiếu phạt cho " + size + " nhân sự đi trễ.");
-        System.out.println("saving successfully.");
+            int size = processUserWithMultipleLatesInDate();
+            System.out.println("Đã xử lý phiếu phạt cho " + size + " nhân sự đi trễ.");
+            System.out.println("saving successfully.");
+        } else {
+            System.out.println("Không có đi trễ.");
+        }
     }
+
 
 //    @Transactional(readOnly = true)
 //    public List<Late> getLateRecordsByDateRange(LocalDate fromDate, LocalDate toDate) {
