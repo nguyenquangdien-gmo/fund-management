@@ -11,14 +11,15 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.TimeZone;
 
 @Service
 @RequiredArgsConstructor
 public class QuartzScheduleManager {
-    private final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final TimeZone VIETNAM_TIMEZONE = TimeZone.getTimeZone(VIETNAM_ZONE);
 
     private final SchedulerFactoryBean schedulerFactoryBean;
-
     private final ScheduleRepository scheduleRepository;
 
     @PostConstruct
@@ -28,7 +29,7 @@ public class QuartzScheduleManager {
             if (scheduler.isShutdown()) {
                 scheduler.start();
             }
-            scheduleAllJobs(); // Make sure this is called
+            scheduleAllJobs();
         } catch (SchedulerException e) {
             throw new RuntimeException("Failed to initialize the scheduler", e);
         }
@@ -36,272 +37,115 @@ public class QuartzScheduleManager {
 
     public void scheduleAllJobs() {
         try {
-            // Clear all existing jobs and triggers first
             Scheduler scheduler = schedulerFactoryBean.getScheduler();
             scheduler.clear();
-            
+
             System.out.println("Cleared all existing jobs and triggers");
-            
-            // Now schedule all jobs
-            scheduleEventNotificationJob();
-            scheduleLateNotificationJob();
-            scheduleContributedNotificationJob();
-            scheduleCheckinJob(); // Add checkin job
+
+            // Static-time jobs
+            scheduleJobWithFixedTime("BirthdayAndAnniversaryNotificationsJob", "BirthdayAndAnniversaryNotificationsTrigger", "notificationGroup",
+                    BirthdayAndAnniversaryNotificationsJob.class, 9, 0);
+            scheduleJobWithFixedTime("checkinJob", "checkinTrigger", "checkinGroup",
+                    CheckinJob.class, 10, 5);
+            scheduleJobWithFixedTime("penbillNotificationJob", "penbillNotificationTrigger", "notificationGroup",
+                    PenbillNotificationJob.class, 9, 0);
+
+            // Dynamic-time jobs
+            scheduleJobWithDynamicTime(Schedule.NotificationType.EVENT_NOTIFICATION,
+                    "eventNotificationJob", "eventNotificationTrigger", "notificationGroup",
+                    EventNotificationJob.class);
+            scheduleJobWithDynamicTime(Schedule.NotificationType.LATE_NOTIFICATION,
+                    "lateNotificationJob", "lateNotificationTrigger", "notificationGroup",
+                    LateNotificationJob.class);
+            scheduleJobWithDynamicTime(Schedule.NotificationType.LATE_CONTRIBUTED_NOTIFICATION,
+                    "contributedNotificationJob", "contributedNotificationTrigger", "notificationGroup",
+                    ContributedNotificationJob.class);
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to schedule jobs", e);
         }
     }
 
-    public void scheduleEventNotificationJob() {
+    private void scheduleJobWithFixedTime(String jobName, String triggerName, String group,
+                                          Class<? extends Job> jobClass, int hour, int minute) {
         try {
-            Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.EVENT_NOTIFICATION)
-                    .orElseThrow(() -> new RuntimeException("Schedule not found"));
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+
+            JobKey jobKey = JobKey.jobKey(jobName, group);
+            TriggerKey triggerKey = TriggerKey.triggerKey(triggerName, group);
+
+            removeExistingJob(scheduler, jobKey, triggerKey);
+
+            JobDetail jobDetail = JobBuilder.newJob(jobClass)
+                    .withIdentity(jobKey)
+                    .storeDurably()
+                    .build();
+
+            Trigger trigger = TriggerBuilder.newTrigger()
+                    .withIdentity(triggerKey)
+                    .forJob(jobDetail)
+                    .startNow()
+                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(hour, minute)
+                            .inTimeZone(VIETNAM_TIMEZONE))
+                    .build();
+
+            scheduler.addJob(jobDetail, true);
+            scheduler.scheduleJob(trigger);
+
+            System.out.printf("%s scheduled at %02d:%02d Vietnam time%n", jobName, hour, minute);
+
+        } catch (Exception e) {
+            System.err.printf("Failed to schedule %s: %s%n", jobName, e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void scheduleJobWithDynamicTime(Schedule.NotificationType type, String jobName,
+                                            String triggerName, String group, Class<? extends Job> jobClass) {
+        try {
+            Schedule schedule = scheduleRepository.findByType(type)
+                    .orElseThrow(() -> new RuntimeException("Schedule not found for type: " + type));
 
             LocalTime sendTime = schedule.getSendTime();
-            Scheduler scheduler = schedulerFactoryBean.getScheduler();
 
-            // Check if job already exists and delete it
-            JobKey jobKey = JobKey.jobKey("eventNotificationJob", "notificationGroup");
-            TriggerKey triggerKey = TriggerKey.triggerKey("eventNotificationTrigger", "notificationGroup");
-            
-            if (scheduler.checkExists(triggerKey)) {
-                scheduler.unscheduleJob(triggerKey);
-                System.out.println("Removed existing event notification trigger");
-            }
-            
-            if (scheduler.checkExists(jobKey)) {
-                scheduler.deleteJob(jobKey);
-                System.out.println("Removed existing event notification job");
-            }
-
-            // Create job detail
-            JobDetail jobDetail = JobBuilder.newJob(EventNotificationJob.class)
-                    .withIdentity(jobKey)
-                    .storeDurably()
-                    .build();
-
-            // Create trigger with daily schedule at specified time
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(triggerKey)
-                    .forJob(jobDetail) // Explicitly link trigger to job
-                    .startNow()
-                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(sendTime.getHour(), sendTime.getMinute())
-                            .inTimeZone(java.util.TimeZone.getTimeZone(VIETNAM_ZONE)))
-                    .build();
-
-            // Schedule the job
-            scheduler.addJob(jobDetail, true);
-            scheduler.scheduleJob(trigger);
-
-            System.out.println("Event notification job scheduled at " + sendTime + " Vietnam time");
+            scheduleJobWithFixedTime(jobName, triggerName, group, jobClass, sendTime.getHour(), sendTime.getMinute());
 
         } catch (Exception e) {
+            System.err.printf("Failed to schedule job for type %s: %s%n", type, e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public void scheduleLateNotificationJob() {
-        try {
-            Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.LATE_NOTIFICATION)
-                    .orElseThrow(() -> new RuntimeException("Schedule not found"));
-
-            LocalTime sendTime = schedule.getSendTime();
-            Scheduler scheduler = schedulerFactoryBean.getScheduler();
-
-            // Check if job already exists and delete it
-            JobKey jobKey = JobKey.jobKey("lateNotificationJob", "notificationGroup");
-            TriggerKey triggerKey = TriggerKey.triggerKey("lateNotificationTrigger", "notificationGroup");
-            
-            if (scheduler.checkExists(triggerKey)) {
-                scheduler.unscheduleJob(triggerKey);
-                System.out.println("Removed existing late notification trigger");
-            }
-            
-            if (scheduler.checkExists(jobKey)) {
-                scheduler.deleteJob(jobKey);
-                System.out.println("Removed existing late notification job");
-            }
-
-            // Create job detail
-            JobDetail jobDetail = JobBuilder.newJob(LateNotificationJob.class)
-                    .withIdentity(jobKey)
-                    .storeDurably()
-                    .build();
-
-            // Create trigger with daily schedule at specified time
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(triggerKey)
-                    .forJob(jobDetail) // Explicitly link trigger to job
-                    .startNow()
-                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(sendTime.getHour(), sendTime.getMinute())
-                            .inTimeZone(java.util.TimeZone.getTimeZone(VIETNAM_ZONE)))
-                    .build();
-
-            // Schedule the job
-            scheduler.addJob(jobDetail, true);
-            scheduler.scheduleJob(trigger);
-
-            System.out.println("Late notification job scheduled at " + sendTime + " Vietnam time");
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void removeExistingJob(Scheduler scheduler, JobKey jobKey, TriggerKey triggerKey) throws SchedulerException {
+        if (scheduler.checkExists(triggerKey)) {
+            scheduler.unscheduleJob(triggerKey);
+            System.out.printf("Removed existing trigger: %s%n", triggerKey.getName());
         }
-    }
 
-    public void scheduleContributedNotificationJob() {
-        try {
-            Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.LATE_CONTRIBUTED_NOTIFICATION)
-                    .orElseThrow(() -> new RuntimeException("Schedule not found"));
-
-            LocalTime sendTime = schedule.getSendTime();
-            Scheduler scheduler = schedulerFactoryBean.getScheduler();
-
-            // Check if job already exists and delete it
-            JobKey jobKey = JobKey.jobKey("contributedNotificationJob", "notificationGroup");
-            TriggerKey triggerKey = TriggerKey.triggerKey("contributedNotificationTrigger", "notificationGroup");
-            
-            if (scheduler.checkExists(triggerKey)) {
-                scheduler.unscheduleJob(triggerKey);
-                System.out.println("Removed existing contributed notification trigger");
-            }
-            
-            if (scheduler.checkExists(jobKey)) {
-                scheduler.deleteJob(jobKey);
-                System.out.println("Removed existing contributed notification job");
-            }
-
-            // Create job detail
-            JobDetail jobDetail = JobBuilder.newJob(ContributedNotificationJob.class)
-                    .withIdentity(jobKey)
-                    .storeDurably()
-                    .build();
-
-            // Create trigger with daily schedule at specified time
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(triggerKey)
-                    .forJob(jobDetail) // Explicitly link trigger to job
-                    .startNow()
-                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(sendTime.getHour(), sendTime.getMinute())
-                            .inTimeZone(java.util.TimeZone.getTimeZone(VIETNAM_ZONE)))
-                    .build();
-
-            // Schedule the job
-            scheduler.addJob(jobDetail, true);
-            scheduler.scheduleJob(trigger);
-
-            System.out.println("Contributed notification job scheduled at " + sendTime + " Vietnam time");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public void scheduleCheckinJob() {
-        try {
-            Scheduler scheduler = schedulerFactoryBean.getScheduler();
-
-            // Check if job already exists and delete it
-            JobKey jobKey = JobKey.jobKey("checkinJob", "checkinGroup");
-            TriggerKey triggerKey = TriggerKey.triggerKey("checkinTrigger", "checkinGroup");
-            
-            if (scheduler.checkExists(triggerKey)) {
-                scheduler.unscheduleJob(triggerKey);
-                System.out.println("Removed existing checkin trigger");
-            }
-            
-            if (scheduler.checkExists(jobKey)) {
-                scheduler.deleteJob(jobKey);
-                System.out.println("Removed existing checkin job");
-            }
-
-            // Create job detail
-            JobDetail jobDetail = JobBuilder.newJob(CheckinJob.class)
-                    .withIdentity(jobKey)
-                    .storeDurably()
-                    .build();
-
-            // Create trigger with daily schedule at 10:05 AM
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(triggerKey)
-                    .forJob(jobDetail) // Explicitly link trigger to job
-                    .startNow()
-                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(10, 5)
-                            .inTimeZone(java.util.TimeZone.getTimeZone(VIETNAM_ZONE)))
-                    .build();
-
-            // Schedule the job
-            scheduler.addJob(jobDetail, true);
-            scheduler.scheduleJob(trigger);
-
-            System.out.println("Checkin job scheduled at 10:05 AM Vietnam time");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void schedulePenBillNotificationJob() {
-        try {
-            Scheduler scheduler = schedulerFactoryBean.getScheduler();
-
-            // Check if job already exists and delete it
-            JobKey jobKey = JobKey.jobKey("penbillNotificationJob", "notificationGroup");
-            TriggerKey triggerKey = TriggerKey.triggerKey("penbillNotificationTrigger", "notificationGroup");
-
-            if (scheduler.checkExists(triggerKey)) {
-                scheduler.unscheduleJob(triggerKey);
-                System.out.println("Removed existing checkin trigger");
-            }
-
-            if (scheduler.checkExists(jobKey)) {
-                scheduler.deleteJob(jobKey);
-                System.out.println("Removed existing checkin job");
-            }
-
-            // Create job detail
-            JobDetail jobDetail = JobBuilder.newJob(PenbillNotificationJob.class)
-                    .withIdentity(jobKey)
-                    .storeDurably()
-                    .build();
-
-            // Create trigger with daily schedule at 9:00 AM
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(triggerKey)
-                    .forJob(jobDetail) // Explicitly link trigger to job
-                    .startNow()
-                    .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(9, 0)
-                            .inTimeZone(java.util.TimeZone.getTimeZone(VIETNAM_ZONE)))
-                    .build();
-
-            // Schedule the job
-            scheduler.addJob(jobDetail, true);
-            scheduler.scheduleJob(trigger);
-
-            System.out.println("pen bill notification job scheduled at 9:00 AM Vietnam time");
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (scheduler.checkExists(jobKey)) {
+            scheduler.deleteJob(jobKey);
+            System.out.printf("Removed existing job: %s%n", jobKey.getName());
         }
     }
 
     public void updateSchedule(Schedule.NotificationType type) {
         try {
             Scheduler scheduler = schedulerFactoryBean.getScheduler();
-
             switch (type) {
-                case EVENT_NOTIFICATION:
+                case EVENT_NOTIFICATION -> {
                     scheduler.unscheduleJob(TriggerKey.triggerKey("eventNotificationTrigger", "notificationGroup"));
-                    scheduleEventNotificationJob();
-                    break;
-                case LATE_NOTIFICATION:
+                    scheduleJobWithDynamicTime(type, "eventNotificationJob", "eventNotificationTrigger", "notificationGroup", EventNotificationJob.class);
+                }
+                case LATE_NOTIFICATION -> {
                     scheduler.unscheduleJob(TriggerKey.triggerKey("lateNotificationTrigger", "notificationGroup"));
-                    scheduleLateNotificationJob();
-                    break;
-                case LATE_CONTRIBUTED_NOTIFICATION:
+                    scheduleJobWithDynamicTime(type, "lateNotificationJob", "lateNotificationTrigger", "notificationGroup", LateNotificationJob.class);
+                }
+                case LATE_CONTRIBUTED_NOTIFICATION -> {
                     scheduler.unscheduleJob(TriggerKey.triggerKey("contributedNotificationTrigger", "notificationGroup"));
-                    scheduleContributedNotificationJob();
-                    break;
+                    scheduleJobWithDynamicTime(type, "contributedNotificationJob", "contributedNotificationTrigger", "notificationGroup", ContributedNotificationJob.class);
+                }
+                default -> throw new IllegalArgumentException("Unsupported notification type: " + type);
             }
         } catch (Exception e) {
             e.printStackTrace();

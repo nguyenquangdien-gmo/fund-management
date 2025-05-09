@@ -67,7 +67,7 @@ public class Notification {
             System.err.println("Failed to send message to " + receiverEmail + ": " + e.getMessage());
         }
     }
-    @Scheduled(cron = "0 0 9 * * *") // chạy mỗi ngày lúc 9h sáng
+
     public void sendBirthdayAndAnniversaryNotifications() {
         LocalDate today = LocalDate.now();
 
