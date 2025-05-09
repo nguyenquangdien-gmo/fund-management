@@ -26,6 +26,13 @@ spring:
       org.quartz.scheduler.instanceId: AUTO
       org.quartz.scheduler.instanceName: fundManagementScheduler
       org.quartz.jobStore.isClustered: true
+      org.quartz.jobStore.clusterCheckinInterval: 20000
+      org.quartz.jobStore.dataSource: quartzDataSource
+      org.quartz.dataSource.quartzDataSource.URL: ${QUARTZ_DATASOURCE_URL:jdbc:mysql://localhost:3306/fund_management?serverTimezone=Asia/Ho_Chi_Minh}
+      org.quartz.dataSource.quartzDataSource.username: ${QUARTZ_DATASOURCE_USERNAME:root}
+      org.quartz.dataSource.quartzDataSource.password: ${QUARTZ_DATASOURCE_PASSWORD:huybq}
+      org.quartz.dataSource.quartzDataSource.driver: com.mysql.cj.jdbc.Driver
+      org.quartz.dataSource.quartzDataSource.provider: hikaricp
       org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
       org.quartz.jobStore.useProperties: false
@@ -92,5 +99,5 @@ chatops:
     token:
 
 create-api:
-    base-url:
-    auth-header:
+  base-url:
+  auth-header:
