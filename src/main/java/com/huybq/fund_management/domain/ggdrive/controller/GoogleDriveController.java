@@ -52,16 +52,9 @@ public class GoogleDriveController {
     public ResponseEntity<DriveFileResponseDTO> uploadFile(
             @PathVariable Long folderId,
             @NotNull @RequestParam("file") MultipartFile file,
-            @RequestParam(name = "accountId", required = false) Long accountId,
             @AuthenticationPrincipal User user) throws IOException {
-        log.info("Uploading file {} to folder {} using account {}", file.getOriginalFilename(), folderId, accountId != null ? accountId : "default");
-
         try {
-            if (accountId != null) {
-                return ResponseEntity.ok(driveService.uploadFileWithAccount(folderId, user.getId(), accountId, file));
-            } else {
-                return ResponseEntity.ok(driveService.uploadFile(folderId, user.getId(), file));
-            }
+            return ResponseEntity.ok(driveService.uploadFile(folderId, user.getId(), file));
         } catch (FileAlreadyExistsException e) {
             log.warn("File already exists: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -72,33 +65,19 @@ public class GoogleDriveController {
     @DeleteMapping("/files/{fileId}")
     public ResponseEntity<Void> deleteFile(
             @PathVariable Long fileId,
-            @RequestParam(name = "accountId", required = false) Long accountId,
             @AuthenticationPrincipal User user) throws IOException {
-        log.info("Deleting file {} using account {}", fileId, accountId != null ? accountId : "default");
 
-        if (accountId != null) {
-            driveService.deleteFileWithAccount(fileId, user, accountId);
-        } else {
-            driveService.deleteFile(fileId, user);
-        }
+        driveService.deleteFile(fileId, user);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/folders/{folderId}/contents")
     public ResponseEntity<Map<String, Object>> listFolderContents(
-            @PathVariable Long folderId,
-            @RequestParam(name = "accountId", required = false) Long accountId,
-            @AuthenticationPrincipal User user) {
-        log.info("Listing contents of folder {} using account {}", folderId, accountId != null ? accountId : "default");
-
+            @PathVariable Long folderId) {
         try {
             Map<String, Object> contents;
-            if (accountId != null) {
-                contents = driveService.listFolderContentsWithAccount(folderId, user.getId(), accountId);
-            } else {
-                contents = driveService.listFolderContents(folderId, user.getId());
-            }
+            contents = driveService.listFolderContents(folderId);
             return ResponseEntity.ok(contents);
         } catch (Exception e) {
             log.error("Error listing folder contents: {}", e.getMessage());
@@ -110,26 +89,15 @@ public class GoogleDriveController {
     @PostMapping("/folders")
     public ResponseEntity<DriveFolderResponseDTO> createFolder(
             @RequestBody Map<String, String> request,
-            @RequestParam(name = "accountId", required = false) Long accountId,
             @AuthenticationPrincipal User user) {
-        log.info("Creating new folder: {} using account {}", request.get("name"), accountId != null ? accountId : "default");
         try {
-            if (accountId != null) {
-                DriveFolderResponseDTO folder = driveService.createFolderWithAccount(
-                        request.get("name"),
-                        request.get("parentFolderId"),
-                        user.getId(),
-                        accountId
-                );
-                return ResponseEntity.status(HttpStatus.CREATED).body(folder);
-            } else {
-                DriveFolderResponseDTO folder = driveService.createFolder(
-                        request.get("name"),
-                        request.get("parentFolderId"),
-                        user.getId()
-                );
-                return ResponseEntity.status(HttpStatus.CREATED).body(folder);
-            }
+            DriveFolderResponseDTO folder = driveService.createFolder(
+                    request.get("name"),
+                    request.get("parentFolderId"),
+                    user.getId()
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(folder);
         } catch (FolderAlreadyExistsException e) {
             log.warn("Folder already exists: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -141,10 +109,9 @@ public class GoogleDriveController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/folders")
-    public ResponseEntity<List<DriveFolderResponseDTO>> getAllFolders(@AuthenticationPrincipal User user) {
-        log.info("Getting all folders for user: {}", user.getUsername());
+    public ResponseEntity<List<DriveFolderResponseDTO>> getAllFolders() {
         try {
-            List<DriveFolderResponseDTO> folders = driveService.getAllFolders(user.getId());
+            List<DriveFolderResponseDTO> folders = driveService.getAllFolders();
             return ResponseEntity.ok(folders);
         } catch (Exception e) {
             log.error("Error getting folders: {}", e.getMessage());
@@ -155,11 +122,10 @@ public class GoogleDriveController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/folders/{folderId}")
     public ResponseEntity<DriveFolderResponseDTO> getFolderById(
-            @PathVariable Long folderId,
-            @AuthenticationPrincipal User user) {
+            @PathVariable Long folderId) {
         log.info("Getting folder with ID: {}", folderId);
         try {
-            DriveFolderResponseDTO folder = driveService.getFolderById(folderId, user.getId());
+            DriveFolderResponseDTO folder = driveService.getFolderById(folderId);
             return ResponseEntity.ok(folder);
         } catch (Exception e) {
             log.error("Error getting folder: {}", e.getMessage());
@@ -167,7 +133,6 @@ public class GoogleDriveController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/folders/{folderId}")
     public ResponseEntity<DriveFolderResponseDTO> updateFolder(
             @PathVariable Long folderId,
@@ -178,7 +143,7 @@ public class GoogleDriveController {
             DriveFolderResponseDTO folder = driveService.updateFolder(
                     folderId,
                     request.get("name"),
-                    user.getId()
+                    user
             );
             return ResponseEntity.ok(folder);
         } catch (Exception e) {
@@ -187,7 +152,6 @@ public class GoogleDriveController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/folders/{folderId}")
     public ResponseEntity<Void> deleteFolder(
             @PathVariable Long folderId,
@@ -202,7 +166,6 @@ public class GoogleDriveController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/files/{fileId}/move")
     public ResponseEntity<Void> moveFile(
             @PathVariable Long fileId,
@@ -218,7 +181,6 @@ public class GoogleDriveController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/folders/{folderId}/move")
     public ResponseEntity<Void> moveFolder(
             @PathVariable Long folderId,
@@ -234,7 +196,6 @@ public class GoogleDriveController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/files/{fileId}/rename")
     public ResponseEntity<DriveFileResponseDTO> renameFile(
             @PathVariable Long fileId,
@@ -250,7 +211,6 @@ public class GoogleDriveController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/folders/{folderId}/rename")
     public ResponseEntity<DriveFolderResponseDTO> renameFolder(
             @PathVariable Long folderId,
@@ -272,18 +232,11 @@ public class GoogleDriveController {
             @NotBlank @RequestParam String name,
             @NotBlank @RequestParam String googleId,
             @NotBlank @RequestParam String type,
-            @RequestParam(name = "accountId", required = false) Long accountId,
             @AuthenticationPrincipal User user) {
-        log.info("Creating bookmark '{}' for googleId: '{}', type: '{}', using account: {}",
-                name, googleId, type, accountId != null ? accountId : "default");
 
         try {
             DriveBookmarkResponseDTO response;
-            if (accountId != null) {
-                response = driveService.createBookmarkWithAccount(user.getId(), accountId, name, googleId, type);
-            } else {
-                response = driveService.createBookmark(user.getId(), name, googleId, type);
-            }
+            response = driveService.createBookmark(user.getId(), name, googleId, type);
 
             // Đảm bảo response luôn có googleId
             if (response.getGoogleId() == null || response.getGoogleId().isEmpty()) {
@@ -417,11 +370,7 @@ public class GoogleDriveController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/files/{fileId}/download")
     public ResponseEntity<Resource> downloadFile(
-            @PathVariable Long fileId,
-            @RequestParam(name = "accountId", required = false) Long accountId,
-            @AuthenticationPrincipal User user) {
-        log.info("Downloading file {} using account {}", fileId, accountId != null ? accountId : "default");
-
+            @PathVariable Long fileId) {
         try {
             // Get file details first to set proper content headers
             DriveFile file = fileRepository.findById(fileId)
@@ -429,12 +378,7 @@ public class GoogleDriveController {
 
             // Download the file
             Resource resource;
-            if (accountId != null) {
-                resource = driveService.downloadFile(fileId, user.getId(), accountId);
-            } else {
-                resource = driveService.downloadFile(fileId, user.getId());
-            }
-
+            resource = driveService.downloadFile(fileId);
             String contentDisposition = "attachment; filename=\"" + file.getName() + "\"";
 
             return ResponseEntity.ok()
@@ -450,11 +394,7 @@ public class GoogleDriveController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/folders/{folderId}/download")
     public ResponseEntity<Resource> downloadFolder(
-            @PathVariable Long folderId,
-            @RequestParam(name = "accountId", required = false) Long accountId,
-            @AuthenticationPrincipal User user) {
-        log.info("Downloading folder {} as zip using account {}", folderId, accountId != null ? accountId : "default");
-
+            @PathVariable Long folderId) {
         try {
             // Get folder details first to set proper content headers
             DriveFolder folder = folderRepository.findById(folderId)
@@ -462,11 +402,7 @@ public class GoogleDriveController {
 
             // Download the folder as zip
             Resource resource;
-            if (accountId != null) {
-                resource = driveService.downloadFolderAsZip(folderId, user.getId(), accountId);
-            } else {
-                resource = driveService.downloadFolderAsZip(folderId, user.getId());
-            }
+            resource = driveService.downloadFolderAsZip(folderId);
 
             String zipFileName = folder.getName() + ".zip";
             String contentDisposition = "attachment; filename=\"" + zipFileName + "\"";

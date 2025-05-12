@@ -19,7 +19,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/drive/service-accounts")
+@RequestMapping("/api/${server.version}/drive/service-accounts")
 @RequiredArgsConstructor
 public class UserGoogleServiceAccountController {
 
@@ -79,7 +79,7 @@ public class UserGoogleServiceAccountController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(value = "/{accountId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GoogleServiceAccountResponseDTO> updateServiceAccount(
             @PathVariable Long accountId,
@@ -88,10 +88,7 @@ public class UserGoogleServiceAccountController {
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "rootFolderId", required = false) String rootFolderId,
             @RequestParam(value = "isDefault", defaultValue = "false") Boolean isDefault,
-            @RequestParam(value = "credentials", required = false) MultipartFile credentialsFile,
-            @AuthenticationPrincipal User user) {
-
-        log.info("Updating service account {} for user: {}", accountId, user.getUsername());
+            @RequestParam(value = "credentials", required = false) MultipartFile credentialsFile) {
 
         GoogleServiceAccountRequestDTO requestDTO = GoogleServiceAccountRequestDTO.builder()
                 .accountName(accountName)
@@ -101,21 +98,16 @@ public class UserGoogleServiceAccountController {
                 .isDefault(isDefault)
                 .build();
 
-        GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.updateServiceAccount(
-                user.getId(), accountId, requestDTO, credentialsFile);
+        GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.updateServiceAccount( accountId, requestDTO, credentialsFile);
 
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity<List<GoogleServiceAccountResponseDTO>> getUserServiceAccounts(
-            @AuthenticationPrincipal User user) {
-
-        log.info("Getting all service accounts for user: {}", user.getUsername());
+    public ResponseEntity<List<GoogleServiceAccountResponseDTO>> getUserServiceAccounts() {
 
         try {
-            List<GoogleServiceAccountResponseDTO> responseDTOs = serviceAccountService.getUserServiceAccounts(user.getId());
+            List<GoogleServiceAccountResponseDTO> responseDTOs = serviceAccountService.getServiceAccounts();
 
             if (responseDTOs.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseDTOs);
@@ -131,14 +123,10 @@ public class UserGoogleServiceAccountController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{accountId}")
     public ResponseEntity<GoogleServiceAccountResponseDTO> getServiceAccountById(
-            @PathVariable Long accountId,
-            @AuthenticationPrincipal User user) {
-
-        log.info("Getting service account {} for user: {}", accountId, user.getUsername());
+            @PathVariable Long accountId) {
 
         try {
-            GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.getUserServiceAccountById(
-                    user.getId(), accountId);
+            GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.getServiceAccountById(accountId);
             return ResponseEntity.ok(responseDTO);
         } catch (GoogleDriveException e) {
             log.error("Error getting service account: {}", e.getMessage());
@@ -148,13 +136,10 @@ public class UserGoogleServiceAccountController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/default")
-    public ResponseEntity<GoogleServiceAccountResponseDTO> getDefaultServiceAccount(
-            @AuthenticationPrincipal User user) {
-
-        log.info("Getting default service account for user: {}", user.getUsername());
+    public ResponseEntity<GoogleServiceAccountResponseDTO> getDefaultServiceAccount() {
 
         try {
-            GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.getDefaultServiceAccount(user.getId());
+            GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.getDefaultServiceAccount();
             return ResponseEntity.ok(responseDTO);
         } catch (GoogleDriveException e) {
             log.error("Error getting default service account: {}", e.getMessage());
@@ -162,17 +147,14 @@ public class UserGoogleServiceAccountController {
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{accountId}/set-default")
     public ResponseEntity<GoogleServiceAccountResponseDTO> setDefaultServiceAccount(
-            @PathVariable Long accountId,
-            @AuthenticationPrincipal User user) {
-
-        log.info("Setting service account {} as default for user: {}", accountId, user.getUsername());
+            @PathVariable Long accountId) {
 
         try {
             GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.setDefaultServiceAccount(
-                    user.getId(), accountId);
+                    accountId);
             return ResponseEntity.ok(responseDTO);
         } catch (GoogleDriveException e) {
             log.error("Error setting default service account: {}", e.getMessage());
@@ -180,51 +162,40 @@ public class UserGoogleServiceAccountController {
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{accountId}/disable")
     public ResponseEntity<Void> disableServiceAccount(
-            @PathVariable Long accountId,
-            @AuthenticationPrincipal User user) {
-
-        log.info("Disabling service account {} for user: {}", accountId, user.getUsername());
+            @PathVariable Long accountId) {
 
         try {
-            serviceAccountService.disableServiceAccount(user.getId(), accountId);
+            serviceAccountService.disableServiceAccount(accountId);
             return ResponseEntity.ok().build();
         } catch (GoogleDriveException e) {
             log.error("Error disabling service account: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{accountId}/enable")
     public ResponseEntity<GoogleServiceAccountResponseDTO> enableServiceAccount(
-            @PathVariable Long accountId,
-            @AuthenticationPrincipal User user) {
-
-        log.info("Enabling service account {} for user: {}", accountId, user.getUsername());
+            @PathVariable Long accountId) {
 
         try {
             GoogleServiceAccountResponseDTO responseDTO = serviceAccountService.enableServiceAccount(
-                    user.getId(), accountId);
+                    accountId);
             return ResponseEntity.ok(responseDTO);
         } catch (GoogleDriveException e) {
             log.error("Error enabling service account: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
-
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{accountId}")
     public ResponseEntity<Void> deleteServiceAccount(
-            @PathVariable Long accountId,
-            @AuthenticationPrincipal User user) {
-
-        log.info("Deleting service account {} for user: {}", accountId, user.getUsername());
+            @PathVariable Long accountId) {
 
         try {
-            serviceAccountService.deleteServiceAccount(user.getId(), accountId);
+            serviceAccountService.deleteServiceAccount(accountId);
             return ResponseEntity.ok().build();
         } catch (GoogleDriveException e) {
             log.error("Error deleting service account: {}", e.getMessage());

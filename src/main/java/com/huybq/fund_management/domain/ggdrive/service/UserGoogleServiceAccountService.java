@@ -49,12 +49,12 @@ public class UserGoogleServiceAccountService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // Check if account name already exists for this user
-        if (serviceAccountRepository.existsByUserIdAndAccountName(userId, requestDTO.getAccountName())) {
+        if (serviceAccountRepository.existsByAccountName(requestDTO.getAccountName())) {
             throw new GoogleDriveException("An account with this name already exists for this user");
         }
 
         // Store the credentials file with account name for better identification
-        String credentialsFilePath = storageService.storeCredentialsFile(credentialsFile, userId, requestDTO.getAccountName());
+        String credentialsFilePath = storageService.storeCredentialsFile(credentialsFile, requestDTO.getAccountName());
 
         // Set default root folder id if not provided
         String rootFolderId = StringUtils.hasText(requestDTO.getRootFolderId())
@@ -70,7 +70,7 @@ public class UserGoogleServiceAccountService {
 
             // If this is set as default, unset any existing default first
             if (isDefault) {
-                serviceAccountRepository.findByUserIdAndIsDefaultTrue(userId)
+                serviceAccountRepository.findByIsDefaultTrue()
                         .ifPresent(account -> {
                             account.setIsDefault(false);
                             serviceAccountRepository.save(account);
@@ -101,7 +101,7 @@ public class UserGoogleServiceAccountService {
 
             // Invalidate cache if this is the default account
             if (isDefault) {
-                driveServiceFactory.invalidateCache(userId);
+                driveServiceFactory.invalidateCache();
             }
 
             return convertToResponse(savedAccount);
@@ -130,12 +130,12 @@ public class UserGoogleServiceAccountService {
         List<UserGoogleServiceAccount> existingAccounts = serviceAccountRepository.findByUserId(userId);
 
         // Check if account name already exists for this user
-        if (serviceAccountRepository.existsByUserIdAndAccountName(userId, requestDTO.getAccountName())) {
+        if (serviceAccountRepository.existsByAccountName(requestDTO.getAccountName())) {
             throw new GoogleDriveException("An account with this name already exists for this user");
         }
 
         // Store the credentials file with account name for better identification
-        String credentialsFilePath = storageService.storeCredentialsFile(credentialsFile, userId, requestDTO.getAccountName());
+        String credentialsFilePath = storageService.storeCredentialsFile(credentialsFile, requestDTO.getAccountName());
 
         // Set default root folder id if not provided
         String rootFolderId = StringUtils.hasText(requestDTO.getRootFolderId())
@@ -151,7 +151,7 @@ public class UserGoogleServiceAccountService {
 
             // If making this account default, we need to unset the current default
             if (isDefault) {
-                serviceAccountRepository.findByUserIdAndIsDefaultTrue(userId)
+                serviceAccountRepository.findByIsDefaultTrue()
                         .ifPresent(account -> {
                             account.setIsDefault(false);
                             serviceAccountRepository.save(account);
@@ -179,7 +179,7 @@ public class UserGoogleServiceAccountService {
 
             // Invalidate cache if this is the default account
             if (isDefault) {
-                driveServiceFactory.invalidateCache(userId);
+                driveServiceFactory.invalidateCache();
             }
 
             return convertToResponse(savedAccount);
@@ -195,17 +195,16 @@ public class UserGoogleServiceAccountService {
      */
     @Transactional
     public GoogleServiceAccountResponseDTO updateServiceAccount(
-            Long userId,
             Long accountId,
             GoogleServiceAccountRequestDTO requestDTO,
             MultipartFile credentialsFile) {
 
-        UserGoogleServiceAccount account = serviceAccountRepository.findByIdAndUserId(accountId, userId)
+        UserGoogleServiceAccount account = serviceAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service account not found"));
 
         // Check if name already exists for a different account
         if (!account.getAccountName().equals(requestDTO.getAccountName())
-                && serviceAccountRepository.existsByUserIdAndAccountName(userId, requestDTO.getAccountName())) {
+                && serviceAccountRepository.existsByAccountName(requestDTO.getAccountName())) {
             throw new GoogleDriveException("An account with this name already exists");
         }
 
@@ -214,7 +213,7 @@ public class UserGoogleServiceAccountService {
         // If new credentials file is provided
         if (credentialsFile != null && !credentialsFile.isEmpty()) {
             // Store the new credentials file with account name for better identification
-            String newCredentialsPath = storageService.storeCredentialsFile(credentialsFile, userId, requestDTO.getAccountName());
+            String newCredentialsPath = storageService.storeCredentialsFile(credentialsFile, requestDTO.getAccountName());
 
             try {
                 // Test connection with new credentials
@@ -242,7 +241,7 @@ public class UserGoogleServiceAccountService {
 
         // If making this account default but it wasn't already, unset the current default
         if (isDefault && !wasDefault) {
-            serviceAccountRepository.findByUserIdAndIsDefaultTrue(userId)
+            serviceAccountRepository.findByIsDefaultTrue()
                     .ifPresent(defaultAccount -> {
                         if (!defaultAccount.getId().equals(accountId)) {
                             defaultAccount.setIsDefault(false);
@@ -251,7 +250,7 @@ public class UserGoogleServiceAccountService {
                     });
         } else if (!isDefault && wasDefault) {
             // If removing default status, ensure there's another default account
-            List<UserGoogleServiceAccount> otherAccounts = serviceAccountRepository.findByUserIdAndIdNot(userId, accountId);
+            List<UserGoogleServiceAccount> otherAccounts = serviceAccountRepository.findByIdNot(accountId);
             if (!otherAccounts.isEmpty()) {
                 // Make another account default
                 UserGoogleServiceAccount newDefaultAccount = otherAccounts.get(0);
@@ -282,7 +281,7 @@ public class UserGoogleServiceAccountService {
 
         // Invalidate cache if default status changed
         if (isDefault != wasDefault) {
-            driveServiceFactory.invalidateCache(userId);
+            driveServiceFactory.invalidateCache();
         }
 
         return convertToResponse(savedAccount);
@@ -291,8 +290,8 @@ public class UserGoogleServiceAccountService {
     /**
      * Gets all service account configurations for a user
      */
-    public List<GoogleServiceAccountResponseDTO> getUserServiceAccounts(Long userId) {
-        return serviceAccountRepository.findByUserId(userId).stream()
+    public List<GoogleServiceAccountResponseDTO> getServiceAccounts() {
+        return serviceAccountRepository.findAll().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -300,8 +299,8 @@ public class UserGoogleServiceAccountService {
     /**
      * Gets a specific service account by ID
      */
-    public GoogleServiceAccountResponseDTO getUserServiceAccountById(Long userId, Long accountId) {
-        return serviceAccountRepository.findByIdAndUserId(accountId, userId)
+    public GoogleServiceAccountResponseDTO getServiceAccountById(Long accountId) {
+        return serviceAccountRepository.findById(accountId)
                 .map(this::convertToResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Service account not found"));
     }
@@ -309,8 +308,8 @@ public class UserGoogleServiceAccountService {
     /**
      * Gets the default service account for a user
      */
-    public GoogleServiceAccountResponseDTO getDefaultServiceAccount(Long userId) {
-        return serviceAccountRepository.findByUserIdAndIsDefaultTrue(userId)
+    public GoogleServiceAccountResponseDTO getDefaultServiceAccount() {
+        return serviceAccountRepository.findByIsDefaultTrue()
                 .map(this::convertToResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("No default service account found"));
     }
@@ -319,8 +318,8 @@ public class UserGoogleServiceAccountService {
      * Sets an account as the default for a user
      */
     @Transactional
-    public GoogleServiceAccountResponseDTO setDefaultServiceAccount(Long userId, Long accountId) {
-        UserGoogleServiceAccount account = serviceAccountRepository.findByIdAndUserId(accountId, userId)
+    public GoogleServiceAccountResponseDTO setDefaultServiceAccount( Long accountId) {
+        UserGoogleServiceAccount account = serviceAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service account not found"));
 
         if (!account.getIsActive()) {
@@ -330,7 +329,7 @@ public class UserGoogleServiceAccountService {
         // Only update if it's not already the default
         if (!account.getIsDefault()) {
             // Unset any existing default
-            serviceAccountRepository.findByUserIdAndIsDefaultTrue(userId)
+            serviceAccountRepository.findByIsDefaultTrue()
                     .ifPresent(defaultAccount -> {
                         defaultAccount.setIsDefault(false);
                         serviceAccountRepository.save(defaultAccount);
@@ -341,7 +340,7 @@ public class UserGoogleServiceAccountService {
             serviceAccountRepository.save(account);
 
             // Invalidate cache
-            driveServiceFactory.invalidateCache(userId);
+            driveServiceFactory.invalidateCache();
         }
 
         return convertToResponse(account);
@@ -351,13 +350,13 @@ public class UserGoogleServiceAccountService {
      * Disables a specific service account
      */
     @Transactional
-    public void disableServiceAccount(Long userId, Long accountId) {
-        UserGoogleServiceAccount account = serviceAccountRepository.findByIdAndUserId(accountId, userId)
+    public void disableServiceAccount(Long accountId) {
+        UserGoogleServiceAccount account = serviceAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service account not found"));
 
         if (account.getIsDefault()) {
             // Count total accounts
-            List<UserGoogleServiceAccount> activeAccounts = serviceAccountRepository.findByUserIdAndIsActiveTrue(userId);
+            List<UserGoogleServiceAccount> activeAccounts = serviceAccountRepository.findByIsActiveTrue();
 
             if (activeAccounts.size() <= 1) {
                 throw new GoogleDriveException("Cannot disable the only active account. Add another account first.");
@@ -376,7 +375,7 @@ public class UserGoogleServiceAccountService {
             // Unset default on the account being disabled
             account.setIsDefault(false);
             // Invalidate cache since default account changed
-            driveServiceFactory.invalidateCache(userId);
+            driveServiceFactory.invalidateCache();
         }
 
         account.setIsActive(false);
@@ -387,8 +386,8 @@ public class UserGoogleServiceAccountService {
      * Enables a specific service account
      */
     @Transactional
-    public GoogleServiceAccountResponseDTO enableServiceAccount(Long userId, Long accountId) {
-        UserGoogleServiceAccount account = serviceAccountRepository.findByIdAndUserId(accountId, userId)
+    public GoogleServiceAccountResponseDTO enableServiceAccount( Long accountId) {
+        UserGoogleServiceAccount account = serviceAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service account not found"));
 
         // Test connection before enabling
@@ -401,9 +400,9 @@ public class UserGoogleServiceAccountService {
             account.setConnectionError(null);
 
             // If no other default account exists, make this the default
-            if (!serviceAccountRepository.existsByUserIdAndIsDefaultTrue(userId)) {
+            if (!serviceAccountRepository.existsByIsDefaultTrue()) {
                 account.setIsDefault(true);
-                driveServiceFactory.invalidateCache(userId);
+                driveServiceFactory.invalidateCache();
             }
 
             UserGoogleServiceAccount savedAccount = serviceAccountRepository.save(account);
@@ -423,15 +422,15 @@ public class UserGoogleServiceAccountService {
      * Deletes a service account
      */
     @Transactional
-    public void deleteServiceAccount(Long userId, Long accountId) {
-        UserGoogleServiceAccount account = serviceAccountRepository.findByIdAndUserId(accountId, userId)
+    public void deleteServiceAccount(Long accountId) {
+        UserGoogleServiceAccount account = serviceAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service account not found"));
 
         boolean wasDefault = account.getIsDefault();
 
         if (wasDefault) {
             // Count total accounts
-            List<UserGoogleServiceAccount> otherActiveAccounts = serviceAccountRepository.findByUserIdAndIdNotAndIsActiveTrue(userId, accountId);
+            List<UserGoogleServiceAccount> otherActiveAccounts = serviceAccountRepository.findByIdNotAndIsActiveTrue(accountId);
 
             if (otherActiveAccounts.isEmpty()) {
                 throw new GoogleDriveException("Cannot delete the only default active account. Add another account first.");
@@ -443,7 +442,7 @@ public class UserGoogleServiceAccountService {
             serviceAccountRepository.save(newDefaultAccount);
 
             // Invalidate cache since default account changed
-            driveServiceFactory.invalidateCache(userId);
+            driveServiceFactory.invalidateCache();
         }
 
         // Delete credentials file

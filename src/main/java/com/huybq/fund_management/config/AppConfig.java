@@ -67,10 +67,4 @@ public class AppConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public Dotenv dotenv() {
-        return Dotenv.configure()
-                .ignoreIfMissing()
-                .load();
-    }
 }
