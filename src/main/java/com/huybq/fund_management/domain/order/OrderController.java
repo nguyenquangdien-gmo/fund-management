@@ -12,7 +12,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/${server.version}/orders")
@@ -53,6 +55,14 @@ public class OrderController {
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long orderId) {
         OrderResponseDto order = orderService.getOrderById(orderId);
         return ResponseEntity.ok(order);
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<Map<String, String>> deleteOrder(@PathVariable Long orderId) {
+        orderService.deleteOrder(orderId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Xóa đơn hàng thành công");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{orderId}/details")

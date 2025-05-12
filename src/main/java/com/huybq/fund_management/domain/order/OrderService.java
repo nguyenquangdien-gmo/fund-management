@@ -132,5 +132,11 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         return orderMapper.toDto(order);
     }
+
+    public void deleteOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        orderRepository.delete(order);
+    }
 }
 
