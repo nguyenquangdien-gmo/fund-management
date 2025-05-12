@@ -1,23 +1,23 @@
-2025-05-07 08:22:00 [main] INFO  c.h.f.FundManagementApplication - Starting FundManagementApplication using Java 17.0.12 with PID 22368 (D:\week_6\fund_management\target\classes started by huybq in D:\week_6\fund_management)
-2025-05-07 08:22:00 [main] DEBUG c.h.f.FundManagementApplication - Running with Spring Boot v3.4.3, Spring v6.2.3
-2025-05-07 08:22:00 [main] INFO  c.h.f.FundManagementApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-07 08:22:04 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-07 08:22:04 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 497 ms. Found 27 JPA repository interfaces.
-2025-05-07 08:22:07 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
-2025-05-07 08:22:07 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-07 08:22:07 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.36]
-2025-05-07 08:22:07 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-07 08:22:07 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 6724 ms
-2025-05-07 08:22:08 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-07 08:22:08 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.8.Final
-2025-05-07 08:22:08 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-07 08:22:09 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-07 08:22:09 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-07 08:22:09 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1f7557fe
-2025-05-07 08:22:09 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-07 08:22:10 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-07 08:22:10 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-07 08:22:10 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+2025-05-12 08:19:54 [main] INFO  c.h.f.FundManagementApplication - Starting FundManagementApplication using Java 17.0.12 with PID 13124 (D:\Fund_management\Fun-API\fund-management\target\classes started by huybq in D:\Fund_management\Fun-API\fund-management)
+2025-05-12 08:19:54 [main] DEBUG c.h.f.FundManagementApplication - Running with Spring Boot v3.4.3, Spring v6.2.3
+2025-05-12 08:19:54 [main] INFO  c.h.f.FundManagementApplication - No active profile set, falling back to 1 default profile: "default"
+2025-05-12 08:19:55 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-12 08:19:55 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 218 ms. Found 27 JPA repository interfaces.
+2025-05-12 08:19:56 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-05-12 08:19:56 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-12 08:19:56 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.36]
+2025-05-12 08:19:56 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-12 08:19:56 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2262 ms
+2025-05-12 08:19:56 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-12 08:19:56 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@58583a2d
+2025-05-12 08:19:56 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-12 08:19:57 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-12 08:19:57 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.8.Final
+2025-05-12 08:19:57 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-05-12 08:19:58 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-05-12 08:19:58 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-05-12 08:19:58 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-05-12 08:19:58 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 8.0
@@ -25,369 +25,41 @@
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2025-05-07 08:22:13 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-07 08:22:43 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-07 08:22:44 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-07 08:22:48 [main] DEBUG c.h.f.c.jwt.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-07 08:22:48 [main] INFO  o.s.s.c.a.a.c.InitializeAuthenticationProviderBeanManagerConfigurer$InitializeAuthenticationProviderManagerConfigurer - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
-2025-05-07 08:22:48 [main] WARN  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
-2025-05-07 08:22:54 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'googleDriveController' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\controller\GoogleDriveController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'googleDriveService' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\service\GoogleDriveService.class]: Unsatisfied dependency expressed through constructor parameter 4: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-2025-05-07 08:22:54 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-05-07 08:22:54 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2025-05-07 08:22:54 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
-2025-05-07 08:22:54 [main] INFO  o.a.catalina.core.StandardService - Stopping service [Tomcat]
-2025-05-07 08:22:54 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
+2025-05-12 08:19:59 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-12 08:19:59 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-05-12 08:19:59 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-12 08:20:00 [main] DEBUG c.h.f.c.jwt.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2025-05-12 08:20:00 [main] INFO  o.s.s.c.a.a.c.InitializeAuthenticationProviderBeanManagerConfigurer$InitializeAuthenticationProviderManagerConfigurer - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2025-05-12 08:20:00 [main] WARN  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2025-05-12 08:20:03 [main] INFO  org.quartz.impl.StdSchedulerFactory - Using default implementation for ThreadExecutor
+2025-05-12 08:20:03 [main] INFO  o.quartz.core.SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+2025-05-12 08:20:03 [main] INFO  org.quartz.core.QuartzScheduler - Quartz Scheduler v.2.3.2 created.
+2025-05-12 08:20:03 [main] INFO  o.s.s.quartz.LocalDataSourceJobStore - Using db table-based data access locking (synchronization).
+2025-05-12 08:20:03 [main] INFO  o.s.s.quartz.LocalDataSourceJobStore - JobStoreCMT initialized.
+2025-05-12 08:20:03 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.3.2) 'schedulerFactoryBean' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is not clustered.
 
-Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2025-05-07 08:22:54 [main] ERROR o.s.boot.SpringApplication - Application run failed
-org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'googleDriveController' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\controller\GoogleDriveController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'googleDriveService' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\service\GoogleDriveService.class]: Unsatisfied dependency expressed through constructor parameter 4: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804)
-	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1381)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1218)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:563)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339)
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:346)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1155)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1121)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1056)
-	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:987)
-	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627)
-	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
-	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752)
-	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361)
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350)
-	at com.huybq.fund_management.FundManagementApplication.main(FundManagementApplication.java:12)
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'googleDriveService' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\service\GoogleDriveService.class]: Unsatisfied dependency expressed through constructor parameter 4: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804)
-	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1381)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1218)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:563)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339)
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:346)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202)
-	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1664)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1552)
-	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913)
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-	... 21 common frames omitted
-Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:657)
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:489)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1361)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1191)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:563)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339)
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:346)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1606)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1552)
-	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913)
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-	... 35 common frames omitted
-Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:199)
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:88)
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:168)
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653)
-	... 48 common frames omitted
-Caused by: java.io.FileNotFoundException: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.core.io.ClassPathResource.getInputStream(ClassPathResource.java:215)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig.driveService(GoogleServiceAccountConfig.java:34)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig$$SpringCGLIB$$0.CGLIB$driveService$0(<generated>)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig$$SpringCGLIB$$FastClass$$1.invoke(<generated>)
-	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:258)
-	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:372)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig$$SpringCGLIB$$0.driveService(<generated>)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:171)
-	... 51 common frames omitted
-2025-05-07 08:24:30 [main] INFO  c.h.f.FundManagementApplication - Starting FundManagementApplication using Java 17.0.12 with PID 4476 (D:\week_6\fund_management\target\classes started by huybq in D:\week_6\fund_management)
-2025-05-07 08:24:30 [main] DEBUG c.h.f.FundManagementApplication - Running with Spring Boot v3.4.3, Spring v6.2.3
-2025-05-07 08:24:30 [main] INFO  c.h.f.FundManagementApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-07 08:24:34 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-07 08:24:35 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 515 ms. Found 27 JPA repository interfaces.
-2025-05-07 08:24:37 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
-2025-05-07 08:24:37 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-07 08:24:37 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.36]
-2025-05-07 08:24:37 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-07 08:24:37 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 6895 ms
-2025-05-07 08:24:37 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-07 08:24:37 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.8.Final
-2025-05-07 08:24:37 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-07 08:24:38 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-07 08:24:38 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-07 08:24:38 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6a562255
-2025-05-07 08:24:38 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-07 08:24:38 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-07 08:24:38 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-07 08:24:39 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
-	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
-	Database driver: undefined/unknown
-	Database version: 8.0
-	Autocommit mode: undefined/unknown
-	Isolation level: undefined/unknown
-	Minimum pool size: undefined/unknown
-	Maximum pool size: undefined/unknown
-2025-05-07 08:24:42 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-07 08:24:42 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-07 08:24:42 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-07 08:24:44 [main] DEBUG c.h.f.c.jwt.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-07 08:24:44 [main] INFO  o.s.s.c.a.a.c.InitializeAuthenticationProviderBeanManagerConfigurer$InitializeAuthenticationProviderManagerConfigurer - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
-2025-05-07 08:24:44 [main] WARN  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
-2025-05-07 08:24:46 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'googleDriveController' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\controller\GoogleDriveController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'googleDriveService' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\service\GoogleDriveService.class]: Unsatisfied dependency expressed through constructor parameter 4: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-2025-05-07 08:24:46 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-05-07 08:24:46 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2025-05-07 08:24:46 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
-2025-05-07 08:24:46 [main] INFO  o.a.catalina.core.StandardService - Stopping service [Tomcat]
-2025-05-07 08:24:46 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
-
-Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2025-05-07 08:24:46 [main] ERROR o.s.boot.SpringApplication - Application run failed
-org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'googleDriveController' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\controller\GoogleDriveController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'googleDriveService' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\service\GoogleDriveService.class]: Unsatisfied dependency expressed through constructor parameter 4: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804)
-	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1381)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1218)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:563)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339)
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:346)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1155)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1121)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1056)
-	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:987)
-	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627)
-	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
-	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752)
-	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361)
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350)
-	at com.huybq.fund_management.FundManagementApplication.main(FundManagementApplication.java:12)
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'googleDriveService' defined in file [D:\week_6\fund_management\target\classes\com\huybq\fund_management\domain\ggdrive\service\GoogleDriveService.class]: Unsatisfied dependency expressed through constructor parameter 4: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804)
-	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1381)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1218)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:563)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339)
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:346)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202)
-	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1664)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1552)
-	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913)
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-	... 21 common frames omitted
-Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'driveService' defined in class path resource [com/huybq/fund_management/domain/ggdrive/config/GoogleServiceAccountConfig.class]: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:657)
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:489)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1361)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1191)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:563)
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339)
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:346)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337)
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1606)
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1552)
-	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913)
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-	... 35 common frames omitted
-Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.api.services.drive.Drive]: Factory method 'driveService' threw exception with message: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:199)
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:88)
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:168)
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653)
-	... 48 common frames omitted
-Caused by: java.io.FileNotFoundException: class path resource [keys/key.json] cannot be opened because it does not exist
-	at org.springframework.core.io.ClassPathResource.getInputStream(ClassPathResource.java:215)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig.driveService(GoogleServiceAccountConfig.java:34)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig$$SpringCGLIB$$0.CGLIB$driveService$0(<generated>)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig$$SpringCGLIB$$FastClass$$1.invoke(<generated>)
-	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:258)
-	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:372)
-	at com.huybq.fund_management.domain.ggdrive.config.GoogleServiceAccountConfig$$SpringCGLIB$$0.driveService(<generated>)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:171)
-	... 51 common frames omitted
-2025-05-07 08:38:24 [main] INFO  c.h.f.FundManagementApplication - Starting FundManagementApplication using Java 17.0.12 with PID 29196 (D:\week_6\fund_management\target\classes started by huybq in D:\week_6\fund_management)
-2025-05-07 08:38:24 [main] DEBUG c.h.f.FundManagementApplication - Running with Spring Boot v3.4.3, Spring v6.2.3
-2025-05-07 08:38:24 [main] INFO  c.h.f.FundManagementApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-07 08:38:26 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-07 08:38:26 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 130 ms. Found 27 JPA repository interfaces.
-2025-05-07 08:38:27 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
-2025-05-07 08:38:27 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-07 08:38:27 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.36]
-2025-05-07 08:38:27 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-07 08:38:27 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2725 ms
-2025-05-07 08:38:27 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-07 08:38:27 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.8.Final
-2025-05-07 08:38:27 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-07 08:38:28 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-07 08:38:28 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-07 08:38:28 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1958524b
-2025-05-07 08:38:28 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-07 08:38:28 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-07 08:38:28 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-07 08:38:28 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
-	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
-	Database driver: undefined/unknown
-	Database version: 8.0
-	Autocommit mode: undefined/unknown
-	Isolation level: undefined/unknown
-	Minimum pool size: undefined/unknown
-	Maximum pool size: undefined/unknown
-2025-05-07 08:38:30 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-07 08:38:30 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-07 08:38:31 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-07 08:38:32 [main] DEBUG c.h.f.c.jwt.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-07 08:38:32 [main] INFO  o.s.s.c.a.a.c.InitializeAuthenticationProviderBeanManagerConfigurer$InitializeAuthenticationProviderManagerConfigurer - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
-2025-05-07 08:38:32 [main] WARN  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
-2025-05-07 08:38:36 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-05-07 08:38:36 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
-2025-05-07 08:38:36 [main] INFO  o.s.v.b.OptionalValidatorFactoryBean - Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
-2025-05-07 08:38:37 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
-2025-05-07 08:38:37 [main] INFO  c.h.f.FundManagementApplication - Started FundManagementApplication in 13.876 seconds (process running for 14.633)
-2025-05-07 08:38:37 [main] INFO  c.h.f.d.g.c.GoogleServiceAccountInitializer - Initializing Google Service Account storage location
-2025-05-07 08:38:38 [RMI TCP Connection(4)-10.1.14.70] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-05-07 08:38:38 [RMI TCP Connection(4)-10.1.14.70] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2025-05-07 08:38:38 [RMI TCP Connection(4)-10.1.14.70] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
-2025-05-07 08:39:24 [http-nio-8080-exec-2] ERROR o.a.c.c.C.[.[.[.[dispatcherServlet] - Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception
-io.jsonwebtoken.ExpiredJwtException: JWT expired 77718945 milliseconds ago at 2025-05-06T04:04:06.000Z. Current time: 2025-05-07T01:39:24.945Z. Allowed clock skew: 0 milliseconds.
-	at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:682)
-	at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:362)
-	at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:94)
-	at io.jsonwebtoken.impl.io.AbstractParser.parse(AbstractParser.java:36)
-	at io.jsonwebtoken.impl.io.AbstractParser.parse(AbstractParser.java:29)
-	at io.jsonwebtoken.impl.DefaultJwtParser.parseSignedClaims(DefaultJwtParser.java:821)
-	at io.jsonwebtoken.impl.DefaultJwtParser.parseClaimsJws(DefaultJwtParser.java:797)
-	at com.huybq.fund_management.domain.token.JwtService.extractAllClaims(JwtService.java:89)
-	at com.huybq.fund_management.domain.token.JwtService.extractClaim(JwtService.java:48)
-	at com.huybq.fund_management.domain.token.JwtService.extractUsername(JwtService.java:40)
-	at com.huybq.fund_management.config.jwt.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:38)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
-	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
-	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
-	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
-	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
-	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
-	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
-	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
-	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
-	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243)
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
-	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
-	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238)
-	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
-	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:114)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1743)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:842)
-2025-05-07 08:39:41 [http-nio-8080-exec-10] INFO  c.h.f.d.g.c.GoogleDriveController - Getting all folders for user: huybq@runsystem.net
-2025-05-07 08:39:41 [http-nio-8080-exec-8] INFO  c.h.f.d.g.c.GoogleDriveController - Getting bookmarks for user huybq@runsystem.net
-2025-05-07 08:39:49 [http-nio-8080-exec-6] INFO  c.h.f.d.g.c.UserGoogleServiceAccountController - Getting all service accounts for user: huybq@runsystem.net
-2025-05-07 08:45:11 [http-nio-8080-exec-3] INFO  c.h.f.d.g.c.UserGoogleServiceAccountController - Configuring service account Test for user: huybq@runsystem.net
-2025-05-07 08:45:12 [http-nio-8080-exec-3] INFO  c.h.f.d.g.s.UserGoogleServiceAccountService - Successfully connected to Google Drive as: fund-management@animated-alloy-458206-s4.iam.gserviceaccount.com
-2025-05-07 08:45:12 [http-nio-8080-exec-8] INFO  c.h.f.d.g.c.UserGoogleServiceAccountController - Getting all service accounts for user: huybq@runsystem.net
-2025-05-07 08:45:22 [http-nio-8080-exec-9] INFO  c.h.f.d.g.c.GoogleDriveController - Getting all folders for user: huybq@runsystem.net
-2025-05-07 08:45:22 [http-nio-8080-exec-7] INFO  c.h.f.d.g.c.GoogleDriveController - Getting bookmarks for user huybq@runsystem.net
-2025-05-07 08:45:29 [http-nio-8080-exec-6] INFO  c.h.f.d.g.c.GoogleDriveController - Creating new folder: huy using account default
-2025-05-07 08:45:32 [http-nio-8080-exec-5] INFO  c.h.f.d.g.c.GoogleDriveController - Getting all folders for user: huybq@runsystem.net
-2025-05-07 08:45:32 [http-nio-8080-exec-3] INFO  c.h.f.d.g.c.GoogleDriveController - Listing contents of folder 1 using account default
-2025-05-07 08:45:33 [http-nio-8080-exec-10] INFO  c.h.f.d.g.c.GoogleDriveController - Listing contents of folder 1 using account default
-2025-05-07 08:45:52 [http-nio-8080-exec-9] INFO  c.h.f.d.g.c.GoogleDriveController - Uploading file New Tab.html to folder 1 using account default
-2025-05-07 08:45:56 [http-nio-8080-exec-4] INFO  c.h.f.d.g.c.GoogleDriveController - Listing contents of folder 1 using account default
-2025-05-07 08:46:03 [http-nio-8080-exec-5] INFO  c.h.f.d.g.c.GoogleDriveController - Creating bookmark 'New Tab.html' for googleId: '1B8q78P5m0J-KuHb2v0nFf-0xxn8a2MER', type: 'FILE', using account: default
-2025-05-07 08:46:03 [http-nio-8080-exec-3] INFO  c.h.f.d.g.c.GoogleDriveController - Getting bookmarks for user huybq@runsystem.net
-2025-05-07 08:46:05 [http-nio-8080-exec-10] INFO  c.h.f.d.g.c.GoogleDriveController - Deleting bookmark 1
-2025-05-07 08:46:05 [http-nio-8080-exec-1] INFO  c.h.f.d.g.c.GoogleDriveController - Getting bookmarks for user huybq@runsystem.net
-2025-05-07 09:00:55 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
-2025-05-07 09:00:55 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
-2025-05-07 09:00:55 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-05-07 09:00:55 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2025-05-07 09:00:55 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-05-12 08:20:03 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler 'schedulerFactoryBean' initialized from an externally provided properties instance.
+2025-05-12 08:20:03 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler version: 2.3.2
+2025-05-12 08:20:03 [main] INFO  org.quartz.core.QuartzScheduler - JobFactory set to: com.huybq.fund_management.domain.schedule.quartz.config.AutowiringSpringBeanJobFactory@61ff7012
+2025-05-12 08:20:04 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-05-12 08:20:04 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2025-05-12 08:20:05 [main] INFO  o.s.v.b.OptionalValidatorFactoryBean - Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-05-12 08:20:05 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
+2025-05-12 08:20:05 [main] INFO  o.s.s.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2025-05-12 08:20:05 [main] INFO  o.s.s.quartz.LocalDataSourceJobStore - Freed 0 triggers from 'acquired' / 'blocked' state.
+2025-05-12 08:20:05 [main] INFO  o.s.s.quartz.LocalDataSourceJobStore - Recovering 0 jobs that were in-progress at the time of the last shut-down.
+2025-05-12 08:20:05 [main] INFO  o.s.s.quartz.LocalDataSourceJobStore - Recovery complete.
+2025-05-12 08:20:05 [main] INFO  o.s.s.quartz.LocalDataSourceJobStore - Removed 0 'complete' triggers.
+2025-05-12 08:20:05 [main] INFO  o.s.s.quartz.LocalDataSourceJobStore - Removed 0 stale fired job entries.
+2025-05-12 08:20:05 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler schedulerFactoryBean_$_NON_CLUSTERED started.
+2025-05-12 08:20:05 [main] INFO  c.h.f.FundManagementApplication - Started FundManagementApplication in 12.38 seconds (process running for 13.035)
+2025-05-12 08:20:06 [main] INFO  c.h.f.d.g.c.GoogleServiceAccountInitializer - Initializing Google Service Account storage location
+2025-05-12 08:20:06 [RMI TCP Connection(2)-10.1.14.70] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-12 08:20:06 [RMI TCP Connection(2)-10.1.14.70] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-05-12 08:20:06 [RMI TCP Connection(2)-10.1.14.70] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 4 ms
