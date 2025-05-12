@@ -1,6 +1,5 @@
 package com.huybq.fund_management.domain.schedule;
 
-import com.huybq.fund_management.domain.schedule.quartz.manager.QuartzScheduleManager;
 import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
