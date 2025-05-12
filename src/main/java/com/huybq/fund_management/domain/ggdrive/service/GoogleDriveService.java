@@ -1,47 +1,35 @@
 package com.huybq.fund_management.domain.ggdrive.service;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.InputStreamContent;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.FileList;
 import com.google.api.services.drive.model.Permission;
 import com.huybq.fund_management.domain.ggdrive.dto.DriveBookmarkResponseDTO;
 import com.huybq.fund_management.domain.ggdrive.dto.DriveFileResponseDTO;
 import com.huybq.fund_management.domain.ggdrive.dto.DriveFolderResponseDTO;
+import com.huybq.fund_management.domain.ggdrive.entity.DriveBookmark;
 import com.huybq.fund_management.domain.ggdrive.entity.DriveFile;
 import com.huybq.fund_management.domain.ggdrive.entity.DriveFolder;
-import com.huybq.fund_management.domain.ggdrive.entity.DriveBookmark;
-import com.huybq.fund_management.domain.ggdrive.exception.FileNotFoundException;
-import com.huybq.fund_management.domain.ggdrive.exception.FolderNotFoundException;
-import com.huybq.fund_management.domain.ggdrive.exception.GoogleDriveException;
-import com.huybq.fund_management.domain.ggdrive.exception.PermissionDeniedException;
-import com.huybq.fund_management.domain.ggdrive.exception.FileAlreadyExistsException;
-import com.huybq.fund_management.domain.ggdrive.exception.FolderAlreadyExistsException;
+import com.huybq.fund_management.domain.ggdrive.exception.*;
 import com.huybq.fund_management.domain.ggdrive.mapper.DriveMapper;
+import com.huybq.fund_management.domain.ggdrive.repository.DriveBookmarkRepository;
 import com.huybq.fund_management.domain.ggdrive.repository.DriveFileRepository;
 import com.huybq.fund_management.domain.ggdrive.repository.DriveFolderRepository;
-import com.huybq.fund_management.domain.ggdrive.repository.DriveBookmarkRepository;
 import com.huybq.fund_management.domain.user.User;
 import com.huybq.fund_management.domain.user.UserRepository;
-import com.huybq.fund_management.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -70,22 +58,11 @@ public class GoogleDriveService {
 
     private final DriveMapper driveMapper;
 
-
-    /**
-     * Uploads a file to the specified folder using the user's default service
-     * account
-     */
-    @Transactional
-    public DriveFileResponseDTO uploadFile(Long folderId, Long userId, MultipartFile file)
-            throws IOException {
-        return uploadFileWithAccount(folderId, userId, null, file);
-    }
-
     /**
      * Uploads a file to the specified folder using a specific service account
      */
     @Transactional
-    public DriveFileResponseDTO uploadFileWithAccount(Long folderId, Long userId, Long accountId, MultipartFile file)
+    public DriveFileResponseDTO uploadFile(Long folderId, Long userId, MultipartFile file)
             throws IOException {
         DriveFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
@@ -104,9 +81,7 @@ public class GoogleDriveService {
 
         try {
             // Get Drive service for the user (default or specific account)
-            Drive driveService = accountId != null
-                    ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
-                    : driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
 
             File uploadedFile = driveService.files().create(fileMetadata,
                     new InputStreamContent(file.getContentType(), new ByteArrayInputStream(file.getBytes())))
@@ -170,52 +145,10 @@ public class GoogleDriveService {
     }
 
     /**
-     * Lists folder contents using user's default service account
-     */
-    @Transactional(readOnly = true)
-    public Map<String, Object> listFolderContents(Long folderId, Long userId) {
-        return listFolderContentsWithAccount(folderId, userId, null);
-    }
-
-    /**
-     * Lists folder contents using a specific service account
-     */
-    @Transactional(readOnly = true)
-    public Map<String, Object> listFolderContentsWithAccount(Long folderId, Long userId, Long accountId) {
-        DriveFolder folder = folderRepository.findById(folderId)
-                .orElseThrow(() -> new RuntimeException("Folder not found"));
-
-        // Get Drive service for the user (default or specific account)
-        Drive driveService = accountId != null
-                ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
-                : driveServiceFactory.getDriveService(userId);
-        Map<String, Object> result = new HashMap<>();
-        result.put("currentFolder", driveMapper.toDriveFolderResponseDTO(folder));
-        result.put("subFolders", folderRepository.findByParentFolderId(folder.getId())
-                .stream()
-                .map(driveMapper::toDriveFolderResponseDTO)
-                .collect(Collectors.toList()));
-        result.put("files", fileRepository.findByFolder(folder)
-                .stream()
-                .map(driveMapper::toDriveFileResponseDTO)
-                .collect(Collectors.toList()));
-
-        return result;
-    }
-
-    /**
-     * Deletes a file using the user's default service account
-     */
-    @Transactional
-    public void deleteFile(Long fileId, User user) throws IOException {
-        deleteFileWithAccount(fileId, user, null);
-    }
-
-    /**
      * Deletes a file using a specific service account
      */
     @Transactional
-    public void deleteFileWithAccount(Long fileId, User user, Long accountId) throws IOException {
+    public void deleteFile(Long fileId, User user) throws IOException {
         DriveFile driveFile = fileRepository.findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found"));
 
@@ -226,9 +159,7 @@ public class GoogleDriveService {
 
         try {
             // Get Drive service for the user (default or specific account)
-            Drive driveService = accountId != null
-                    ? driveServiceFactory.getDriveServiceForAccount(user.getId(), accountId)
-                    : driveServiceFactory.getDriveService(user.getId());
+            Drive driveService =driveServiceFactory.getDriveService();
 
             driveService.files().delete(driveFile.getGoogleFileId()).execute();
             fileRepository.delete(driveFile);
@@ -264,7 +195,7 @@ public class GoogleDriveService {
 
         // Thử lấy webViewLink chính xác từ Google API nếu có thể
         try {
-            Drive driveService = driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
             File file = driveService.files()
                     .get(googleId)
                     .setFields("webViewLink")
@@ -341,18 +272,10 @@ public class GoogleDriveService {
     }
 
     /**
-     * Creates a folder using the user's default service account
-     */
-    @Transactional
-    public DriveFolderResponseDTO createFolder(String name, String parentFolderId, Long userId) {
-        return createFolderWithAccount(name, parentFolderId, userId, null);
-    }
-
-    /**
      * Creates a folder using a specific service account
      */
     @Transactional
-    public DriveFolderResponseDTO createFolderWithAccount(String name, String parentFolderId, Long userId, Long accountId) {
+    public DriveFolderResponseDTO createFolder(String name, String parentFolderId, Long userId) {
 
         try {
             User user = userRepository.findById(userId)
@@ -373,9 +296,7 @@ public class GoogleDriveService {
             }
 
             // Get Drive service for the user (default or specific account)
-            Drive driveService = accountId != null
-                    ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
-                    : driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
 
             File fileMetadata = new File();
             fileMetadata.setName(name);
@@ -387,9 +308,7 @@ public class GoogleDriveService {
                 fileMetadata.setParents(Collections.singletonList(parentFolder.getGoogleFolderId()));
             } else {
                 // Get the user's root folder ID (default or specific account)
-                String rootFolderId = accountId != null
-                        ? driveServiceFactory.getRootFolderIdForAccount(userId, accountId)
-                        : driveServiceFactory.getRootFolderId(userId);
+                String rootFolderId = driveServiceFactory.getRootFolderId();
                 fileMetadata.setParents(Collections.singletonList(rootFolderId));
             }
 
@@ -434,37 +353,33 @@ public class GoogleDriveService {
     }
 
     @Transactional(readOnly = true)
-    public List<DriveFolderResponseDTO> getAllFolders(Long userId) {
-        List<DriveFolder> folders = folderRepository.findByCreatedBy_Id(userId);
+    public List<DriveFolderResponseDTO> getAllFolders() {
+        List<DriveFolder> folders = folderRepository.findAll();
         return folders.stream()
                 .map(driveMapper::toDriveFolderResponseDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public DriveFolderResponseDTO getFolderById(Long folderId, Long userId) {
+    public DriveFolderResponseDTO getFolderById(Long folderId) {
         DriveFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
-
-        if (!folder.getCreatedBy().getId().equals(userId)) {
-            throw new RuntimeException("You don't have permission to access this folder");
-        }
 
         return driveMapper.toDriveFolderResponseDTO(folder);
     }
 
     @Transactional
-    public DriveFolderResponseDTO updateFolder(Long folderId, String name, Long userId) {
+    public DriveFolderResponseDTO updateFolder(Long folderId, String name, User user) {
         DriveFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
-        if (!folder.getCreatedBy().getId().equals(userId)) {
-            throw new RuntimeException("You don't have permission to update this folder");
+        if (!user.getRole().getName().equals("ADMIN")) {
+            throw new RuntimeException("Only admin can delete folders");
         }
 
         try {
             // Get Drive service for the user
-            Drive driveService = driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
 
             File fileMetadata = new File();
             fileMetadata.setName(name);
@@ -495,7 +410,7 @@ public class GoogleDriveService {
 
         try {
             // Get Drive service for the user
-            Drive driveService = driveServiceFactory.getDriveService(user.getId());
+            Drive driveService = driveServiceFactory.getDriveService();
 
             // Delete all files in the folder
             List<DriveFile> files = fileRepository.findByFolder(folder);
@@ -534,7 +449,7 @@ public class GoogleDriveService {
             }
 
             // Get Drive service for the user
-            Drive driveService = driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
 
             // Update in Google Drive
             File fileMetadata = new File();
@@ -577,7 +492,7 @@ public class GoogleDriveService {
             }
 
             // Get Drive service for the user
-            Drive driveService = driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
 
             // Update in Google Drive
             File fileMetadata = new File();
@@ -625,7 +540,7 @@ public class GoogleDriveService {
             }
 
             // Get Drive service for the user
-            Drive driveService = driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
 
             File fileMetadata = new File();
             fileMetadata.setName(newName);
@@ -658,7 +573,7 @@ public class GoogleDriveService {
             }
 
             // Get Drive service for the user
-            Drive driveService = driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
             File fileMetadata = new File();
             fileMetadata.setName(newName);
             File updatedFolder = driveService.files().update(folder.getGoogleFolderId(), fileMetadata)
@@ -721,34 +636,15 @@ public class GoogleDriveService {
     }
 
     /**
-     * Downloads a file from Google Drive using the user's default service
-     * account
-     */
-    @Transactional(readOnly = true)
-    public Resource downloadFile(Long fileId, Long userId) throws IOException {
-        return downloadFileWithAccount(fileId, userId, null);
-    }
-
-    /**
-     * Downloads a file from Google Drive using a specific service account
-     */
-    @Transactional(readOnly = true)
-    public Resource downloadFile(Long fileId, Long userId, Long accountId) throws IOException {
-        return downloadFileWithAccount(fileId, userId, accountId);
-    }
-
-    /**
      * Helper method to download a file with a specific account
      */
-    private Resource downloadFileWithAccount(Long fileId, Long userId, Long accountId) throws IOException {
+    public Resource downloadFile(Long fileId) {
         DriveFile driveFile = fileRepository.findById(fileId)
                 .orElseThrow(() -> new FileNotFoundException(fileId));
 
         try {
             // Get Drive service for the user (default or specific account)
-            Drive driveService = accountId != null
-                    ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
-                    : driveServiceFactory.getDriveService(userId);
+            Drive driveService = driveServiceFactory.getDriveService();
 
             // Download the file content
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -763,34 +659,15 @@ public class GoogleDriveService {
     }
 
     /**
-     * Downloads a folder as a zip archive using the user's default service
-     * account
-     */
-    @Transactional(readOnly = true)
-    public Resource downloadFolderAsZip(Long folderId, Long userId) throws IOException {
-        return downloadFolderAsZipWithAccount(folderId, userId, null);
-    }
-
-    /**
-     * Downloads a folder as a zip archive using a specific service account
-     */
-    @Transactional(readOnly = true)
-    public Resource downloadFolderAsZip(Long folderId, Long userId, Long accountId) throws IOException {
-        return downloadFolderAsZipWithAccount(folderId, userId, accountId);
-    }
-
-    /**
      * Helper method to download a folder as a zip archive with a specific
      * account
      */
-    private Resource downloadFolderAsZipWithAccount(Long folderId, Long userId, Long accountId) throws IOException {
+    public Resource downloadFolderAsZip(Long folderId) {
         DriveFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new FolderNotFoundException(folderId));
 
         // Get Drive service for the user (default or specific account)
-        Drive driveService = accountId != null
-                ? driveServiceFactory.getDriveServiceForAccount(userId, accountId)
-                : driveServiceFactory.getDriveService(userId);
+        Drive driveService = driveServiceFactory.getDriveService();
 
         ByteArrayOutputStream zipOutputStream = new ByteArrayOutputStream();
         try (java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(zipOutputStream)) {
@@ -883,7 +760,7 @@ public class GoogleDriveService {
         // Try to get the file/folder details to set the actual URL
         try {
             // Get Drive service for the user with specific account
-            Drive driveService = driveServiceFactory.getDriveServiceForAccount(userId, accountId);
+            Drive driveService = driveServiceFactory.getDriveServiceForAccount(accountId);
             File file = driveService.files()
                     .get(googleId)
                     .setFields("webViewLink")

@@ -23,9 +23,6 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -35,22 +32,21 @@ public class GoogleDriveServiceFactory {
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private final UserGoogleServiceAccountRepository serviceAccountRepository;
 
-    // Cache for Drive services to avoid recreating them for each request
-    private final Map<Long, Drive> driveServicesCache = new HashMap<>();
+    // Single cached instance of the Drive service for the default service account
+    private Drive defaultDriveService;
 
     /**
-     * Gets a Drive service for a user based on their default active service
-     * account Throws an exception if no service account is configured for the
-     * user
+     * Gets the Drive service using the default active service account
+     * This method is used by all members to upload files
      */
-    public Drive getDriveService(Long userId) {
+    public Drive getDriveService() {
         // Check cache first
-        if (driveServicesCache.containsKey(userId)) {
-            return driveServicesCache.get(userId);
+        if (defaultDriveService != null) {
+            return defaultDriveService;
         }
 
-        UserGoogleServiceAccount account = serviceAccountRepository.findByUserIdAndIsDefaultTrueAndIsActiveTrue(userId)
-                .orElseThrow(() -> new GoogleDriveException("No active default Google Service Account configured for this user. Please configure a service account first."));
+        UserGoogleServiceAccount account = serviceAccountRepository.findByIsDefaultTrueAndIsActiveTrue()
+                .orElseThrow(() -> new GoogleDriveException("No active default Google Service Account configured"));
 
         try {
             Drive driveService = createDriveService(
@@ -59,35 +55,25 @@ public class GoogleDriveServiceFactory {
             );
 
             // Update connection status
-            account.setConnectionStatus(UserGoogleServiceAccount.ConnectionStatus.CONNECTED);
-            account.setLastConnectionCheck(LocalDateTime.now());
-            account.setConnectionError(null);
-            serviceAccountRepository.save(account);
+            updateConnectionStatus(account, true, null);
 
             // Cache the service
-            driveServicesCache.put(userId, driveService);
+            defaultDriveService = driveService;
 
             return driveService;
         } catch (Exception e) {
-            log.error("Failed to create Drive service for user {}: {}", userId, e.getMessage());
-
-            // Update connection status
-            account.setConnectionStatus(UserGoogleServiceAccount.ConnectionStatus.FAILED);
-            account.setLastConnectionCheck(LocalDateTime.now());
-            account.setConnectionError(e.getMessage());
-            serviceAccountRepository.save(account);
-
+            log.error("Failed to create Drive service: {}", e.getMessage());
+            updateConnectionStatus(account, false, e.getMessage());
             throw new GoogleDriveException("Failed to connect to Google Drive: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Gets a Drive service for a specific service account of a user
+     * Gets a Drive service for a specific service account
+     * This may be used for administrative purposes
      */
-    public Drive getDriveServiceForAccount(Long userId, Long accountId) {
-        // For specific accounts, we don't use cache to ensure we get the latest 
-        // configuration directly from the database
-        UserGoogleServiceAccount account = serviceAccountRepository.findByIdAndUserId(accountId, userId)
+    public Drive getDriveServiceForAccount(Long accountId) {
+        UserGoogleServiceAccount account = serviceAccountRepository.findById(accountId)
                 .orElseThrow(() -> new GoogleDriveException("Service account not found"));
 
         if (!account.getIsActive()) {
@@ -100,53 +86,27 @@ public class GoogleDriveServiceFactory {
                     account.getApplicationName()
             );
 
-            // Update connection status
-            account.setConnectionStatus(UserGoogleServiceAccount.ConnectionStatus.CONNECTED);
-            account.setLastConnectionCheck(LocalDateTime.now());
-            account.setConnectionError(null);
-            serviceAccountRepository.save(account);
-
+            updateConnectionStatus(account, true, null);
             return driveService;
         } catch (Exception e) {
             log.error("Failed to create Drive service for account {}: {}", accountId, e.getMessage());
-
-            // Update connection status
-            account.setConnectionStatus(UserGoogleServiceAccount.ConnectionStatus.FAILED);
-            account.setLastConnectionCheck(LocalDateTime.now());
-            account.setConnectionError(e.getMessage());
-            serviceAccountRepository.save(account);
-
+            updateConnectionStatus(account, false, e.getMessage());
             throw new GoogleDriveException("Failed to connect to Google Drive: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Gets the root folder ID for a user's default service account
+     * Gets the root folder ID for the default service account
      */
-    public String getRootFolderId(Long userId) {
-        UserGoogleServiceAccount account = serviceAccountRepository.findByUserIdAndIsDefaultTrueAndIsActiveTrue(userId)
-                .orElseThrow(() -> new GoogleDriveException("No active default Google Service Account configured for this user. Please configure a service account first."));
+    public String getRootFolderId() {
+        UserGoogleServiceAccount account = serviceAccountRepository.findByIsDefaultTrueAndIsActiveTrue()
+                .orElseThrow(() -> new GoogleDriveException("No active default Google Service Account configured"));
 
         return account.getRootFolderId();
     }
 
     /**
-     * Gets the root folder ID for a specific service account
-     */
-    public String getRootFolderIdForAccount(Long userId, Long accountId) {
-        UserGoogleServiceAccount account = serviceAccountRepository.findByIdAndUserId(accountId, userId)
-                .orElseThrow(() -> new GoogleDriveException("Service account not found"));
-
-        if (!account.getIsActive()) {
-            throw new GoogleDriveException("Service account is not active");
-        }
-
-        return account.getRootFolderId();
-    }
-
-    /**
-     * Creates a Drive service using the provided credentials file and
-     * application name
+     * Creates a Drive service using the provided credentials file and application name
      */
     private Drive createDriveService(String credentialsFilePath, String applicationName) {
         try {
@@ -169,15 +129,24 @@ public class GoogleDriveServiceFactory {
     }
 
     /**
-     * Invalidates the cached Drive service for a user
+     * Update service account connection status
      */
-    public void invalidateCache(Long userId) {
-        driveServicesCache.remove(userId);
+    private void updateConnectionStatus(UserGoogleServiceAccount account, boolean isConnected, String errorMessage) {
+        account.setConnectionStatus(isConnected ?
+                UserGoogleServiceAccount.ConnectionStatus.CONNECTED :
+                UserGoogleServiceAccount.ConnectionStatus.FAILED);
+        account.setLastConnectionCheck(LocalDateTime.now());
+        account.setConnectionError(errorMessage);
+        serviceAccountRepository.save(account);
     }
 
     /**
-     * Utility class for creating a test Drive service
+     * Invalidates the cached Drive service
      */
+    public void invalidateCache() {
+        defaultDriveService = null;
+    }
+
     public static class TestDriveBuilder {
 
         private final String credentialsFilePath;

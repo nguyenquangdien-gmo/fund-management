@@ -57,6 +57,7 @@ public class AdminCreateService {
                     request,
                     new ParameterizedTypeReference<ApiResponse<UserDto>>() {}
             );
+            System.out.println(response.getBody());
 
             if (response.getBody() != null && response.getBody().isSuccess()) {
                 return response.getBody();

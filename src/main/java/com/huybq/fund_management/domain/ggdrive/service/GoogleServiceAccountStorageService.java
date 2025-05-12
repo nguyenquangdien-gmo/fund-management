@@ -18,6 +18,9 @@ public class GoogleServiceAccountStorageService {
     @Value("${google.service.account.storage.location:${user.home}/fund-management/service-accounts}")
     private String storageLocation;
 
+    /**
+     * Initialize the storage location for service account credentials
+     */
     public void init() {
         try {
             Path storagePath = Paths.get(storageLocation);
@@ -33,39 +36,10 @@ public class GoogleServiceAccountStorageService {
      * Stores a service account credentials file
      *
      * @param file The credentials file to store
-     * @param userId The user ID
-     * @return The path to the stored file
-     */
-    public String storeCredentialsFile(MultipartFile file, Long userId) {
-        try {
-            // Validate file is JSON
-            if (file.getContentType() == null || !file.getContentType().equals("application/json")) {
-                throw new GoogleDriveException("Only JSON files are allowed for service account credentials");
-            }
-
-            // Create unique filename (userId_UUID.json)
-            String filename = userId + "_" + UUID.randomUUID().toString() + ".json";
-            Path targetPath = Paths.get(storageLocation).resolve(filename);
-
-            // Copy the file to the target location
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-            return targetPath.toString();
-        } catch (IOException e) {
-            throw new GoogleDriveException("Failed to store credentials file", e);
-        }
-    }
-
-    /**
-     * Stores a service account credentials file with account name included in
-     * filename
-     *
-     * @param file The credentials file to store
-     * @param userId The user ID
      * @param accountName The account name for better identification
      * @return The path to the stored file
      */
-    public String storeCredentialsFile(MultipartFile file, Long userId, String accountName) {
+    public String storeCredentialsFile(MultipartFile file, String accountName) {
         try {
             // Validate file is JSON
             if (file.getContentType() == null || !file.getContentType().equals("application/json")) {
@@ -76,28 +50,23 @@ public class GoogleServiceAccountStorageService {
             String sanitizedName = accountName.replaceAll("[^a-zA-Z0-9_-]", "_");
 
             // Create unique filename with account name for better identification
-            // Format: userId_accountName_UUID.json
-            String filename = userId + "_" + sanitizedName + "_" + UUID.randomUUID().toString() + ".json";
-            Path targetPath = Paths.get(storageLocation).resolve(filename);
-
-            // Create user directory if it doesn't exist
-            Path userDir = Paths.get(storageLocation).resolve(userId.toString());
-            if (!Files.exists(userDir)) {
-                Files.createDirectories(userDir);
-            }
-
-            // Use user-specific directory for better organization
-            Path finalPath = userDir.resolve(filename);
+            String filename = sanitizedName + "_" + UUID.randomUUID().toString() + ".json";
 
             // Copy the file to the target location
-            Files.copy(file.getInputStream(), finalPath, StandardCopyOption.REPLACE_EXISTING);
+            Path targetPath = Paths.get(storageLocation).resolve(filename);
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            return finalPath.toString();
+            return targetPath.toString();
         } catch (IOException e) {
             throw new GoogleDriveException("Failed to store credentials file", e);
         }
     }
 
+    /**
+     * Delete a credentials file
+     *
+     * @param filePath The path to the credentials file
+     */
     public void deleteCredentialsFile(String filePath) {
         try {
             Path path = Paths.get(filePath);

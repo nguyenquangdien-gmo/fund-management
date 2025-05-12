@@ -42,7 +42,7 @@ public class AdminCreateController {
         Cookie cookie = new Cookie("AUTHTOKEN", token);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true); // Use in production with HTTPS
+        cookie.setSecure(true);
         response.addCookie(cookie);
     }
 
