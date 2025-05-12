@@ -43,12 +43,6 @@ public class AppConfig {
     }
 
     @Bean
-    @Primary
-    public TaskScheduler taskScheduler() {
-        return new ConcurrentTaskScheduler(); // Hoặc ThreadPoolTaskScheduler nếu muốn
-    }
-
-    @Bean
     public UserDetailsService userDetailsService() {
         return username -> repository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -76,7 +70,7 @@ public class AppConfig {
     @Bean
     public Dotenv dotenv() {
         return Dotenv.configure()
-                .ignoreIfMissing() // Không lỗi nếu không có file .env (tùy chọn)
+                .ignoreIfMissing()
                 .load();
     }
 }

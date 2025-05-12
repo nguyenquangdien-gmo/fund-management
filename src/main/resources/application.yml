@@ -40,7 +40,6 @@ spring:
       org.quartz.jobStore.tablePrefix: QRTZ_
       org.quartz.threadPool.threadCount: 10
 
-
 logging:
   level:
     root: INFO
@@ -81,6 +80,7 @@ management:
     web:
       exposure:
         include: health
+
 server:
   domain:
     url-v1: http://localhost:3000
@@ -95,9 +95,9 @@ server:
         same-site: strict
 chatops:
   api:
-    base-url:
-    token:
+    base-url: ${CHATOPS_URL}
+    token: ${CHATOPS_TOKEN}
 
 create-api:
-  base-url:
-  auth-header:
+  base-url: ${CREATE_API_URL}
+  auth-header: ${AUTH_HEADER}
