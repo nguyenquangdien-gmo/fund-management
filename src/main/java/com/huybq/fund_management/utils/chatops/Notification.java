@@ -68,6 +68,7 @@ public class Notification {
         }
     }
 
+    @Scheduled(cron = "0 0 8 * * ?", zone = "Asia/Ho_Chi_Minh")
     public void sendBirthdayAndAnniversaryNotifications() {
         LocalDate today = LocalDate.now();
 

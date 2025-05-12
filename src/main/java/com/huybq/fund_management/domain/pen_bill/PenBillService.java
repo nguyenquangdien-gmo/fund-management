@@ -201,6 +201,7 @@ public class PenBillService {
         return formatter.format(amount);
     }
 
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Ho_Chi_Minh")
     public void sendNotificationPenBillNew() {
         LocalDate now = LocalDate.now();
         int month = now.getMonthValue();

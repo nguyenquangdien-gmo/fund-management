@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final ScheduleMapper mapper;
-    private final QuartzScheduleManager scheduleManager;
+    private final ScheduleManager scheduleManager;
 
     public ScheduleResponse getSchedulesByType(String type) {
         Schedule schedule = scheduleRepository.findByType(Schedule.NotificationType.valueOf(type.toUpperCase())).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with type: " + type));
