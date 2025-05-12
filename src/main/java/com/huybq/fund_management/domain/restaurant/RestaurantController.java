@@ -40,10 +40,10 @@ public class RestaurantController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
-//        return restaurantService.deleteRestaurant(id)
-//                ? ResponseEntity.noContent().build()
-//                : ResponseEntity.notFound().build();
-//    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
+        return restaurantService.deleteRestaurant(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
+    }
 }
